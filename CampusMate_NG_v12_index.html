@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CampusMate NG — Supabase Student Portal</title>
+<style>
+:root{--n:#062b49;--g:#0a9f63;--bg:#f4f8f7;--mut:#718096;--line:#e2ebe7;--red:#c0392b}
+*{box-sizing:border-box}body{margin:0;background:#eaf1ef;font-family:Arial,sans-serif;color:#102a43}.app{max-width:430px;margin:auto;min-height:100vh;background:var(--bg);box-shadow:0 0 30px #0001}.hidden{display:none!important}
+header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}
+main{padding:15px 15px 90px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
+button{cursor:pointer}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px;z-index:5}.nav button{border:0;background:none;color:var(--mut);font-size:11px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}
+.course{display:flex;gap:12px;align-items:center;cursor:pointer}.badge{width:48px;height:48px;border-radius:12px;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center}.course h4{margin:0 0 4px;font-size:14px}.course p{margin:0;color:var(--mut);font-size:12px}.course b:last-child{margin-left:auto}
+.back{border:0;background:none;color:#fff;font-size:20px;margin-right:8px}.row{display:flex;align-items:center}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#e6f6ef;color:var(--g);font-size:11px;font-weight:800}.danger{color:var(--red)}.adminStat{font-size:27px;font-weight:900;color:var(--n)}.tableRow{display:grid;grid-template-columns:1.3fr 1fr 50px;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:center}.tableRow:last-child{border:0}.smallbtn{border:0;background:#eef5f2;border-radius:8px;padding:7px 8px;font-weight:700;color:var(--n)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:12px}</style><style>
+.cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
+</style></head>
+<body><div class="app">
+
+<div id="auth">
+<header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub">Your university life, organized.</div></header>
+<main><div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
+<div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
+<div id="authMsg" class="msg hidden"></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
+</div></main>
+</div>
+
+<div id="student" class="hidden">
+<section id="onboarding" class="card" style="margin:15px">
+<h2>Set up your student profile</h2><p class="mut">Choose your academic details so CampusMate can load the right courses.</p>
+<label>University</label><input id="uniSearch" placeholder="🔎 Search university…" oninput="filterUniversities()"><select id="uni"><option value="">Loading universities…</option></select><div id="uniMeta" class="uniMeta"></div>
+<label>Programme</label><select id="progSelect"><option value="">Select programme</option></select>
+<label>Level</label><select id="levelSelect"><option value="">Select level</option></select>
+<button id="onboardBtn" class="primary">Continue to dashboard</button>
+</section>
+<div id="portal" class="hidden">
+
+<header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
+<main>
+<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
+<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
+<div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
+
+<section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">Courses available for your programme</div></div><input id="search" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"></div></section>
+<section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div><button class="primary" onclick="go('quiz')">Start Quiz</button></section>
+<section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
+<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Practice and receive instant results</div></div><div class="card"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button></section>
+<section id="gpa" class="page hidden"><div class="head"><h2>GPA & CGPA</h2><div class="sub">Student-entered academic calculators</div></div><div class="card"><span class="pill">Current Semester GPA</span><div id="gpaRows"></div><button class="primary" onclick="calcGpa()">Calculate GPA</button><div id="gpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><span class="pill">Cumulative CGPA</span><p class="mut">Enter your previous cumulative record and current semester result.</p><label>Previous CGPA</label><input id="prevCgpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.20"><label>Previous total credit units</label><input id="prevUnits" type="number" min="0" step="1" placeholder="e.g. 32"><label>Current semester GPA</label><input id="currGpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.60"><label>Current semester credit units</label><input id="currUnits" type="number" min="0" step="1" placeholder="e.g. 18"><button class="primary" onclick="calcCgpa()">Calculate CGPA</button><div id="cgpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><b>Grade points</b><p class="mut">A=5 • B=4 • C=3 • D=2 • E=1 • F=0</p><small class="mut">These calculators do not retrieve or represent official university results.</small></div></section>
+<section id="planner" class="page hidden"><div class="head"><h2>Study Planner</h2><div class="sub">Organize your academic tasks</div></div><div class="card"><input id="newTask" placeholder="e.g. Read BCH 202 notes"><button class="primary" onclick="addTask()">+ Add Task</button></div><div class="card" id="tasks"></div></section>
+<section id="community" class="page hidden"><div class="head"><h2>Community</h2><div class="sub">Learn with students in your academic community</div></div><div class="card"><span class="pill">Your spaces</span><h3 id="communityIdentity">Department Community</h3><p class="mut">Connect with students in your programme and level. Community features will expand to verified departmental groups and study groups.</p><button class="primary" onclick="alert('Community chat and group creation are the next build stage. Your academic identity is ready for it.')">Explore community</button></div><div class="card"><b>🤝 Study Match</b><p class="mut">Find students studying the same course or topic and form focused study groups.</p><button class="secondary" onclick="alert('Study Match is planned for the Community phase.')">Find a study partner</button></div></section>
+<section id="catalogue" class="page hidden"><div class="head"><h2>🇳🇬 University Catalogue</h2><div class="sub">Nigerian universities • verified catalogue foundation</div></div><input id="catSearch" placeholder="🔎 Search university…" oninput="filterCatalogue()"><div id="catalogueList"></div></section>
+<section id="council" class="page hidden">
+<div class="head"><h2>🧾 Professional Council Exam Practice</h2><div class="sub">Governed CBT preparation for professional pathways</div></div>
+<div class="card"><b>⚠️ CampusMate readiness ≠ official council result</b><p class="mut">Scores are for preparation only. Questions are shown only when their provenance is approved as officially verified, licensed partner, or reviewed reference content.</p></div>
+<div class="card"><h3>🎯 Choose a professional pathway</h3><p class="mut">Select an exam track to configure a CBT. Question count, timing and any verified pass-mark metadata come from the track configuration.</p></div>
+<input id="councilSearch" placeholder="🔎 Search council, profession or exam…" oninput="renderCouncilTracks()"><div id="councilTracks"></div>
+<div class="card"><button class="secondary" onclick="go('councilAnalytics');loadCouncilAnalytics()">📊 My professional exam analytics</button></div>
+<div class="card"><b>🇳🇬 Official reference</b><p class="mut">For NMCN learners, use the official NMCN digital learning platform for regulator-provided learning resources.</p><a class="secondary" href="https://educator.elearn.nmcn.gov.ng/" target="_blank" rel="noopener">Open NMCN Digital Learning Platform</a></div>
+</section>
+<section id="councilSetup" class="page hidden">
+<div class="head"><div class="row"><button class="back" onclick="go('council')">‹</button><div><h2>CBT Setup</h2><div class="sub" id="councilSetupSub">Configure your practice</div></div></div></div>
+<div class="card"><h3 id="councilSetupTitle"></h3><p id="councilSetupEligibility" class="mut"></p>
+<label>Practice mode</label><select id="councilMode"><option value="quick">Quick Practice — 10 questions</option><option value="practice">Practice — 20 questions</option><option value="mock">Mock Exam — track default</option></select>
+<label>Topic</label><select id="councilTopic"><option value="">All available topics</option></select>
+<label>Timing</label><select id="councilTiming"><option value="timed">Timed</option><option value="untimed">Untimed</option></select>
+<p class="mut" id="councilSetupInfo"></p><button class="primary" onclick="beginCouncilCbt()">Start CBT</button></div>
+<div class="card"><b>Question governance</b><p class="mut">Only active questions with approved provenance are eligible. CampusMate does not label copied, leaked or unverified live council questions as official.</p></div>
+</section>
+<section id="councilCbt" class="page hidden">
+<div class="head"><div class="row"><button class="back" onclick="confirmExitCouncilCbt()">‹</button><div><h2 id="cbtTitle">Professional CBT</h2><div class="sub" id="cbtSub"></div></div></div></div>
+<main style="padding:0 15px 30px"><div class="cbtTop"><div><b id="cbtProgressText">Question 1</b><div class="progress"><i id="cbtProgress"></i></div></div><div id="cbtTimer" class="timer">--:--</div></div>
+<div class="card"><div id="cbtQuestion"></div></div><div class="qnav" id="cbtNav"></div>
+<div class="grid" style="margin-top:12px"><button class="secondary" onclick="prevCouncilQuestion()">← Previous</button><button class="secondary" onclick="nextCouncilQuestion()">Next →</button></div>
+<button class="primary" style="margin-top:10px" onclick="submitCouncilCbt(false)">Submit CBT</button></main></section>
+<section id="councilResult" class="page hidden">
+<div class="head"><h2>CBT Result</h2><div class="sub">CampusMate professional-exam readiness report</div></div>
+<div class="card" style="text-align:center"><div id="councilResultScore" class="metric">0%</div><p id="councilResultSummary" class="mut"></p><p id="councilResultStatus" class="pill"></p></div>
+<div class="grid"><div class="card"><b id="crCorrect" class="metric">0</b><small class="mut">Correct</small></div><div class="card"><b id="crQuestions" class="metric">0</b><small class="mut">Questions</small></div><div class="card"><b id="crTime" class="metric">0m</b><small class="mut">Time used</small></div><div class="card"><b id="crAccuracy" class="metric">0%</b><small class="mut">Accuracy</small></div></div>
+<div class="card"><h3>Review incorrect answers</h3><div id="councilReview"></div></div>
+<div class="grid"><button class="secondary" onclick="go('council');loadCouncilPractice()">New CBT</button><button class="secondary" onclick="go('councilAnalytics');loadCouncilAnalytics()">My analytics</button></div></section>
+<section id="councilAnalytics" class="page hidden">
+<div class="head"><div class="row"><button class="back" onclick="go('council')">‹</button><div><h2>Professional Analytics</h2><div class="sub">Your CampusMate readiness history</div></div></div></div>
+<div class="card"><div class="grid"><div><b id="caAttempts" class="metric">0</b><small class="mut">Attempts</small></div><div><b id="caAverage" class="metric">0%</b><small class="mut">Average</small></div><div><b id="caBest" class="metric">0%</b><small class="mut">Best</small></div><div><b id="caAccuracy" class="metric">0%</b><small class="mut">Accuracy</small></div></div></div>
+<div class="card"><h3>Weak topics</h3><div id="caWeakTopics"><p class="mut">Complete a CBT to see topic-level performance.</p></div></div>
+<div class="card"><h3>Recent attempts</h3><div id="caAttemptsList"></div></div>
+<div class="card"><p class="mut">These analytics measure performance inside CampusMate. They do not predict or represent an official council examination result.</p></div></section>
+<section id="councilAdmin" class="page hidden"><div class="head"><h2>🛡️ Council Question Bank</h2><div class="sub">Admin review • verify • publish</div></div><div class="card"><b>Governance rule</b><p class="mut">Only authorized/verified or properly licensed material may be labelled official. CampusMate-authored questions must remain clearly identified.</p></div><div class="card"><div class="grid"><div><b id="qaTotal">0</b><small class="mut">Total questions</small></div><div><b id="qaPublished">0</b><small class="mut">Published</small></div><div><b id="qaDraft">0</b><small class="mut">Draft / pending</small></div></div></div><div class="card"><label>Exam track</label><select id="qaTrack"><option value="">Select exam track</option></select><label>Question</label><textarea id="qaText" rows="4" placeholder="Enter a preparation question"></textarea><label>Options (one per line)</label><textarea id="qaOptions" rows="5" placeholder="Option A
+Option B
+Option C
+Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" maxlength="1" placeholder="A"><label>Topic</label><input id="qaTopic" placeholder="e.g. Fundamentals of Nursing"><label>Difficulty</label><select id="qaDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select><label>Verification status</label><select id="qaStatus"><option value="reviewed_reference">Reviewed Reference</option><option value="licensed_partner">Licensed Partner</option><option value="officially_verified">Officially Verified</option><option value="draft">Draft</option></select><label>Source title</label><input id="qaSource" placeholder="Book, authorized source, partner material, etc."><label>Source URL</label><input id="qaSourceUrl" placeholder="https://…"><label>Content origin</label><select id="qaOrigin"><option value="campusmate_authored">CampusMate authored</option><option value="licensed_partner">Licensed partner</option><option value="official_authorized">Official / authorized</option><option value="reviewed_reference">Reviewed reference</option></select><label>Review note</label><textarea id="qaNote" rows="3" placeholder="Why this question is approved for this status"></textarea><button class="primary" onclick="adminAddCouncilQuestion()">Add to review bank</button></div><input id="qaSearch" placeholder="🔎 Search question, topic or source…" oninput="renderAdminQuestions()"><div id="qaList"></div></section><section id="challenges" class="page hidden"><div class="head"><h2>Challenges</h2><div class="sub">Practise • Compete • Improve</div></div><div class="card"><h3>🏆 Academic Challenges</h3><p class="mut">Challenge formats planned for CampusMate:</p><p>⚡ Quick Quiz<br>📚 Topic Battle<br>🎓 Course Challenge<br>🏫 Department Championship<br>🇳🇬 National Championship</p><button class="primary" onclick="go('quiz')">Start practising</button></div><div class="card"><b>Leaderboard</b><p class="mut">Leaderboards will rank students by challenge performance while protecting academic integrity and user safety.</p></div></section>
+<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card"><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button></section>
+</main><nav class="nav" style="grid-template-columns:repeat(6,1fr)"><button class="on" onclick="go('home',this)"><span>⌂</span>Home</button><button onclick="go('courses',this)"><span>▦</span>Courses</button><button onclick="go('quiz',this)"><span>🧠</span>Quiz</button><button onclick="go('community',this)"><span>👥</span>Community</button><button id="adminCouncilNav" class="hidden" onclick="go('councilAdmin',this)"><span>🛡️</span>Admin</button><button onclick="go('profile',this)"><span>●</span>Profile</button></nav>
+</div>
+
+</div>
+
+<script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const demoCourses=[
+ {code:'BCH 202',name:'Biochemistry',units:3,desc:'Fundamental knowledge of biochemical processes, biomolecules and metabolism.',topics:['Cellular Chemistry','Proteins & Amino Acids','Carbohydrates','Lipids']},
+ {code:'ANA 204',name:'Human Anatomy',units:3,desc:'Structure and organization of the human body.',topics:['Thorax','Abdomen','Pelvis','Perineum']},
+ {code:'PHS 202',name:'Physiology',units:3,desc:'Normal functions of cells, tissues, organs and body systems.',topics:['Homeostasis','Renal Physiology','Cardiovascular Physiology','Respiratory Physiology']},
+ {code:'NUR 201',name:'Fundamentals of Nursing',units:2,desc:'Core principles and routine practices of professional nursing.',topics:['Vital Signs','Bed Bath','Positioning','Oral Hygiene']},
+ {code:'PHC 203',name:'Community Health',units:2,desc:'Principles of health promotion, prevention and community-based care.',topics:['Primary Health Care','Immunization','Health Education','Epidemiology']}
+];
+let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
+
+const $=id=>document.getElementById(id);
+function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
+function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
+function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); clearMsg(); }
+
+async function loadAcademicOptions(){
+  let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
+  // Backward-compatible fallback for databases that have not run the catalogue migration yet.
+  if(res.error){res=await sb.from('universities').select('id,name,short_name').order('name')}
+  const u=$('uni');
+  if(res.error){u.innerHTML='<option value="">Unable to load universities</option>';return}
+  universities=(res.data||[]).map(x=>({...x,state:x.state||'',ownership:x.ownership||'',nuc_verified:!!x.nuc_verified}));
+  renderUniversityOptions(universities); u.onchange=()=>{showUniversityMeta();loadProgrammes()}; showUniversityMeta(); await loadProgrammes();
+}
+function renderUniversityOptions(list){const u=$('uni');u.innerHTML='<option value="">Select university</option>'+list.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('')}
+function filterUniversities(){const q=($('uniSearch').value||'').toLowerCase();renderUniversityOptions(universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q)));showUniversityMeta()}
+function showUniversityMeta(){const x=universities.find(v=>v.id===$('uni').value);$('uniMeta').innerHTML=x?`<span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}`:''}
+async function loadProgrammes(){
+  const uid=$('uni').value,p=$('progSelect'),l=$('levelSelect');
+  p.innerHTML='<option value="">Select programme</option>';l.innerHTML='<option value="">Select level</option>';
+  if(!uid)return;
+  const {data:fac}=await sb.from('faculties').select('id').eq('university_id',uid);
+  const fids=(fac||[]).map(x=>x.id); if(!fids.length)return;
+  const {data:deps}=await sb.from('departments').select('id').in('faculty_id',fids); const dids=(deps||[]).map(x=>x.id); if(!dids.length)return;
+  const {data:progs,error}=await sb.from('programmes').select('id,name,short_name').in('department_id',dids).order('name');
+  if(error)return;
+  p.innerHTML='<option value="">Select programme</option>'+(progs||[]).map(x=>`<option value="${x.id}">${x.name}${x.short_name?' ('+x.short_name+')':''}</option>`).join('');
+  p.onchange=loadLevels;
+}
+async function loadLevels(){
+  const pid=$('progSelect').value,l=$('levelSelect'); l.innerHTML='<option value="">Select level</option>'; if(!pid)return;
+  const {data,error}=await sb.from('levels').select('id,name,level_number').eq('programme_id',pid).order('level_number');
+  if(error)return; l.innerHTML='<option value="">Select level</option>'+(data||[]).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+}
+
+async function signUp(){
+  clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
+  if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
+  if(pw!==cpw){msg('Passwords do not match.','error');return}
+  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n}}});
+  if(error){msg(error.message,'error');return}
+  if(data.session){await finishLogin(data.session);}
+  else msg('Account created. Check your email to confirm your account, then return here and log in.','success');
+}
+async function login(){
+  clearMsg(); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  if(!e||!pw){msg('Enter your email and password.','error');return}
+  const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
+  if(error){msg(error.message,'error');return} await finishLogin(data.session);
+}
+async function finishLogin(s){
+  session=s; $('auth').classList.add('hidden'); $('student').classList.remove('hidden');
+  await loadAcademicOptions();
+  await loadProfile(); await loadStudentData(); startStudent();
+}
+async function loadProfile(){
+  const {data,error}=await sb.from('profiles').select('*, universities(name), programmes(name), levels(name)').eq('id',session.user.id).single();
+  if(error){console.error(error);profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};return}
+  profile=data;
+}
+async function saveOnboarding(){
+  const university_id=$('uni').value,programme_id=$('progSelect').value,level_id=$('levelSelect').value;
+  if(!university_id||!programme_id||!level_id){msg('Select your university, programme and level first.','error');return}
+  const {error}=await sb.from('profiles').update({full_name:profile.full_name||session.user.user_metadata?.full_name,university_id,programme_id,level_id,updated_at:new Date().toISOString()}).eq('id',session.user.id);
+  if(error){msg(error.message,'error');return}
+  await loadProfile(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
+}
+async function loadStudentData(){
+  tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
+  courses=[];
+  if(profile?.programme_id&&profile?.level_id){
+    const {data:pcs}=await sb.from('programme_courses').select('course_id,courses(id,code,name,description,credit_units)').eq('programme_id',profile.programme_id).eq('level_id',profile.level_id);
+    courses=(pcs||[]).map(x=>x.courses).filter(Boolean);
+  }
+  if(!courses.length) courses=demoCourses;
+}
+function startStudent(){
+  const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
+  $('hello').textContent='Welcome, '+first+' 👋';
+  const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
+  $('academicLine').textContent=prog+' • '+level+' • '+uni;
+  $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
+  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
+  $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
+  $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
+  renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
+}
+function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')loadQuiz();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
+function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
+function filterCatalogue(){renderCatalogue()}
+function renderCourses(){
+  $('courseList').innerHTML=courses.map((c,i)=>`<div class="card course" data-name="${c.name.toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${c.name}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('');
+}
+function filterCourses(){let q=$('search').value.toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
+async function openCourse(i){currentCourse=courses[i];$('courseTitle').textContent=currentCourse.name;$('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';$('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
+  if(ts?.length){$('topics').innerHTML=ts.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('')}
+  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');go('course');}
+async function openStudy(topicId,title){$('studyTitle').textContent=title;const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to nursing practice.','Apply the concept to examination questions.'];$('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');$('studyBody').innerHTML='<p class="mut">Loading material…</p>';if(topicId){const {data}=await sb.from('learning_materials').select('title,content,material_type').eq('topic_id',topicId).eq('status','published').order('created_at',{ascending:false}).limit(1).maybeSingle();if(data)$('studyBody').innerHTML=`<h3>${escapeHtml(data.title)}</h3><div class="mut" style="white-space:pre-wrap;line-height:1.7">${escapeHtml(data.content||'No content yet.')}</div>`;else $('studyBody').innerHTML='<p class="mut">No published material yet.</p>';}else $('studyBody').innerHTML='<p class="mut">Starter topic. Approved learning material will appear here.</p>';go('study')}
+function togglePw(id,btn){const el=$(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'Show':'Hide'}
+function calcCgpa(){const pc=+($('prevCgpa').value||0),pu=+($('prevUnits').value||0),cg=+($('currGpa').value||0),cu=+($('currUnits').value||0);if(pu+cu===0){$('cgpaOut').textContent='—';return}const v=((pc*pu)+(cg*cu))/(pu+cu);$('cgpaOut').textContent=v.toFixed(2)}
+function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance()}
+function renderPerformance(){if(!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');const avg=d.scores.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;$('perfQuizAvg').textContent=d.attempts?avg+'%':'—';$('perfQuizzes').textContent=d.attempts;$('perfCorrect').textContent=d.correct;$('perfCourses').textContent=d.courses.length;$('perfStreak').textContent=(d.streak||0)+' day'+((d.streak||0)===1?'':'s');$('perfTime').textContent=(d.attempts*5)+' min';$('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s')}
+async function loadQuiz(){
+  $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';quizAnswers={};
+  if(currentCourse?.id){const {data:q}=await sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published').limit(1).maybeSingle();currentQuiz=q||null;if(q){const r=await sb.from('quiz_questions').select('id,question_text,options,correct_option,explanation,marks').eq('quiz_id',q.id);quizQuestions=r.data||[];}}
+  if(!quizQuestions.length&&(!currentCourse||currentCourse.code==='BCH 202')){quizQuestions=[{id:'d1',question_text:'The major solvent in most cells is?',options:['Protein','Water','Lipid','DNA'],correct_option:1,marks:1},{id:'d2',question_text:'Most enzymes are?',options:['Proteins','Carbohydrates','Minerals','Vitamins'],correct_option:0,marks:1},{id:'d3',question_text:'Which is a lipid?',options:['Glucose','Glycine','Cholesterol','Glycogen'],correct_option:2,marks:1},{id:'d4',question_text:'Amino acids are building blocks of?',options:['Proteins','Lipids','Water','Minerals'],correct_option:0,marks:1},{id:'d5',question_text:'Glycogen is mainly a storage form of?',options:['Protein','Carbohydrate','Lipid','Vitamin'],correct_option:1,marks:1}];}
+  $('quizBox').innerHTML=quizQuestions.length?quizQuestions.map((q,i)=>`<div style="margin-bottom:20px"><b>${i+1}. ${escapeHtml(q.question_text)}</b>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('')}</div>`).join(''):'<p class="mut">No published quiz is available for this course yet.</p>';
+}
+async function submitQuiz(){if(!quizQuestions.length){go('courses');return}let correct=0,total=quizQuestions.reduce((a,q)=>a+Number(q.marks||1),0),scoreMarks=0;quizQuestions.forEach((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);if(a&&+a.value===+q.correct_option){correct++;scoreMarks+=Number(q.marks||1)}});const pct=Math.round(scoreMarks/total*100);$('score').textContent=pct+'%';$('resultText').textContent=correct+' / '+quizQuestions.length+' correct.';updatePerformance(pct,quizQuestions.length,correct);if(currentQuiz){const {data:att}=await sb.from('quiz_attempts').insert({quiz_id:currentQuiz.id,student_id:session.user.id,score:scoreMarks,total_marks:total,submitted_at:new Date().toISOString()}).select('id').single();if(att){await sb.from('quiz_answers').upsert(quizQuestions.map((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);return {attempt_id:att.id,question_id:q.id,selected_option:a?+a.value:null,is_correct:!!(a&&+a.value===+q.correct_option)};}),{onConflict:'attempt_id,question_id'});}}go('result')}
+async function loadCouncilPractice(){
+ const box=$('councilTracks');box.innerHTML='<p class="mut">Loading professional exam tracks…</p>';
+ const {data,error}=await sb.from('council_exam_tracks').select('id,name,exam_type,eligibility_note,official_source_url,default_question_count,default_duration_minutes,pass_mark_percent,instructions,professional_councils(name,acronym,profession_scope)').eq('active',true).order('name');
+ if(error){box.innerHTML='<p class="mut">Run the v12 professional CBT SQL after the earlier professional-exam migrations.</p>';return}
+ window.councilTracks=data||[];renderCouncilTracks();
+}
+function renderCouncilTracks(){
+ const box=$('councilTracks');if(!box)return;const q=($('councilSearch')?.value||'').toLowerCase();
+ const rows=(window.councilTracks||[]).filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q));
+ box.innerHTML=rows.length?rows.map(x=>{const c=x.professional_councils||{};return `<div class="card"><span class="pill">${escapeHtml(c.acronym||'COUNCIL')}</span><h3>${escapeHtml(x.name)}</h3><p class="mut">${escapeHtml(c.profession_scope||'Professional programme')}</p><p>${escapeHtml(x.eligibility_note||'Eligibility follows the regulator’s current requirements.')}</p><div class="grid"><div><b>${x.default_question_count||20}</b><small class="mut">default questions</small></div><div><b>${x.default_duration_minutes?x.default_duration_minutes+' min':'Not set'}</b><small class="mut">default duration</small></div></div><button class="primary" onclick="openCouncilSetup('${x.id}')">Configure CBT</button></div>`}).join(''):'<p class="mut">No matching professional exam track.</p>';
+}
+async function openCouncilSetup(trackId){
+ const track=(window.councilTracks||[]).find(x=>x.id===trackId);if(!track)return;window.councilCurrentTrack=track;
+ $('councilSetupTitle').textContent=track.name;$('councilSetupSub').textContent=(track.professional_councils?.acronym||'Council')+' • '+(track.exam_type||'Professional practice');
+ $('councilSetupEligibility').textContent=track.eligibility_note||'Eligibility follows the regulator’s current requirements.';
+ $('councilMode').value='mock';$('councilTiming').value=track.default_duration_minutes?'timed':'untimed';
+ const {data,error}=await sb.from('council_question_bank').select('topic').eq('exam_track_id',trackId).eq('active',true).in('verification_status',['officially_verified','licensed_partner','reviewed_reference']);
+ if(error){alert('Question bank could not be loaded.');return}
+ const topics=[...new Set((data||[]).map(x=>x.topic).filter(Boolean))].sort();
+ $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(t=>`<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+ $('councilMode').onchange=updateCouncilSetupMode;$('councilTiming').onchange=updateCouncilSetupMode;updateCouncilSetupMode();go('councilSetup');
+}
+function updateCouncilSetupMode(){
+ const t=window.councilCurrentTrack,mode=$('councilMode')?.value;if(!t)return;
+ const n=mode==='quick'?10:mode==='practice'?20:(t.default_question_count||20),d=t.default_duration_minutes;
+ $('councilSetupInfo').textContent=(t.instructions||'CampusMate preparation only.')+' You will receive '+n+' randomized approved questions.'+(d&&$('councilTiming').value==='timed'?' Default time: '+d+' minutes.':'');
+}
+async function beginCouncilCbt(){
+ const t=window.councilCurrentTrack;if(!t)return;const mode=$('councilMode').value,timing=$('councilTiming').value,count=mode==='quick'?10:mode==='practice'?20:(t.default_question_count||20);
+ let query=sb.from('council_question_bank').select('id,question_text,options,correct_option,explanation,marks,topic,difficulty,verification_status,source_title,source_url,content_origin,review_note').eq('exam_track_id',t.id).eq('active',true).in('verification_status',['officially_verified','licensed_partner','reviewed_reference']);
+ const topic=$('councilTopic').value;if(topic)query=query.eq('topic',topic);
+ const {data,error}=await query.limit(500);if(error){alert('The approved question bank is not available.');return}
+ const pool=(data||[]).sort(()=>Math.random()-0.5);if(pool.length<Math.min(count,1)){alert('There are not enough approved questions for this practice track/filter yet. An admin must publish more governed questions.');return}
+ const qs=pool.slice(0,Math.min(count,pool.length));window.cbt={track:t,questions:qs,index:0,answers:{},startedAt:Date.now(),timed:timing==='timed',durationSeconds:(t.default_duration_minutes||0)*60,submitted:false};
+ $('cbtTitle').textContent=t.name;$('cbtSub').textContent=(t.professional_councils?.acronym||'Council')+' • '+qs.length+' questions • '+(timing==='timed'?(t.default_duration_minutes?t.default_duration_minutes+' min':'Timed'):'Untimed');
+ renderCouncilCbt();go('councilCbt');startCouncilTimer();
+}
+function renderCouncilCbt(){
+ const c=window.cbt;if(!c)return;const q=c.questions[c.index];
+ $('cbtProgressText').textContent='Question '+(c.index+1)+' of '+c.questions.length;$('cbtProgress').style.width=Math.round((c.index+1)/c.questions.length*100)+'%';
+ $('cbtQuestion').innerHTML=`<small class="pill">${escapeHtml((q.verification_status||'approved').replaceAll('_',' '))}</small><p class="mut">${escapeHtml(q.topic||'General')} • ${escapeHtml(q.difficulty||'medium')}</p><h3>${c.index+1}. ${escapeHtml(q.question_text)}</h3>`+(q.options||[]).map((o,j)=>`<label class="option"><input type="radio" name="cbtOpt" value="${j}" ${c.answers[q.id]?.selected===j?'checked':''} onchange="saveCbtAnswer(${j})">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('');
+ $('cbtNav').innerHTML=c.questions.map((x,i)=>`<button class="qnum ${c.answers[x.id]?'answered':''} ${i===c.index?'current':''}" onclick="jumpCouncilQuestion(${i})">${i+1}</button>`).join('');
+}
+function saveCbtAnswer(selected){const c=window.cbt;if(!c)return;const q=c.questions[c.index],previous=c.answers[q.id];c.answers[q.id]={selected,timeSpent:previous?.timeSpent||0};renderCouncilCbt()}
+function jumpCouncilQuestion(i){if(window.cbt){window.cbt.index=i;renderCouncilCbt()}}function prevCouncilQuestion(){if(window.cbt&&window.cbt.index>0){window.cbt.index--;renderCouncilCbt()}}function nextCouncilQuestion(){if(window.cbt&&window.cbt.index<window.cbt.questions.length-1){window.cbt.index++;renderCouncilCbt()}}
+function startCouncilTimer(){
+ clearInterval(window.cbtTimer);const el=$('cbtTimer'),c=window.cbt;if(!c)return;
+ if(!c.timed||!c.durationSeconds){el.textContent='Untimed';el.classList.remove('warn');return}
+ const tick=()=>{const left=Math.max(0,c.durationSeconds-Math.floor((Date.now()-c.startedAt)/1000)),m=Math.floor(left/60),s=left%60;el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');el.classList.toggle('warn',left<=60);if(left<=0){clearInterval(window.cbtTimer);submitCouncilCbt(true)}};tick();window.cbtTimer=setInterval(tick,1000);
+}
+function confirmExitCouncilCbt(){if(window.cbt&&!window.cbt.submitted&&!confirm('Exit this CBT? Your current attempt will not be saved as a completed attempt.'))return;clearInterval(window.cbtTimer);go('council')}
+async function submitCouncilCbt(autoSubmitted){
+ const c=window.cbt;if(!c||c.submitted)return;c.submitted=true;clearInterval(window.cbtTimer);let correct=0,total=0;const review=[];
+ c.questions.forEach(q=>{const mark=Number(q.marks||1);total+=mark;const a=c.answers[q.id];const ok=!!a&&a.selected===Number(q.correct_option);if(ok)correct+=mark;if(!ok)review.push({q,a})});
+ const pct=total?Math.round(correct/total*100):0,seconds=Math.max(0,Math.round((Date.now()-c.startedAt)/1000)),correctCount=c.questions.length-review.length;
+ const payload={student_id:session.user.id,exam_track_id:c.track.id,score:correct,total_marks:total,questions_answered:c.questions.length,correct_answers:correctCount,mode:($('councilMode')?.value||'mock'),started_at:new Date(c.startedAt).toISOString(),completed_at:new Date().toISOString(),duration_seconds:seconds,question_count:c.questions.length,topics:[...new Set(c.questions.map(q=>q.topic).filter(Boolean))]};
+ const {data:attempt}=await sb.from('council_exam_attempts').insert(payload).select('id').single();
+ if(attempt?.id){const answers=c.questions.map(q=>{const a=c.answers[q.id];return {attempt_id:attempt.id,question_id:q.id,selected_option:a?.selected??null,is_correct:!!a&&a.selected===Number(q.correct_option),time_spent_seconds:a?.timeSpent||0}});await sb.from('council_exam_attempt_answers').upsert(answers,{onConflict:'attempt_id,question_id'})}
+ $('councilResultScore').textContent=pct+'%';$('councilResultSummary').textContent=`${correctCount} / ${c.questions.length} correct • ${c.track.name}`;const pass=c.track.pass_mark_percent;
+ $('councilResultStatus').textContent=pass!=null?(pct>=Number(pass)?'Above configured pass-mark metadata':'Below configured pass-mark metadata'):'Readiness score — no official pass mark configured';
+ $('crCorrect').textContent=correctCount+'/'+c.questions.length;$('crQuestions').textContent=c.questions.length;$('crTime').textContent=formatDuration(seconds);$('crAccuracy').textContent=Math.round(correctCount/c.questions.length*100)+'%';
+ $('councilReview').innerHTML=review.length?review.map(({q,a})=>`<div class="card reviewQ"><b>${escapeHtml(q.question_text)}</b><p class="mut">Your answer: ${a?.selected!=null?escapeHtml(q.options?.[a.selected]||'—'):'Not answered'}</p><p><b>Correct:</b> ${escapeHtml(q.options?.[q.correct_option]||'—')}</p>${q.explanation?`<div class="explain"><b>Explanation:</b> ${escapeHtml(q.explanation)}</div>`:''}${q.source_title?`<p class="mut">Source: ${escapeHtml(q.source_title)}</p>`:''}</div>`).join(''):'<p class="mut">Excellent — no incorrect answers to review.</p>';
+ go('councilResult');
+}
+function formatDuration(s){const m=Math.floor(s/60),sec=s%60;return m?m+'m '+sec+'s':sec+'s'}
+async function loadCouncilAnalytics(){
+ const {data,error}=await sb.from('council_exam_attempts').select('id,score,total_marks,questions_answered,correct_answers,submitted_at,mode,exam_track_id,council_exam_tracks(name,professional_councils(acronym))').eq('student_id',session.user.id).order('submitted_at',{ascending:false}).limit(100);
+ if(error){$('caAttemptsList').innerHTML='<p class="mut">Analytics are unavailable until the v12 SQL migration is run.</p>';return}
+ const rows=data||[],scores=rows.map(x=>x.total_marks?Math.round(Number(x.score)/Number(x.total_marks)*100):0);
+ $('caAttempts').textContent=rows.length;$('caAverage').textContent=rows.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)+'%':'0%';$('caBest').textContent=rows.length?Math.max(...scores)+'%':'0%';
+ const tq=rows.reduce((a,b)=>a+Number(b.questions_answered||0),0),tc=rows.reduce((a,b)=>a+Number(b.correct_answers||0),0);$('caAccuracy').textContent=tq?Math.round(tc/tq*100)+'%':'0%';
+ $('caAttemptsList').innerHTML=rows.length?rows.slice(0,12).map(x=>{const p=x.total_marks?Math.round(Number(x.score)/Number(x.total_marks)*100):0;return `<div class="tableRow"><div><b>${escapeHtml(x.council_exam_tracks?.name||'Professional CBT')}</b><small class="mut">${new Date(x.submitted_at).toLocaleDateString()} • ${escapeHtml(x.mode||'practice')}</small></div><div><b>${p}%</b><small class="mut">${x.correct_answers||0}/${x.questions_answered||0} correct</small></div><div></div></div>`}).join(''):'<p class="mut">No completed professional CBT attempts yet.</p>';
+ const ids=rows.map(x=>x.id);if(!ids.length){$('caWeakTopics').innerHTML='<p class="mut">Complete a CBT to see topic-level performance.</p>';return}
+ const {data:ans}=await sb.from('council_exam_attempt_answers').select('is_correct,question_id,attempt_id,council_question_bank(topic)').in('attempt_id',ids);const topic={};(ans||[]).forEach(a=>{const t=a.council_question_bank?.topic||'General';topic[t]??={n:0,c:0};topic[t].n++;if(a.is_correct)topic[t].c++});
+ const weak=Object.entries(topic).map(([t,v])=>({t,p:Math.round(v.c/v.n*100),n:v.n})).sort((a,b)=>a.p-b.p).slice(0,5);
+ $('caWeakTopics').innerHTML=weak.length?weak.map(x=>`<p><b>${escapeHtml(x.t)}</b> — ${x.p}% accuracy <small class="mut">(${x.n} questions)</small></p>`).join(''):'<p class="mut">No topic data yet.</p>';
+}
+function renderGpa(){const list=courses.slice(0,5);$('gpaRows').innerHTML=list.map((c,i)=>`<label>${c.code} — ${c.credit_units??c.units??0} units</label><select class="gr" data-u="${c.credit_units??c.units??0}"><option value="5">A — 5</option><option value="4">B — 4</option><option value="3">C — 3</option><option value="2">D — 2</option><option value="1">E — 1</option><option value="0">F — 0</option></select>`).join('')}
+function calcGpa(){const sels=[...document.querySelectorAll('.gr')];let pts=0,units=0;sels.forEach(s=>{const u=+s.dataset.u;pts+=+s.value*u;units+=u});$('gpaOut').textContent=units?(pts/units).toFixed(2):'—'}
+async function addTask(){const t=$('newTask').value.trim();if(!t)return;const {data,error}=await sb.from('study_tasks').insert({student_id:session.user.id,title:t,completed:false}).select().single();if(error){alert(error.message);return}tasks.unshift(data);$('newTask').value='';renderTasks()}
+async function toggleTask(id,checked){const {error}=await sb.from('study_tasks').update({completed:checked}).eq('id',id).eq('student_id',session.user.id);if(!error){const t=tasks.find(x=>x.id===id);if(t)t.completed=checked;renderTasks()}}
+async function deleteTask(id){const {error}=await sb.from('study_tasks').delete().eq('id',id).eq('student_id',session.user.id);if(!error){tasks=tasks.filter(x=>x.id!==id);renderTasks()}}
+function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.length===1?'':'s');$('tasks').innerHTML=tasks.length?tasks.map(t=>`<p><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.id}',this.checked)"> ${escapeHtml(t.title)} <button class="danger" style="float:right;border:0;background:none" onclick="deleteTask('${t.id}')">×</button></p>`).join(''):'<p class="mut">No tasks yet.</p>'}
+async function logout(){await sb.auth.signOut();location.reload()}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+
+$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
+$('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
+
+sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()} });
+(async()=>{const {data}=await sb.auth.getSession();if(data.session){await finishLogin(data.session)}else{$('auth').classList.remove('hidden');showAuth('login')}})();
+</script></div></body></html>
