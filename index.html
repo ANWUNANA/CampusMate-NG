@@ -131,15 +131,71 @@ function renderUniversityOptions(list){const u=$('uni');u.innerHTML='<option val
 function filterUniversities(){const q=($('uniSearch').value||'').toLowerCase();renderUniversityOptions(universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q)));showUniversityMeta()}
 function showUniversityMeta(){const x=universities.find(v=>v.id===$('uni').value);$('uniMeta').innerHTML=x?`<span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}`:''}
 async function loadProgrammes(){
-  const uid=$('uni').value,p=$('progSelect'),l=$('levelSelect');
-  p.innerHTML='<option value="">Select programme</option>';l.innerHTML='<option value="">Select level</option>';
-  if(!uid)return;
-  const {data:fac}=await sb.from('faculties').select('id').eq('university_id',uid);
-  const fids=(fac||[]).map(x=>x.id); if(!fids.length)return;
-  const {data:deps}=await sb.from('departments').select('id').in('faculty_id',fids); const dids=(deps||[]).map(x=>x.id); if(!dids.length)return;
-  const {data:progs,error}=await sb.from('programmes').select('id,name,short_name').in('department_id',dids).order('name');
-  if(error)return;
-  p.innerHTML='<option value="">Select programme</option>'+(progs||[]).map(x=>`<option value="${x.id}">${x.name}${x.short_name?' ('+x.short_name+')':''}</option>`).join('');
+  const uid=$('uni').value;
+  const p=$('progSelect');
+  const l=$('levelSelect');
+
+  p.innerHTML='<option value="">Loading programmes...</option>';
+  l.innerHTML='<option value="">Select level</option>';
+
+  if(!uid){
+    p.innerHTML='<option value="">Select programme</option>';
+    return;
+  }
+
+  const {data:fac,error:facError}=await sb
+    .from('faculties')
+    .select('id')
+    .eq('university_id',uid);
+
+  if(facError){
+    p.innerHTML='<option value="">Unable to load programmes</option>';
+    console.error('Faculty load error:',facError);
+    return;
+  }
+
+  const fids=(fac||[]).map(x=>x.id);
+
+  if(!fids.length){
+    p.innerHTML='<option value="">No programmes found</option>';
+    return;
+  }
+
+  const {data:deps,error:depError}=await sb
+    .from('departments')
+    .select('id')
+    .in('faculty_id',fids);
+
+  if(depError){
+    p.innerHTML='<option value="">Unable to load programmes</option>';
+    console.error('Department load error:',depError);
+    return;
+  }
+
+  const dids=(deps||[]).map(x=>x.id);
+
+  if(!dids.length){
+    p.innerHTML='<option value="">No programmes found</option>';
+    return;
+  }
+
+  const {data:progs,error:progError}=await sb
+    .from('programmes')
+    .select('id,name,short_name')
+    .in('department_id',dids)
+    .order('name');
+
+  if(progError){
+    p.innerHTML='<option value="">Unable to load programmes</option>';
+    console.error('Programme load error:',progError);
+    return;
+  }
+
+  p.innerHTML='<option value="">Select programme</option>'+
+    (progs||[]).map(x=>
+      `<option value="${x.id}">${x.name}${x.short_name?' ('+x.short_name+')':''}</option>`
+    ).join('');
+
   p.onchange=loadLevels;
 }
 async function loadLevels(){
