@@ -65,6 +65,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <section id="onboarding" class="card" style="margin:15px">
 <h2>Set up your student profile</h2><p class="mut">Choose your academic details so CampusMate can load the right courses.</p>
 <label>University</label><input id="uniSearch" placeholder="🔎 Search university…" oninput="filterUniversities()"><select id="uni"><option value="">Loading universities…</option></select><div id="uniMeta" class="uniMeta"></div>
+<label>Faculty / College</label><select id="facultySelect"><option value="">Select faculty / college</option></select>
+<label>Department</label><select id="departmentSelect"><option value="">Select department</option></select>
 <label>Programme</label><select id="progSelect"><option value="">Select programme</option></select>
 <label>Level</label><select id="levelSelect"><option value="">Select level</option></select>
 <button id="onboardBtn" class="primary">Continue to dashboard</button>
@@ -160,40 +162,50 @@ function showAuth(mode='login'){
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
-  // Backward-compatible fallback for databases that have not run the catalogue migration yet.
   if(res.error){res=await sb.from('universities').select('id,name,short_name').order('name')}
   const u=$('uni');
   if(res.error){u.innerHTML='<option value="">Unable to load universities</option>';return}
   universities=(res.data||[]).map(x=>({...x,state:x.state||'',ownership:x.ownership||'',nuc_verified:!!x.nuc_verified}));
-  renderUniversityOptions(universities); u.onchange=()=>{showUniversityMeta();loadProgrammes()}; showUniversityMeta(); await loadProgrammes();
+  renderUniversityOptions(universities);
+  u.onchange=async()=>{showUniversityMeta();await loadFaculties()};
+  $('facultySelect').onchange=async()=>{await loadDepartments()};
+  $('departmentSelect').onchange=async()=>{await loadProgrammes()};
+  $('progSelect').onchange=async()=>{await loadLevels()};
+  showUniversityMeta();
+  await loadFaculties();
 }
 function renderUniversityOptions(list){const u=$('uni');u.innerHTML='<option value="">Select university</option>'+list.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('')}
 function filterUniversities(){const q=($('uniSearch').value||'').toLowerCase();renderUniversityOptions(universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q)));showUniversityMeta()}
 function showUniversityMeta(){const x=universities.find(v=>v.id===$('uni').value);$('uniMeta').innerHTML=x?`<span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}`:''}
+async function loadFaculties(){
+  const uid=$('uni').value, f=$('facultySelect'), d=$('departmentSelect'), p=$('progSelect'), l=$('levelSelect');
+  f.innerHTML='<option value="">Select faculty / college</option>';d.innerHTML='<option value="">Select department</option>';p.innerHTML='<option value="">Select programme</option>';l.innerHTML='<option value="">Select level</option>';
+  if(!uid)return;
+  const {data,error}=await sb.from('faculties').select('id,name').eq('university_id',uid).order('name');
+  if(error){f.innerHTML='<option value="">Unable to load faculties</option>';console.error('Faculty load error:',error);return}
+  f.innerHTML='<option value="">Select faculty / college</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+}
+async function loadDepartments(){
+  const fid=$('facultySelect').value,d=$('departmentSelect'),p=$('progSelect'),l=$('levelSelect');
+  d.innerHTML='<option value="">Select department</option>';p.innerHTML='<option value="">Select programme</option>';l.innerHTML='<option value="">Select level</option>';
+  if(!fid)return;
+  const {data,error}=await sb.from('departments').select('id,name').eq('faculty_id',fid).order('name');
+  if(error){d.innerHTML='<option value="">Unable to load departments</option>';console.error('Department load error:',error);return}
+  d.innerHTML='<option value="">Select department</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+}
 async function loadProgrammes(){
-  const uid=$('uni').value;
-  const p=$('progSelect');
-  const l=$('levelSelect');
-  p.innerHTML='<option value="">Loading programmes...</option>';
-  l.innerHTML='<option value="">Select level</option>';
-  if(!uid){p.innerHTML='<option value="">Select programme</option>';return}
-  const {data:fac,error:facError}=await sb.from('faculties').select('id').eq('university_id',uid);
-  if(facError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Faculty load error:',facError);return}
-  const fids=(fac||[]).map(x=>x.id);
-  if(!fids.length){p.innerHTML='<option value="">No programmes found</option>';return}
-  const {data:deps,error:depError}=await sb.from('departments').select('id').in('faculty_id',fids);
-  if(depError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Department load error:',depError);return}
-  const dids=(deps||[]).map(x=>x.id);
-  if(!dids.length){p.innerHTML='<option value="">No programmes found</option>';return}
-  const {data:progs,error:progError}=await sb.from('programmes').select('id,name,short_name').in('department_id',dids).order('name');
-  if(progError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Programme load error:',progError);return}
-  p.innerHTML='<option value="">Select programme</option>'+(progs||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}${x.short_name?' ('+escapeHtml(x.short_name)+')':''}</option>`).join('');
-  p.onchange=loadLevels;
+  const did=$('departmentSelect').value,p=$('progSelect'),l=$('levelSelect');
+  p.innerHTML='<option value="">Select programme</option>';l.innerHTML='<option value="">Select level</option>';
+  if(!did)return;
+  const {data,error}=await sb.from('programmes').select('id,name,short_name,nuc_approved,programme_code,award_type').eq('department_id',did).order('name');
+  if(error){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Programme load error:',error);return}
+  p.innerHTML='<option value="">Select programme</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}${x.short_name?' ('+escapeHtml(x.short_name)+')':''}${x.nuc_approved?' ✓':''}</option>`).join('');
 }
 async function loadLevels(){
-  const pid=$('progSelect').value,l=$('levelSelect'); l.innerHTML='<option value="">Select level</option>'; if(!pid)return;
+  const pid=$('progSelect').value,l=$('levelSelect');l.innerHTML='<option value="">Select level</option>';if(!pid)return;
   const {data,error}=await sb.from('levels').select('id,name,level_number').eq('programme_id',pid).order('level_number');
-  if(error)return; l.innerHTML='<option value="">Select level</option>'+(data||[]).map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+  if(error){console.error('Level load error:',error);return}
+  l.innerHTML='<option value="">Select level</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
 }
 
 async function signUp(){
@@ -261,7 +273,9 @@ async function loadStudentData(){
     const {data:pcs}=await sb.from('programme_courses').select('course_id,courses(id,code,name,description,credit_units)').eq('programme_id',profile.programme_id).eq('level_id',profile.level_id);
     courses=(pcs||[]).map(x=>x.courses).filter(Boolean);
   }
-  if(!courses.length) courses=demoCourses;
+  // Authenticated students must never receive unrelated demo courses.
+  // An empty result means the selected programme/level has no linked courses yet.
+  courses=courses.filter(Boolean);
 }
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
@@ -278,6 +292,7 @@ function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.cla
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
+  if(!courses.length){$('courseList').innerHTML='<div class="card"><b>No courses linked yet.</b><p class="mut">No CampusMate courses are currently linked to your selected programme and level. Your academic profile is still valid; course content will appear when approved programme-course links are added.</p></div>';return}
   $('courseList').innerHTML=courses.map((c,i)=>`<div class="card course" data-name="${c.name.toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${c.name}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('');
 }
 function filterCourses(){let q=$('search').value.toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
@@ -294,9 +309,12 @@ function calcCgpa(){const pc=+($('prevCgpa').value||0),pu=+($('prevUnits').value
 function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance()}
 function renderPerformance(){if(!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');const avg=d.scores.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;$('perfQuizAvg').textContent=d.attempts?avg+'%':'—';$('perfQuizzes').textContent=d.attempts;$('perfCorrect').textContent=d.correct;$('perfCourses').textContent=d.courses.length;$('perfStreak').textContent=(d.streak||0)+' day'+((d.streak||0)===1?'':'s');$('perfTime').textContent=(d.attempts*5)+' min';$('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s')}
 async function loadQuiz(){
-  $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';quizAnswers={};
+  $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';
+  quizAnswers={};
+  quizQuestions=[];
+  currentQuiz=null;
   if(currentCourse?.id){const {data:q}=await sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published').limit(1).maybeSingle();currentQuiz=q||null;if(q){const r=await sb.from('quiz_questions').select('id,question_text,options,correct_option,explanation,marks').eq('quiz_id',q.id);quizQuestions=r.data||[];}}
-  if(!quizQuestions.length&&(!currentCourse||currentCourse.code==='BCH 202')){quizQuestions=[{id:'d1',question_text:'The major solvent in most cells is?',options:['Protein','Water','Lipid','DNA'],correct_option:1,marks:1},{id:'d2',question_text:'Most enzymes are?',options:['Proteins','Carbohydrates','Minerals','Vitamins'],correct_option:0,marks:1},{id:'d3',question_text:'Which is a lipid?',options:['Glucose','Glycine','Cholesterol','Glycogen'],correct_option:2,marks:1},{id:'d4',question_text:'Amino acids are building blocks of?',options:['Proteins','Lipids','Water','Minerals'],correct_option:0,marks:1},{id:'d5',question_text:'Glycogen is mainly a storage form of?',options:['Protein','Carbohydrate','Lipid','Vitamin'],correct_option:1,marks:1}];}
+  // No cross-course or demo-question fallback. A quiz belongs to the selected course only.
   $('quizBox').innerHTML=quizQuestions.length?quizQuestions.map((q,i)=>`<div style="margin-bottom:20px"><b>${i+1}. ${escapeHtml(q.question_text)}</b>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('')}</div>`).join(''):'<p class="mut">No published quiz is available for this course yet.</p>';
 }
 async function submitQuiz(){if(!quizQuestions.length){go('courses');return}let correct=0,total=quizQuestions.reduce((a,q)=>a+Number(q.marks||1),0),scoreMarks=0;quizQuestions.forEach((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);if(a&&+a.value===+q.correct_option){correct++;scoreMarks+=Number(q.marks||1)}});const pct=Math.round(scoreMarks/total*100);$('score').textContent=pct+'%';$('resultText').textContent=correct+' / '+quizQuestions.length+' correct.';updatePerformance(pct,quizQuestions.length,correct);if(currentQuiz){const {data:att}=await sb.from('quiz_attempts').insert({quiz_id:currentQuiz.id,student_id:session.user.id,score:scoreMarks,total_marks:total,submitted_at:new Date().toISOString()}).select('id').single();if(att){await sb.from('quiz_answers').upsert(quizQuestions.map((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);return {attempt_id:att.id,question_id:q.id,selected_option:a?+a.value:null,is_correct:!!(a&&+a.value===+q.correct_option)};}),{onConflict:'attempt_id,question_id'});}}go('result')}
