@@ -77,7 +77,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
 <div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
 
-<section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">Choose a semester to view only its courses</div></div><div id="semesterPicker" class="grid" style="margin-bottom:12px"></div><input id="search" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"></div></section>
+<section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">Courses available for your programme</div></div><input id="search" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div><button class="primary" onclick="go('quiz')">Start Quiz</button></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
 <section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Practice and receive instant results</div></div><div class="card"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
@@ -143,7 +143,7 @@ const demoCourses=[
  {code:'NUR 201',name:'Fundamentals of Nursing',units:2,desc:'Core principles and routine practices of professional nursing.',topics:['Vital Signs','Bed Bath','Positioning','Oral Hygiene']},
  {code:'PHC 203',name:'Community Health',units:2,desc:'Principles of health promotion, prevention and community-based care.',topics:['Primary Health Care','Immunization','Health Education','Epidemiology']}
 ];
-let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[], selectedSemesterId=null, availableSemesters=[];
+let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
 
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
@@ -257,49 +257,22 @@ async function saveOnboarding(){
 async function loadStudentData(){
   tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
   courses=[];
-  availableSemesters=[];
-  selectedSemesterId=null;
 
   if(profile?.programme_id&&profile?.level_id){
-    const {data:semesters,error:semError}=await sb.from('semesters')
-      .select('id,name,is_current')
-      .eq('programme_id',profile.programme_id)
-      .order('name');
-
-    if(semError){
-      console.error('Semester loading error:',semError);
-      return;
-    }
-
-    const semesterRows=semesters||[];
-    availableSemesters=['First Semester','Second Semester']
-      .map(name=>semesterRows.find(s=>s.name===name))
-      .filter(Boolean);
-
-    if(!availableSemesters.length)return;
-
-    const current=availableSemesters.find(s=>s.is_current)||availableSemesters[0];
-    selectedSemesterId=current.id;
-
-    const semesterIds=availableSemesters.map(s=>s.id);
     const {data:pcs,error}=await sb.from('programme_courses').select(`
       course_id,semester_id,
-      courses(id,code,name,description,credit_units)
-    `)
-      .eq('programme_id',profile.programme_id)
-      .eq('level_id',profile.level_id)
-      .in('semester_id',semesterIds);
+      courses(id,code,name,description,credit_units),
+      semesters!inner(id,name,is_current,programme_id)
+    `).eq('programme_id',profile.programme_id).eq('level_id',profile.level_id).eq('semesters.programme_id',profile.programme_id).eq('semesters.is_current',true);
 
     if(error){
       console.error('Programme course loading error:',error);
       courses=[];
-      return;
+    }else{
+      courses=(pcs||[]).map(x=>x.courses).filter(Boolean);
     }
-
-    courses=(pcs||[]).map(x=>({...(x.courses||{}),semester_id:x.semester_id})).filter(x=>x.id);
   }
 }
-
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
@@ -315,29 +288,12 @@ function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.cla
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
-  const picker=$('semesterPicker');
-  if(picker){
-    picker.innerHTML=availableSemesters.map(s=>`<button class="tile ${selectedSemesterId===s.id?'on':''}" style="cursor:pointer;border:1px solid var(--line)" onclick="selectSemester('${s.id}')"><span style="font-size:24px">📚</span><b>${escapeHtml(s.name)}</b><small>${courses.filter(c=>c.semester_id===s.id).length} courses</small></button>`).join('')||'<p class="mut">No semesters available.</p>';
-  }
-  const visible=courses.filter(c=>!selectedSemesterId||c.semester_id===selectedSemesterId);
-  $('courseList').innerHTML=visible.map((c,i)=>`<div class="card course" data-name="${(c.name||'').toLowerCase()}" onclick="openCourseById('${c.id}')"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('')||'<p class="mut">No courses are assigned to this semester yet.</p>';
+  $('courseList').innerHTML=courses.map((c,i)=>`<div class="card course" data-name="${c.name.toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${c.name}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('');
 }
-function selectSemester(id){selectedSemesterId=id;renderCourses();if($('search'))$('search').value='';}
-function openCourseById(id){const c=courses.find(x=>x.id===id);if(c){currentCourse=c;openCourseObject(c);}}
-
 function filterCourses(){let q=$('search').value.toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
-async function openCourse(i){const c=courses[i];if(c)openCourseObject(c);}
-async function openCourseObject(c){
-  currentCourse=c;
-  $('courseTitle').textContent=currentCourse.name;
-  $('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';
-  $('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';
-  const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
+async function openCourse(i){currentCourse=courses[i];$('courseTitle').textContent=currentCourse.name;$('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';$('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
   if(ts?.length){$('topics').innerHTML=ts.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('')}
-  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');
-  go('course');
-}
-
+  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');go('course');}
 async function openStudy(topicId,title){$('studyTitle').textContent=title;const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to nursing practice.','Apply the concept to examination questions.'];$('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');$('studyBody').innerHTML='<p class="mut">Loading material…</p>';if(topicId){const {data}=await sb.from('learning_materials').select('title,content,material_type').eq('topic_id',topicId).eq('status','published').order('created_at',{ascending:false}).limit(1).maybeSingle();if(data)$('studyBody').innerHTML=`<h3>${escapeHtml(data.title)}</h3><div class="mut" style="white-space:pre-wrap;line-height:1.7">${escapeHtml(data.content||'No content yet.')}</div>`;else $('studyBody').innerHTML='<p class="mut">No published material yet.</p>';}else $('studyBody').innerHTML='<p class="mut">Starter topic. Approved learning material will appear here.</p>';go('study')}
 function togglePw(id,btn){
   const el=$(id);
