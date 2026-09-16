@@ -65,6 +65,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <section id="onboarding" class="card" style="margin:15px">
 <h2>Set up your student profile</h2><p class="mut">Choose your academic details so CampusMate can load the right courses.</p>
 <label>University</label><input id="uniSearch" placeholder="🔎 Search university…" oninput="filterUniversities()"><select id="uni"><option value="">Loading universities…</option></select><div id="uniMeta" class="uniMeta"></div>
+<label>Faculty / College</label><select id="facultySelect"><option value="">Select faculty / college</option></select>
+<label>Department</label><select id="deptSelect"><option value="">Select department</option></select>
 <label>Programme</label><select id="progSelect"><option value="">Select programme</option></select>
 <label>Level</label><select id="levelSelect"><option value="">Select level</option></select>
 <button id="onboardBtn" class="primary">Continue to dashboard</button>
@@ -78,9 +80,9 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
 
 <section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">First choose a semester. Only courses assigned to that semester will appear.</div></div><div class="card" style="margin-bottom:12px"><b>📚 Choose Semester</b><p class="mut" style="margin:6px 0 12px">Select First Semester or Second Semester to view your courses.</p><div id="semesterPicker" class="grid"></div></div><input id="search" class="hidden" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"><p class="mut">Choose a semester above to see your courses.</p></div></section>
-<section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div><button class="primary" onclick="go('quiz')">Start Quiz</button></section>
+<section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Study Materials</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b><p class="mut" style="margin-top:6px">Study materials only. To take a quiz, go to the Quiz section on your dashboard.</p></div><div id="topics"></div></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
-<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Practice and receive instant results</div></div><div class="card"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Choose a semester and course, then start your quiz.</div></div><div class="card"><b>📚 Choose Semester</b><div id="quizSemesterPicker" class="grid" style="margin-top:10px"></div></div><div class="card"><b>🧠 Choose Course</b><p id="quizCourseHint" class="mut">Select a semester first.</p><div id="quizCourseList"></div></div><div class="card hidden" id="quizStartCard"><b id="quizSelectedCourseName">Selected course</b><p class="mut">The quiz will load only questions linked to this course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div><div class="card hidden" id="quizBoxCard"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
 <section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button></section>
 <section id="gpa" class="page hidden"><div class="head"><h2>GPA & CGPA</h2><div class="sub">Student-entered academic calculators</div></div><div class="card"><span class="pill">Current Semester GPA</span><div id="gpaRows"></div><button class="primary" onclick="calcGpa()">Calculate GPA</button><div id="gpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><span class="pill">Cumulative CGPA</span><p class="mut">Enter your previous cumulative record and current semester result.</p><label>Previous CGPA</label><input id="prevCgpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.20"><label>Previous total credit units</label><input id="prevUnits" type="number" min="0" step="1" placeholder="e.g. 32"><label>Current semester GPA</label><input id="currGpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.60"><label>Current semester credit units</label><input id="currUnits" type="number" min="0" step="1" placeholder="e.g. 18"><button class="primary" onclick="calcCgpa()">Calculate CGPA</button><div id="cgpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><b>Grade points</b><p class="mut">A=5 • B=4 • C=3 • D=2 • E=1 • F=0</p><small class="mut">These calculators do not retrieve or represent official university results.</small></div></section>
 <section id="planner" class="page hidden"><div class="head"><h2>Study Planner</h2><div class="sub">Organize your academic tasks</div></div><div class="card"><input id="newTask" placeholder="e.g. Read BCH 202 notes"><button class="primary" onclick="addTask()">+ Add Task</button></div><div class="card" id="tasks"></div></section>
@@ -125,7 +127,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 Option B
 Option C
 Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" maxlength="1" placeholder="A"><label>Topic</label><input id="qaTopic" placeholder="e.g. Fundamentals of Nursing"><label>Difficulty</label><select id="qaDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select><label>Verification status</label><select id="qaStatus"><option value="reviewed_reference">Reviewed Reference</option><option value="licensed_partner">Licensed Partner</option><option value="officially_verified">Officially Verified</option><option value="draft">Draft</option></select><label>Source title</label><input id="qaSource" placeholder="Book, authorized source, partner material, etc."><label>Source URL</label><input id="qaSourceUrl" placeholder="https://…"><label>Content origin</label><select id="qaOrigin"><option value="campusmate_authored">CampusMate authored</option><option value="licensed_partner">Licensed partner</option><option value="official_authorized">Official / authorized</option><option value="reviewed_reference">Reviewed reference</option></select><label>Review note</label><textarea id="qaNote" rows="3" placeholder="Why this question is approved for this status"></textarea><button class="primary" onclick="adminAddCouncilQuestion()">Add to review bank</button></div><input id="qaSearch" placeholder="🔎 Search question, topic or source…" oninput="renderAdminQuestions()"><div id="qaList"></div></section><section id="challenges" class="page hidden"><div class="head"><h2>Challenges</h2><div class="sub">Practise • Compete • Improve</div></div><div class="card"><h3>🏆 Academic Challenges</h3><p class="mut">Challenge formats planned for CampusMate:</p><p>⚡ Quick Quiz<br>📚 Topic Battle<br>🎓 Course Challenge<br>🏫 Department Championship<br>🇳🇬 National Championship</p><button class="primary" onclick="go('quiz')">Start practising</button></div><div class="card"><b>Leaderboard</b><p class="mut">Leaderboards will rank students by challenge performance while protecting academic integrity and user safety.</p></div></section>
-<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card"><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button></section>
+<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card"><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🏛️ <b>Faculty / College</b><br><span id="pfaculty" class="mut"></span></p><p>🏫 <b>Department</b><br><span id="pdept" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button></section>
 </main><nav class="nav" style="grid-template-columns:repeat(6,1fr)"><button class="on" onclick="go('home',this)"><span>⌂</span>Home</button><button onclick="go('courses',this)"><span>▦</span>Courses</button><button onclick="go('quiz',this)"><span>🧠</span>Quiz</button><button onclick="go('community',this)"><span>👥</span>Community</button><button id="adminCouncilNav" class="hidden" onclick="go('councilAdmin',this)"><span>🛡️</span>Admin</button><button onclick="go('profile',this)"><span>●</span>Profile</button></nav>
 </div>
 
@@ -160,34 +162,49 @@ function showAuth(mode='login'){
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
-  // Backward-compatible fallback for databases that have not run the catalogue migration yet.
   if(res.error){res=await sb.from('universities').select('id,name,short_name').order('name')}
   const u=$('uni');
   if(res.error){u.innerHTML='<option value="">Unable to load universities</option>';return}
   universities=(res.data||[]).map(x=>({...x,state:x.state||'',ownership:x.ownership||'',nuc_verified:!!x.nuc_verified}));
-  renderUniversityOptions(universities); u.onchange=()=>{showUniversityMeta();loadProgrammes()}; showUniversityMeta(); await loadProgrammes();
+  renderUniversityOptions(universities);
+  u.onchange=()=>{showUniversityMeta();loadFaculties()};
+  showUniversityMeta();
+  await loadFaculties();
 }
 function renderUniversityOptions(list){const u=$('uni');u.innerHTML='<option value="">Select university</option>'+list.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('')}
 function filterUniversities(){const q=($('uniSearch').value||'').toLowerCase();renderUniversityOptions(universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q)));showUniversityMeta()}
 function showUniversityMeta(){const x=universities.find(v=>v.id===$('uni').value);$('uniMeta').innerHTML=x?`<span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}`:''}
+async function loadFaculties(){
+  const uid=$('uni').value, f=$('facultySelect'), d=$('deptSelect'), p=$('progSelect'), l=$('levelSelect');
+  f.innerHTML='<option value="">Loading faculties / colleges...</option>';
+  d.innerHTML='<option value="">Select department</option>';
+  p.innerHTML='<option value="">Select programme</option>';
+  l.innerHTML='<option value="">Select level</option>';
+  if(!uid){f.innerHTML='<option value="">Select faculty / college</option>';return}
+  const {data,error}=await sb.from('faculties').select('id,name').eq('university_id',uid).order('name');
+  if(error){f.innerHTML='<option value="">Unable to load faculties / colleges</option>';console.error('Faculty load error:',error);return}
+  f.innerHTML='<option value="">Select faculty / college</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  f.onchange=loadDepartments;
+}
+async function loadDepartments(){
+  const fid=$('facultySelect').value, d=$('deptSelect'), p=$('progSelect'), l=$('levelSelect');
+  d.innerHTML='<option value="">Loading departments...</option>';
+  p.innerHTML='<option value="">Select programme</option>';
+  l.innerHTML='<option value="">Select level</option>';
+  if(!fid){d.innerHTML='<option value="">Select department</option>';return}
+  const {data,error}=await sb.from('departments').select('id,name').eq('faculty_id',fid).order('name');
+  if(error){d.innerHTML='<option value="">Unable to load departments</option>';console.error('Department load error:',error);return}
+  d.innerHTML='<option value="">Select department</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+  d.onchange=loadProgrammes;
+}
 async function loadProgrammes(){
-  const uid=$('uni').value;
-  const p=$('progSelect');
-  const l=$('levelSelect');
+  const did=$('deptSelect').value, p=$('progSelect'), l=$('levelSelect');
   p.innerHTML='<option value="">Loading programmes...</option>';
   l.innerHTML='<option value="">Select level</option>';
-  if(!uid){p.innerHTML='<option value="">Select programme</option>';return}
-  const {data:fac,error:facError}=await sb.from('faculties').select('id').eq('university_id',uid);
-  if(facError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Faculty load error:',facError);return}
-  const fids=(fac||[]).map(x=>x.id);
-  if(!fids.length){p.innerHTML='<option value="">No programmes found</option>';return}
-  const {data:deps,error:depError}=await sb.from('departments').select('id').in('faculty_id',fids);
-  if(depError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Department load error:',depError);return}
-  const dids=(deps||[]).map(x=>x.id);
-  if(!dids.length){p.innerHTML='<option value="">No programmes found</option>';return}
-  const {data:progs,error:progError}=await sb.from('programmes').select('id,name,short_name').in('department_id',dids).order('name');
-  if(progError){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Programme load error:',progError);return}
-  p.innerHTML='<option value="">Select programme</option>'+(progs||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}${x.short_name?' ('+escapeHtml(x.short_name)+')':''}</option>`).join('');
+  if(!did){p.innerHTML='<option value="">Select programme</option>';return}
+  const {data,error}=await sb.from('programmes').select('id,name,short_name').eq('department_id',did).order('name');
+  if(error){p.innerHTML='<option value="">Unable to load programmes</option>';console.error('Programme load error:',error);return}
+  p.innerHTML='<option value="">Select programme</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}${x.short_name?' ('+escapeHtml(x.short_name)+')':''}</option>`).join('');
   p.onchange=loadLevels;
 }
 async function loadLevels(){
@@ -248,8 +265,8 @@ async function loadProfile(){
   profile=data;
 }
 async function saveOnboarding(){
-  const university_id=$('uni').value,programme_id=$('progSelect').value,level_id=$('levelSelect').value;
-  if(!university_id||!programme_id||!level_id){msg('Select your university, programme and level first.','error');return}
+  const university_id=$('uni').value,faculty_id=$('facultySelect').value,department_id=$('deptSelect').value,programme_id=$('progSelect').value,level_id=$('levelSelect').value;
+  if(!university_id||!faculty_id||!department_id||!programme_id||!level_id){msg('Select your university, faculty / college, department, programme and level first.','error');return}
   const {error}=await sb.from('profiles').update({full_name:profile.full_name||session.user.user_metadata?.full_name,university_id,programme_id,level_id,updated_at:new Date().toISOString()}).eq('id',session.user.id);
   if(error){msg(error.message,'error');return}
   await loadProfile(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
@@ -310,7 +327,7 @@ function startStudent(){
   $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
 }
-function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')loadQuiz();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
+function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
@@ -349,9 +366,17 @@ async function openCourseObject(c){
   $('courseTitle').textContent=currentCourse.name;
   $('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';
   $('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';
-  const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
-  if(ts?.length){$('topics').innerHTML=ts.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('')}
-  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');
+  const {data:ts,error}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
+  if(error){console.error('Topic loading error:',error);$('topics').innerHTML='<p class="mut">Unable to load study topics right now.</p>';go('course');return}
+  const seen=new Set();
+  const uniqueTopics=(ts||[]).filter(t=>{const key=(t.id||t.title||'').toString().trim().toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;});
+  if(uniqueTopics.length){
+    $('topics').innerHTML=uniqueTopics.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('');
+  }else{
+    const fallbackSeen=new Set();
+    const fallback=(currentCourse.topics||[]).filter(t=>{const key=String(t).trim().toLowerCase();if(!key||fallbackSeen.has(key))return false;fallbackSeen.add(key);return true;});
+    $('topics').innerHTML=fallback.length?fallback.map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join(''):'<p class="mut">No published study topics are available for this course yet.</p>';
+  }
   go('course');
 }
 
@@ -364,6 +389,46 @@ function togglePw(id,btn){
 function calcCgpa(){const pc=+($('prevCgpa').value||0),pu=+($('prevUnits').value||0),cg=+($('currGpa').value||0),cu=+($('currUnits').value||0);if(pu+cu===0){$('cgpaOut').textContent='—';return}const v=((pc*pu)+(cg*cu))/(pu+cu);$('cgpaOut').textContent=v.toFixed(2)}
 function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance()}
 function renderPerformance(){if(!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');const avg=d.scores.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;$('perfQuizAvg').textContent=d.attempts?avg+'%':'—';$('perfQuizzes').textContent=d.attempts;$('perfCorrect').textContent=d.correct;$('perfCourses').textContent=d.courses.length;$('perfStreak').textContent=(d.streak||0)+' day'+((d.streak||0)===1?'':'s');$('perfTime').textContent=(d.attempts*5)+' min';$('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s')}
+function renderQuizCenter(){
+  const semBox=$('quizSemesterPicker'), courseBox=$('quizCourseList');
+  if(!semBox||!courseBox)return;
+  $('quizStartCard').classList.add('hidden');
+  $('quizBoxCard').classList.add('hidden');
+  $('quizBox').innerHTML='';
+  currentQuiz=null;quizQuestions=[];quizAnswers={};
+  const semesters=availableSemesters||[];
+  semBox.innerHTML=semesters.length?semesters.map(s=>`<button class="secondary" onclick="selectQuizSemester('${s.id}')">📚 ${escapeHtml(s.name)}</button>`).join(''):'<p class="mut">No semesters are available.</p>';
+  if(selectedSemesterId)renderQuizCourses(selectedSemesterId);
+  else {courseBox.innerHTML='<p class="mut">Select a semester first.</p>';$('quizCourseHint').textContent='Select a semester first.';}
+}
+function selectQuizSemester(semesterId){
+  selectedSemesterId=semesterId;
+  $('quizStartCard').classList.add('hidden');
+  $('quizBoxCard').classList.add('hidden');
+  currentCourse=null;currentQuiz=null;quizQuestions=[];quizAnswers={};
+  renderQuizCourses(semesterId);
+}
+function renderQuizCourses(semesterId){
+  const box=$('quizCourseList');if(!box)return;
+  const visible=(courses||[]).filter(c=>c.semester_id===semesterId);
+  $('quizCourseHint').textContent=visible.length?'Select the course you want to take a quiz on.':'No courses are assigned to this semester yet.';
+  box.innerHTML=visible.length?visible.map(c=>`<div class="card course" onclick="selectQuizCourse('${c.id}')"><div class="badge">${escapeHtml((c.code||'COURSE').replace(' ','<br>'))}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Credit Units</p></div><b>›</b></div>`).join(''):'<p class="mut">No courses are assigned to this semester yet.</p>';
+}
+function selectQuizCourse(courseId){
+  const c=(courses||[]).find(x=>x.id===courseId);if(!c)return;
+  currentCourse=c;currentQuiz=null;quizQuestions=[];quizAnswers={};
+  $('quizSelectedCourseName').textContent=c.code+' — '+c.name;
+  $('quizStartCard').classList.remove('hidden');
+  $('quizBoxCard').classList.add('hidden');
+  $('quizBox').innerHTML='';
+}
+async function startSelectedQuiz(){
+  if(!currentCourse?.id)return;
+  $('quizStartCard').classList.add('hidden');
+  $('quizBoxCard').classList.remove('hidden');
+  await loadQuiz();
+}
+
 async function loadQuiz(){
   $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';
   quizAnswers={};
