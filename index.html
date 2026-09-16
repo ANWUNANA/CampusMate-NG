@@ -77,7 +77,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
 <div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
 
-<section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">Courses available for your programme</div></div><input id="search" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"></div></section>
+<section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">Choose a semester to view only its courses</div></div><div id="semesterPicker" class="grid" style="margin-bottom:12px"></div><input id="search" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div><button class="primary" onclick="go('quiz')">Start Quiz</button></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
 <section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Practice and receive instant results</div></div><div class="card"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
@@ -143,7 +143,7 @@ const demoCourses=[
  {code:'NUR 201',name:'Fundamentals of Nursing',units:2,desc:'Core principles and routine practices of professional nursing.',topics:['Vital Signs','Bed Bath','Positioning','Oral Hygiene']},
  {code:'PHC 203',name:'Community Health',units:2,desc:'Principles of health promotion, prevention and community-based care.',topics:['Primary Health Care','Immunization','Health Education','Epidemiology']}
 ];
-let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
+let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[], selectedSemesterId=null, availableSemesters=[];
 
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
@@ -257,22 +257,49 @@ async function saveOnboarding(){
 async function loadStudentData(){
   tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
   courses=[];
+  availableSemesters=[];
+  selectedSemesterId=null;
 
   if(profile?.programme_id&&profile?.level_id){
+    const {data:semesters,error:semError}=await sb.from('semesters')
+      .select('id,name,is_current')
+      .eq('programme_id',profile.programme_id)
+      .order('name');
+
+    if(semError){
+      console.error('Semester loading error:',semError);
+      return;
+    }
+
+    const semesterRows=semesters||[];
+    availableSemesters=['First Semester','Second Semester']
+      .map(name=>semesterRows.find(s=>s.name===name))
+      .filter(Boolean);
+
+    if(!availableSemesters.length)return;
+
+    const current=availableSemesters.find(s=>s.is_current)||availableSemesters[0];
+    selectedSemesterId=current.id;
+
+    const semesterIds=availableSemesters.map(s=>s.id);
     const {data:pcs,error}=await sb.from('programme_courses').select(`
       course_id,semester_id,
-      courses(id,code,name,description,credit_units),
-      semesters!inner(id,name,is_current,programme_id)
-    `).eq('programme_id',profile.programme_id).eq('level_id',profile.level_id).eq('semesters.programme_id',profile.programme_id).eq('semesters.is_current',true);
+      courses(id,code,name,description,credit_units)
+    `)
+      .eq('programme_id',profile.programme_id)
+      .eq('level_id',profile.level_id)
+      .in('semester_id',semesterIds);
 
     if(error){
       console.error('Programme course loading error:',error);
       courses=[];
-    }else{
-      courses=(pcs||[]).map(x=>x.courses).filter(Boolean);
+      return;
     }
+
+    courses=(pcs||[]).map(x=>({...(x.courses||{}),semester_id:x.semester_id})).filter(x=>x.id);
   }
 }
+
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
@@ -288,12 +315,29 @@ function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.cla
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
-  $('courseList').innerHTML=courses.map((c,i)=>`<div class="card course" data-name="${c.name.toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${c.name}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('');
+  const picker=$('semesterPicker');
+  if(picker){
+    picker.innerHTML=availableSemesters.map(s=>`<button class="tile ${selectedSemesterId===s.id?'on':''}" style="cursor:pointer;border:1px solid var(--line)" onclick="selectSemester('${s.id}')"><span style="font-size:24px">📚</span><b>${escapeHtml(s.name)}</b><small>${courses.filter(c=>c.semester_id===s.id).length} courses</small></button>`).join('')||'<p class="mut">No semesters available.</p>';
+  }
+  const visible=courses.filter(c=>!selectedSemesterId||c.semester_id===selectedSemesterId);
+  $('courseList').innerHTML=visible.map((c,i)=>`<div class="card course" data-name="${(c.name||'').toLowerCase()}" onclick="openCourseById('${c.id}')"><div class="badge">${(c.code||'COURSE').replace(' ','<br>')}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Units • ${profile?.levels?.name||'Level'}</p></div><b>›</b></div>`).join('')||'<p class="mut">No courses are assigned to this semester yet.</p>';
 }
+function selectSemester(id){selectedSemesterId=id;renderCourses();if($('search'))$('search').value='';}
+function openCourseById(id){const c=courses.find(x=>x.id===id);if(c){currentCourse=c;openCourseObject(c);}}
+
 function filterCourses(){let q=$('search').value.toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
-async function openCourse(i){currentCourse=courses[i];$('courseTitle').textContent=currentCourse.name;$('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';$('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
+async function openCourse(i){const c=courses[i];if(c)openCourseObject(c);}
+async function openCourseObject(c){
+  currentCourse=c;
+  $('courseTitle').textContent=currentCourse.name;
+  $('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';
+  $('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';
+  const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
   if(ts?.length){$('topics').innerHTML=ts.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('')}
-  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');go('course');}
+  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('');
+  go('course');
+}
+
 async function openStudy(topicId,title){$('studyTitle').textContent=title;const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to nursing practice.','Apply the concept to examination questions.'];$('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');$('studyBody').innerHTML='<p class="mut">Loading material…</p>';if(topicId){const {data}=await sb.from('learning_materials').select('title,content,material_type').eq('topic_id',topicId).eq('status','published').order('created_at',{ascending:false}).limit(1).maybeSingle();if(data)$('studyBody').innerHTML=`<h3>${escapeHtml(data.title)}</h3><div class="mut" style="white-space:pre-wrap;line-height:1.7">${escapeHtml(data.content||'No content yet.')}</div>`;else $('studyBody').innerHTML='<p class="mut">No published material yet.</p>';}else $('studyBody').innerHTML='<p class="mut">Starter topic. Approved learning material will appear here.</p>';go('study')}
 function togglePw(id,btn){
   const el=$(id);
@@ -304,10 +348,49 @@ function calcCgpa(){const pc=+($('prevCgpa').value||0),pu=+($('prevUnits').value
 function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance()}
 function renderPerformance(){if(!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');const avg=d.scores.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;$('perfQuizAvg').textContent=d.attempts?avg+'%':'—';$('perfQuizzes').textContent=d.attempts;$('perfCorrect').textContent=d.correct;$('perfCourses').textContent=d.courses.length;$('perfStreak').textContent=(d.streak||0)+' day'+((d.streak||0)===1?'':'s');$('perfTime').textContent=(d.attempts*5)+' min';$('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s')}
 async function loadQuiz(){
-  $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';quizAnswers={};
-  if(currentCourse?.id){const {data:q}=await sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published').limit(1).maybeSingle();currentQuiz=q||null;if(q){const r=await sb.from('quiz_questions').select('id,question_text,options,correct_option,explanation,marks').eq('quiz_id',q.id);quizQuestions=r.data||[];}}
-  if(!quizQuestions.length&&(!currentCourse||currentCourse.code==='BCH 202')){quizQuestions=[{id:'d1',question_text:'The major solvent in most cells is?',options:['Protein','Water','Lipid','DNA'],correct_option:1,marks:1},{id:'d2',question_text:'Most enzymes are?',options:['Proteins','Carbohydrates','Minerals','Vitamins'],correct_option:0,marks:1},{id:'d3',question_text:'Which is a lipid?',options:['Glucose','Glycine','Cholesterol','Glycogen'],correct_option:2,marks:1},{id:'d4',question_text:'Amino acids are building blocks of?',options:['Proteins','Lipids','Water','Minerals'],correct_option:0,marks:1},{id:'d5',question_text:'Glycogen is mainly a storage form of?',options:['Protein','Carbohydrate','Lipid','Vitamin'],correct_option:1,marks:1}];}
-  $('quizBox').innerHTML=quizQuestions.length?quizQuestions.map((q,i)=>`<div style="margin-bottom:20px"><b>${i+1}. ${escapeHtml(q.question_text)}</b>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('')}</div>`).join(''):'<p class="mut">No published quiz is available for this course yet.</p>';
+  $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';
+  quizAnswers={};
+  quizQuestions=[];
+  currentQuiz=null;
+
+  if(!currentCourse?.id){
+    $('quizBox').innerHTML='<p class="mut">No course selected.</p>';
+    return;
+  }
+
+  const {data:q,error:qError}=await sb.from('quizzes')
+    .select('id,title,description')
+    .eq('course_id',currentCourse.id)
+    .eq('status','published')
+    .order('created_at',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+
+  if(qError){
+    console.error('Quiz loading error:',qError);
+    $('quizBox').innerHTML='<p class="mut">Unable to load this course quiz right now.</p>';
+    return;
+  }
+
+  currentQuiz=q||null;
+
+  if(q){
+    const {data:questions,error:questionsError}=await sb.from('quiz_questions')
+      .select('id,question_text,options,correct_option,explanation,marks')
+      .eq('quiz_id',q.id)
+      .order('id');
+
+    if(questionsError){
+      console.error('Quiz question loading error:',questionsError);
+      quizQuestions=[];
+    }else{
+      quizQuestions=questions||[];
+    }
+  }
+
+  $('quizBox').innerHTML=quizQuestions.length
+    ? quizQuestions.map((q,i)=>`<div style="margin-bottom:20px"><b>${i+1}. ${escapeHtml(q.question_text)}</b>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('')}</div>`).join('')
+    : '<p class="mut">No published quiz is available for this course yet.</p>';
 }
 async function submitQuiz(){if(!quizQuestions.length){go('courses');return}let correct=0,total=quizQuestions.reduce((a,q)=>a+Number(q.marks||1),0),scoreMarks=0;quizQuestions.forEach((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);if(a&&+a.value===+q.correct_option){correct++;scoreMarks+=Number(q.marks||1)}});const pct=Math.round(scoreMarks/total*100);$('score').textContent=pct+'%';$('resultText').textContent=correct+' / '+quizQuestions.length+' correct.';updatePerformance(pct,quizQuestions.length,correct);if(currentQuiz){const {data:att}=await sb.from('quiz_attempts').insert({quiz_id:currentQuiz.id,student_id:session.user.id,score:scoreMarks,total_marks:total,submitted_at:new Date().toISOString()}).select('id').single();if(att){await sb.from('quiz_answers').upsert(quizQuestions.map((q,i)=>{const a=document.querySelector(`input[name="q${i}"]:checked`);return {attempt_id:att.id,question_id:q.id,selected_option:a?+a.value:null,is_correct:!!(a&&+a.value===+q.correct_option)};}),{onConflict:'attempt_id,question_id'});}}go('result')}
 async function loadCouncilPractice(){
