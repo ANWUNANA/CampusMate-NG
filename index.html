@@ -78,14 +78,14 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
 <main>
-<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
+<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div><div class="card" style="margin:12px 0 0;background:#eef8f4"><b>💬 Keep Learning</b><p id="motivationHome" class="mut" style="margin-bottom:0">Small study sessions add up. Keep building your knowledge one course at a time.</p></div>
 <div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
 <div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
 
 <section id="courses" class="page hidden"><div class="head"><h2>Courses</h2><div class="sub">First choose a semester. Only courses assigned to that semester will appear.</div></div><div class="card" style="margin-bottom:12px"><b>📚 Choose Semester</b><p class="mut" style="margin:6px 0 12px">Select First Semester or Second Semester to view your courses.</p><div id="semesterPicker" class="grid"></div></div><input id="search" class="hidden" placeholder="🔎 Search courses..." oninput="filterCourses()"><div id="courseList"><p class="mut">Choose a semester above to see your courses.</p></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Study Materials</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b><p class="mut" style="margin-top:6px">Study materials only. To take a quiz, go to the Quiz section on your dashboard.</p></div><div id="topics"></div></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
-<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Choose a semester and course, then start your quiz.</div></div><div class="card"><b>📚 Choose Semester</b><div id="quizSemesterPicker" class="grid" style="margin-top:10px"></div></div><div class="card"><b>🧠 Choose Course</b><p id="quizCourseHint" class="mut">Select a semester first.</p><div id="quizCourseList"></div></div><div class="card hidden" id="quizStartCard"><b id="quizSelectedCourseName">Selected course</b><p class="mut">The quiz will load only questions linked to this course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div><div class="card hidden" id="quizBoxCard"><div id="quizBox"></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Choose a semester and course, then start your quiz.</div></div><div class="card"><b>📚 Choose Semester</b><div id="quizSemesterPicker" class="grid" style="margin-top:10px"></div></div><div class="card"><b>🧠 Choose Course</b><p id="quizCourseHint" class="mut">Select a semester first.</p><div id="quizCourseList"></div></div><div class="card hidden" id="quizStartCard"><b id="quizSelectedCourseName">Selected course</b><p class="mut">The quiz will load only questions linked to this course.</p><label>Quiz mode</label><select id="quizTimingMode"><option value="timed">⏱ Timed — 20 seconds per question</option><option value="untimed">📖 Untimed — no timer</option></select><p id="quizModeInfo" class="mut">Timed quiz: 20 seconds per question. The quiz auto-submits when the timer reaches zero.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div><div class="card hidden" id="quizBoxCard"><div class="cbtTop"><div><b id="quizProgressText">Quiz</b><div class="progress"><i id="quizProgress"></i></div></div><div id="quizTimer" class="timer">--:--</div></div><div id="quizBox"></div><button class="primary" onclick="submitQuiz(false)">Submit Quiz</button></div></section>
 <section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report and answer review</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><div class="card"><h3>📝 Review Your Quiz</h3><p class="mut">See which answers were correct, which were wrong, and the correct answer for each question.</p></div><div id="quizReview"></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button></section>
 <section id="gpa" class="page hidden"><div class="head"><h2>GPA & CGPA</h2><div class="sub">Student-entered academic calculators</div></div><div class="card"><span class="pill">Current Semester GPA</span><div id="gpaRows"></div><button class="primary" onclick="calcGpa()">Calculate GPA</button><div id="gpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><span class="pill">Cumulative CGPA</span><p class="mut">Enter your previous cumulative record and current semester result.</p><label>Previous CGPA</label><input id="prevCgpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.20"><label>Previous total credit units</label><input id="prevUnits" type="number" min="0" step="1" placeholder="e.g. 32"><label>Current semester GPA</label><input id="currGpa" type="number" min="0" max="5" step="0.01" placeholder="e.g. 4.60"><label>Current semester credit units</label><input id="currUnits" type="number" min="0" step="1" placeholder="e.g. 18"><button class="primary" onclick="calcCgpa()">Calculate CGPA</button><div id="cgpaOut" style="text-align:center;font-size:35px;font-weight:900;color:var(--g);margin-top:15px">—</div></div><div class="card"><b>Grade points</b><p class="mut">A=5 • B=4 • C=3 • D=2 • E=1 • F=0</p><small class="mut">These calculators do not retrieve or represent official university results.</small></div></section>
 <section id="planner" class="page hidden"><div class="head"><h2>Study Planner</h2><div class="sub">Organize your academic tasks</div></div><div class="card"><input id="newTask" placeholder="e.g. Read BCH 202 notes"><button class="primary" onclick="addTask()">+ Add Task</button></div><div class="card" id="tasks"></div></section>
@@ -143,11 +143,11 @@ const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const demoCourses=[
  {code:'BCH 202',name:'Biochemistry',units:3,desc:'Fundamental knowledge of biochemical processes, biomolecules and metabolism.',topics:['Cellular Chemistry','Proteins & Amino Acids','Carbohydrates','Lipids']},
  {code:'ANA 204',name:'Human Anatomy',units:3,desc:'Structure and organization of the human body.',topics:['Thorax','Abdomen','Pelvis','Perineum']},
- {code:'PHS 202',name:'Physiology',units:3,desc:'Normal functions of cells, tissues, organs and body systems.',topics:['Homeostasis','Renal Physiology','Cardiovascular Physiology','Respiratory Physiology']},
- {code:'NUR 201',name:'Fundamentals of Nursing',units:2,desc:'Core principles and routine practices of professional nursing.',topics:['Vital Signs','Bed Bath','Positioning','Oral Hygiene']},
+ {code:'PIO 202',name:'Physiology',units:3,desc:'Normal functions of cells, tissues, organs and body systems.',topics:['Homeostasis','Renal Physiology','Cardiovascular Physiology','Respiratory Physiology']},
+ {code:'NSC 202',name:'Fundamentals of Nursing',units:2,desc:'Core principles and routine practices of professional nursing.',topics:['Vital Signs','Bed Bath','Positioning','Oral Hygiene']},
  {code:'PHC 203',name:'Community Health',units:2,desc:'Principles of health promotion, prevention and community-based care.',topics:['Primary Health Care','Immunization','Health Education','Epidemiology']}
 ];
-let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, lastQuizReview=[], tasks=[], selectedSemesterId=null, availableSemesters=[], challengeQuestions=[], challengeAnswers={}, challengeTimer=null, challengeSeconds=0, challengeCourse=null, challengeSemesterId=null;
+let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, lastQuizReview=[], tasks=[], selectedSemesterId=null, availableSemesters=[], challengeQuestions=[], challengeAnswers={}, challengeTimer=null, challengeSeconds=0, challengeCourse=null, challengeSemesterId=null, quizTimer=null, quizTimed=false, quizSeconds=0;
 
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
@@ -327,7 +327,7 @@ function startStudent(){
   $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
   $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
-  renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
+  renderCourses();renderTasks();renderGpa();renderPerformance();renderMotivation();go('home');
 }
 function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='challenges')renderChallenges();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
@@ -389,26 +389,20 @@ function togglePw(id,btn){
   btn.textContent='👁️';
 }
 function calcCgpa(){const pc=+($('prevCgpa').value||0),pu=+($('prevUnits').value||0),cg=+($('currGpa').value||0),cu=+($('currUnits').value||0);if(pu+cu===0){$('cgpaOut').textContent='—';return}const v=((pc*pu)+(cg*cu))/(pu+cu);$('cgpaOut').textContent=v.toFixed(2)}
-function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance()}
+function updatePerformance(score,questionCount,correct){const key='cm_perf_'+session.user.id;const d=JSON.parse(localStorage.getItem(key)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0,"lastDay":""}');d.attempts++;d.scores.push(score);d.correct+=correct;d.questions+=questionCount;if(currentCourse?.code&&!d.courses.includes(currentCourse.code))d.courses.push(currentCourse.code);const day=new Date().toISOString().slice(0,10);if(d.lastDay!==day){const prev=d.lastDay?new Date(d.lastDay):null;const now=new Date(day);if(prev&&Math.round((now-prev)/86400000)===1)d.streak++;else d.streak=1;d.lastDay=day}localStorage.setItem(key,JSON.stringify(d));renderPerformance();renderMotivation()}
 function renderPerformance(){if(!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');const avg=d.scores.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;$('perfQuizAvg').textContent=d.attempts?avg+'%':'—';$('perfQuizzes').textContent=d.attempts;$('perfCorrect').textContent=d.correct;$('perfCourses').textContent=d.courses.length;$('perfStreak').textContent=(d.streak||0)+' day'+((d.streak||0)===1?'':'s');$('perfTime').textContent=(d.attempts*5)+' min';$('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s')}
 function renderQuizCenter(){
-  const semBox=$('quizSemesterPicker'), courseBox=$('quizCourseList');
-  if(!semBox||!courseBox)return;
-  $('quizStartCard').classList.add('hidden');
-  $('quizBoxCard').classList.add('hidden');
-  $('quizBox').innerHTML='';
-  currentQuiz=null;quizQuestions=[];quizAnswers={};
+  const semBox=$('quizSemesterPicker'),courseBox=$('quizCourseList');if(!semBox||!courseBox)return;
+  clearQuizTimer();$('quizStartCard').classList.add('hidden');$('quizBoxCard').classList.add('hidden');$('quizBox').innerHTML='';
+  currentQuiz=null;quizQuestions=[];quizAnswers={};quizTimed=false;quizSeconds=0;
   const semesters=availableSemesters||[];
   semBox.innerHTML=semesters.length?semesters.map(s=>`<button class="secondary" onclick="selectQuizSemester('${s.id}')">📚 ${escapeHtml(s.name)}</button>`).join(''):'<p class="mut">No semesters are available.</p>';
-  if(selectedSemesterId)renderQuizCourses(selectedSemesterId);
-  else {courseBox.innerHTML='<p class="mut">Select a semester first.</p>';$('quizCourseHint').textContent='Select a semester first.';}
+  if(selectedSemesterId)renderQuizCourses(selectedSemesterId);else{courseBox.innerHTML='<p class="mut">Select a semester first.</p>';$('quizCourseHint').textContent='Select a semester first.';}
+  updateQuizModeInfo();
 }
 function selectQuizSemester(semesterId){
-  selectedSemesterId=semesterId;
-  $('quizStartCard').classList.add('hidden');
-  $('quizBoxCard').classList.add('hidden');
-  currentCourse=null;currentQuiz=null;quizQuestions=[];quizAnswers={};
-  renderQuizCourses(semesterId);
+  selectedSemesterId=semesterId;clearQuizTimer();$('quizStartCard').classList.add('hidden');$('quizBoxCard').classList.add('hidden');
+  currentCourse=null;currentQuiz=null;quizQuestions=[];quizAnswers={};renderQuizCourses(semesterId);
 }
 function renderQuizCourses(semesterId){
   const box=$('quizCourseList');if(!box)return;
@@ -418,19 +412,22 @@ function renderQuizCourses(semesterId){
 }
 function selectQuizCourse(courseId){
   const c=(courses||[]).find(x=>x.id===courseId);if(!c)return;
-  currentCourse=c;currentQuiz=null;quizQuestions=[];quizAnswers={};
-  $('quizSelectedCourseName').textContent=c.code+' — '+c.name;
-  $('quizStartCard').classList.remove('hidden');
-  $('quizBoxCard').classList.add('hidden');
-  $('quizBox').innerHTML='';
+  currentCourse=c;currentQuiz=null;quizQuestions=[];quizAnswers={};clearQuizTimer();
+  $('quizSelectedCourseName').textContent=c.code+' — '+c.name;$('quizStartCard').classList.remove('hidden');$('quizBoxCard').classList.add('hidden');$('quizBox').innerHTML='';
+  if($('quizTimingMode'))$('quizTimingMode').value='timed';updateQuizModeInfo();
 }
+function updateQuizModeInfo(){const mode=$('quizTimingMode')?.value||'timed',info=$('quizModeInfo');if(info)info.textContent=mode==='timed'?'Timed quiz: 20 seconds per question. The quiz auto-submits when the timer reaches zero.':'Untimed quiz: take your time. There is no countdown timer.';}
 async function startSelectedQuiz(){
-  if(!currentCourse?.id)return;
-  $('quizStartCard').classList.add('hidden');
-  $('quizBoxCard').classList.remove('hidden');
-  await loadQuiz();
+  if(!currentCourse?.id)return;clearQuizTimer();quizTimed=($('quizTimingMode')?.value||'timed')==='timed';
+  $('quizStartCard').classList.add('hidden');$('quizBoxCard').classList.remove('hidden');await loadQuiz();
+  if(quizQuestions.length){quizSeconds=quizTimed?quizQuestions.length*20:0;updateQuizTimer();if(quizTimed)quizTimer=setInterval(()=>{quizSeconds--;updateQuizTimer();if(quizSeconds<=0){clearQuizTimer();submitQuiz(true);}},1000);}
 }
-
+function clearQuizTimer(){if(quizTimer){clearInterval(quizTimer);quizTimer=null}}
+function updateQuizTimer(){
+ const el=$('quizTimer'),p=$('quizProgressText'),bar=$('quizProgress');if(!el)return;if(!quizQuestions.length){el.textContent='--:--';return;}
+ if(!quizTimed){el.textContent='Untimed';el.classList.remove('warn');}else{const m=Math.floor(Math.max(0,quizSeconds)/60),sec=Math.max(0,quizSeconds)%60;el.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');el.classList.toggle('warn',quizSeconds<=20);}
+ if(p)p.textContent=quizQuestions.length+' questions • '+(quizTimed?'20 sec/question':'Untimed');if(bar)bar.style.width='100%';
+}
 async function loadQuiz(){
   $('quizBox').innerHTML='<p class="mut">Loading quiz…</p>';
   quizAnswers={};
@@ -476,8 +473,9 @@ async function loadQuiz(){
     ? quizQuestions.map((q,i)=>`<div style="margin-bottom:20px"><b>${i+1}. ${escapeHtml(q.question_text)}</b>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}">${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join('')}</div>`).join('')
     : '<p class="mut">No published quiz is available for this course yet.</p>';
 }
-async function submitQuiz(){
+async function submitQuiz(autoSubmitted=false){
   if(!quizQuestions.length){go('quiz');return}
+  clearQuizTimer();
   let correct=0,total=quizQuestions.reduce((a,q)=>a+Number(q.marks||1),0),scoreMarks=0;
   lastQuizReview=quizQuestions.map((q,i)=>{
     const a=document.querySelector(`input[name="q${i}"]:checked`);
@@ -488,7 +486,8 @@ async function submitQuiz(){
   });
   const pct=total?Math.round(scoreMarks/total*100):0;
   $('score').textContent=pct+'%';
-  $('resultText').textContent=correct+' / '+quizQuestions.length+' correct.';
+  $('resultText').textContent=correct+' / '+quizQuestions.length+' correct.'+(autoSubmitted?' • Time expired; quiz auto-submitted.':'');
+  renderQuizMotivation(pct,autoSubmitted);
   renderQuizReview();
   updatePerformance(pct,quizQuestions.length,correct);
   if(currentQuiz){
@@ -499,6 +498,12 @@ async function submitQuiz(){
   }
   go('result');
 }
+function renderMotivation(){
+ const el=$('motivationHome');if(!el||!session?.user?.id)return;const d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"streak":0}');
+ const avg=d.scores?.length?Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length):0;
+ const m=avg>=80?['Excellent effort! Keep challenging yourself and deepen your understanding.','You are building strong momentum. Keep studying consistently.']:avg>=60?['Good progress! Review your mistakes and keep improving one topic at a time.','You are moving forward. Consistency matters more than perfection.']:d.attempts?['Keep going! Review your mistakes, learn from them, and try again.','Every question you answer is another step toward mastery.']:['Small study sessions add up. Start with one course and keep building.','Ready to learn? Pick a course, study a topic, and test yourself.'];el.textContent=m[(d.attempts||0)%m.length];
+}
+function renderQuizMotivation(pct,autoSubmitted){const box=$('quizReview');if(!box)return;const text=pct>=80?'Excellent effort! Keep challenging yourself and deepen your understanding.':pct>=60?'Good progress! Review the questions you missed and keep improving.':pct>=40?'Keep going! Review your mistakes and try the quiz again.':'Don’t be discouraged. Study the missed topics, then give it another try.';box.innerHTML='<div class="card"><b>💬 Keep Learning</b><p class="mut" style="margin-bottom:0">'+escapeHtml(text)+(autoSubmitted?' You can also try untimed mode when you want to focus on learning without a countdown.':'')+'</p></div>'; }
 function renderQuizReview(){
   const box=$('quizReview');if(!box)return;
   if(!lastQuizReview.length){box.innerHTML='<p class="mut">No review is available.</p>';return}
@@ -652,6 +657,7 @@ $('loginBtn').onclick=login;
 $('signupBtn').onclick=signUp;
 $('forgotBtn').onclick=resetPassword;
 $('resetBtn').onclick=updatePassword;
+if($('quizTimingMode'))$('quizTimingMode').onchange=updateQuizModeInfo;
 $('onboardBtn').onclick=saveOnboarding;
 $('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
