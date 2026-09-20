@@ -18,6 +18,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .motivation-track span{display:inline-block;padding-right:70px}
 @keyframes campusMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.motivation-track{animation:none;transform:none;padding-left:0;display:block;text-align:center;white-space:normal;padding:0 14px}}
+
+.quizOption{display:block;width:100%;text-align:left;margin:8px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--n);cursor:pointer}.quizOption.selected{border-color:var(--g);background:#eefaf4}.qnav{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.qnavBtn{min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}.qnavBtn.active{outline:2px solid var(--g)}.qnavBtn.answered{background:#eefaf4;border-color:var(--g)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:12px}</style><style>
@@ -61,10 +63,10 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span></div></div>
 <div class="card"><label>Select course</label><select id="quizCourseSelect" onchange="selectQuizCourse(this.value)"><option value="">Choose one of your courses</option></select>
 <div id="quizSetup" class="hidden"><label>Quiz mode</label><select id="quizMode" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
-<label>Number of questions</label><select id="quizCount"><option value="10">10 questions</option><option value="20">20 questions</option><option value="30">30 questions</option><option value="40">40 questions</option><option value="50">50 questions — maximum</option></select>
+<label>Number of questions</label><select id="quizCount" onchange="quizCountChanged()"><option value="10">10 questions</option><option value="20">20 questions</option><option value="30">30 questions</option><option value="40">40 questions</option><option value="50">50 questions — Free maximum</option><option value="75">75 questions — Pro</option><option value="100">100 questions — Pro</option><option value="150">150 questions — Pro</option><option value="200">200 questions — Pro</option><option value="300">300 questions — Pro</option><option value="500">500 questions — Pro</option><option value="1000">1,000 questions — Pro</option><option value="5000">5,000 questions — Pro</option></select>
 <label>Topic</label><select id="quizTopic"><option value="">All topics</option></select><p class="mut" id="quizBankInfo">Questions are loaded only from the selected course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div></div>
 <div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button class="secondary" onclick="previousQuizQuestion()">Previous</button><button class="primary" onclick="nextQuizQuestion()">Next</button></div><div class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
-<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button></section>
+<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button><div id="quizReview" style="margin-top:12px"></div></section>
 <section id="gpa" class="page hidden">
 <div class="head"><h2>GPA & CGPA</h2><div class="sub">Choose your grading system before calculating.</div></div>
 
@@ -334,7 +336,89 @@ async function loadQuizTopics(){
   const {data}=await sb.from('topics').select('id,title').eq('course_id',currentCourse.id).eq('status','published').order('sort_order');
   t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
 }
-function updateQuizMode(){if($('quizMode')?.value==='cbt' && $('quizTimer'))$('quizTimer').textContent='20 seconds/question';}
+function updateQuizMode(){if($('quizTimer'))$('quizTimer').textContent=$('quizMode')?.value==='cbt'?'20 seconds/question':'Untimed';}
+function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
+function quizCountChanged(){
+  const sel=$('quizCount'); if(!sel)return;
+  const n=Number(sel.value||10); const pro=quizIsPro();
+  if(n>50&&!pro){
+    alert('Questions above 50 require CampusMate Pro at ₦500/month.');
+    sel.value='50';
+  }
+}
+function questionText(q){return q.question_text||q.question||q.text||q.prompt||q.body||'Question';}
+function questionOptions(q){
+  if(Array.isArray(q.options))return q.options.map((x,i)=>typeof x==='object'?{key:x.key||String.fromCharCode(65+i),text:x.text||x.label||''}:{key:String.fromCharCode(65+i),text:String(x)});
+  const keys=[['A',q.option_a||q.optionA||q.a],['B',q.option_b||q.optionB||q.b],['C',q.option_c||q.optionC||q.c],['D',q.option_d||q.optionD||q.d],['E',q.option_e||q.optionE||q.e]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='');
+  return keys.map(x=>({key:x[0],text:String(x[1])}));
+}
+function correctKey(q){
+  const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
+  if(v==null)return '';
+  const z=String(v).trim();
+  if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
+  const opts=questionOptions(q), idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
+  return idx>=0?opts[idx].key:'';
+}
+function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
+function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
+function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
+function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
+function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
+async function startSelectedQuiz(){
+  if(!currentCourse?.id){alert('Choose a course first.');return;}
+  const count=Math.max(5,Number($('quizCount')?.value||10));
+  if(count>50&&!quizIsPro()){alert('Questions above 50 require CampusMate Pro at ₦500/month.');return;}
+  const mode=$('quizMode')?.value||'practice', topicId=$('quizTopic')?.value||'';
+  $('quizSetup')?.classList.add('hidden'); $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
+  let query=sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published');
+  const {data:quizzes,error:qErr}=await query;
+  if(qErr||!quizzes?.length){$('quizBox').innerHTML='<p class="mut">No published quiz is available for this course yet.</p>';return;}
+  let questionRows=[];
+  for(const qz of quizzes){
+    let qquery=sb.from('quiz_questions').select('*').eq('quiz_id',qz.id);
+    const {data,error}=await qquery;
+    if(!error&&data)questionRows.push(...data.map(q=>({...q,_quiz_title:qz.title||'Quiz'})));
+  }
+  if(topicId)questionRows=questionRows.filter(q=>String(q.topic_id||q.topicId||'')===String(topicId));
+  const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2);
+  if(!valid.length){$('quizBox').innerHTML='<p class="mut">No usable questions were found for this course/topic. Add published questions to its question bank first.</p>';return;}
+  let seen=new Set(getSeenQuestionIds());
+  let fresh=valid.filter(q=>!seen.has(String(q.id)));
+  if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+  const selected=shuffled(fresh).slice(0,count);
+  currentQuiz={mode,count,courseId:currentCourse.id,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
+  quizQuestions=selected;quizAnswers={};
+  saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
+  if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
+  renderQuizQuestion();
+  if(mode==='cbt')startQuizTimer();else if($('quizTimer'))$('quizTimer').textContent='Untimed';
+}
+function renderQuizQuestion(){
+  if(!quizQuestions.length)return;
+  const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
+  $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.length;
+  $('quizProgress').style.width=((i+1)/quizQuestions.length*100)+'%';
+  $('quizBox').innerHTML='<div class="card"><div style="font-weight:800;line-height:1.6">'+escapeHtml(questionText(q))+'</div><div style="margin-top:14px">'+opts.map(o=>'<button type="button" class="quizOption '+(chosen===o.key?'selected':'')+'" onclick="chooseQuizAnswer(\''+o.key+'\')"><b>'+o.key+'.</b> '+escapeHtml(o.text)+'</button>').join('')+'</div></div>';
+  renderQuizNavigator();
+}
+function chooseQuizAnswer(key){const q=quizQuestions[currentQuiz.index];quizAnswers[String(q.id)]=key;renderQuizQuestion();}
+function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.innerHTML=quizQuestions.map((q,i)=>'<button type="button" class="qnavBtn '+(i===currentQuiz.index?'active ':'')+(quizAnswers[String(q.id)]?'answered':'')+'" onclick="jumpQuizQuestion('+i+')">'+(i+1)+'</button>').join('');}
+function jumpQuizQuestion(i){if(!currentQuiz)return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
+function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
+function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
+function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
+function submitQuiz(timeUp=false){
+  if(!currentQuiz||!quizQuestions.length)return;
+  clearInterval(currentQuiz.timer);let correct=0;
+  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
+  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
+  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
+  $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
+  $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,50));
+  $('quizBox').innerHTML='';go('result');renderPerformance();
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+}
 
 function togglePw(id,btn){const el=$(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'Show':'Hide'}
 let selectedGradingSystem = null;
