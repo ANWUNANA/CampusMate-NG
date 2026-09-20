@@ -15,8 +15,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:16px;padding:2px 4px;cursor:pointer}</style><style>
-.cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
-<style>.gpaRow{border:1px solid var(--line);border-radius:12px;padding:10px;margin:9px 0;background:#fbfdfc}.gpaRowTop{display:grid;grid-template-columns:1fr 90px;gap:8px}.gpaRemove{border:0;background:#fdecea;color:#9b2c2c;border-radius:8px;padding:7px 9px;font-weight:800}.gradeHint{font-size:11px;color:var(--mut);margin-top:-5px}</style></head>
+.cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}</style><style>.gpaRow{border:1px solid var(--line);border-radius:12px;padding:10px;margin:9px 0;background:#fbfdfc}.gpaRowTop{display:grid;grid-template-columns:1fr 90px;gap:8px}.gpaRemove{border:0;background:#fdecea;color:#9b2c2c;border-radius:8px;padding:7px 9px;font-weight:800}.gradeHint{font-size:11px;color:var(--mut);margin-top:-5px}</style></head>
 <body><div class="app">
 
 <div id="auth">
@@ -279,28 +278,24 @@ async function saveOnboarding(){
   if(error){msg(error.message,'error');return}
   await loadProfile(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
 }
-async function ensureNursingFoundationCourses(){
-  if(!profile?.programme_id)return;
-  if(String(profile?.programmes?.name||'').trim().toLowerCase()!=='nursing science')return;
-  const foundation=[['CHM101','GENERAL CHEMISTRY I'],['CHM102','GENERAL CHEMISTRY II'],['BIO101','GENERAL BIOLOGY I'],['BIO102','GENERAL BIOLOGY II'],['PHY101','GENERAL PHYSICS I'],['PHY102','GENERAL PHYSICS II'],['GST111','COMMUNICATION IN ENGLISH'],['CMP101','COMPUTER FUNDAMENTALS'],['PSY101','STRESS MANAGEMENT'],['PSY102','SUBSTANCE ABUSE AND MISUSE'],['NSC101','INTRODUCTION TO NURSING SCIENCE']];
-  const {data:existing,error}=await sb.from('courses').select('id,code,name').in('code',foundation.map(x=>x[0]));
-  if(error){console.error('Nursing foundation course lookup:',error);return}
-  const byCode=new Map((existing||[]).map(c=>[String(c.code).toUpperCase(),c]));
-  const {data:levels,error:le}=await sb.from('levels').select('id,level_number').eq('programme_id',profile.programme_id);
-  if(le){console.error('Nursing level lookup:',le);return}
-  const levelByNumber=new Map((levels||[]).map(l=>[Number(l.level_number),l.id]));
-  for(const [code] of foundation){const c=byCode.get(code);if(!c)continue;const levelId=levelByNumber.get(Number(code.match(/\d+/)?.[0])<200?100:200);if(!levelId)continue;const {data:found}=await sb.from('programme_courses').select('course_id').eq('programme_id',profile.programme_id).eq('level_id',levelId).eq('course_id',c.id).maybeSingle();if(!found){const {error:ins}=await sb.from('programme_courses').insert({programme_id:profile.programme_id,level_id:levelId,course_id:c.id});if(ins)console.error('Nursing course attach:',code,ins)}}
-}
-
 async function loadStudentData(){
-  tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
+  const taskResult=await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id');
+  tasks=taskResult.data||[];
   courses=[];
-  if(profile?.programme_id&&profile?.level_id){
-    await ensureNursingFoundationCourses();
-    const {data:pcs,error}=await sb.from('programme_courses').select('course_id,courses(id,code,name,description,credit_units)').eq('programme_id',profile.programme_id).eq('level_id',profile.level_id);
-    if(error){console.error('Programme course loading error:',error);return}
-    const seen=new Set(); courses=(pcs||[]).map(x=>x.courses).filter(c=>c&&c.id).filter(c=>!seen.has(c.id)&&(seen.add(c.id),true));
+  if(!profile?.programme_id||!profile?.level_id)return;
+  const {data:pcs,error}=await sb.from('programme_courses')
+    .select('course_id,courses(id,code,name,description,credit_units)')
+    .eq('programme_id',profile.programme_id)
+    .eq('level_id',profile.level_id);
+  if(error){
+    console.error('Programme course loading error:',error);
+    return;
   }
+  const seen=new Set();
+  courses=(pcs||[])
+    .map(x=>x.courses)
+    .filter(c=>c&&c.id)
+    .filter(c=>{if(seen.has(c.id))return false;seen.add(c.id);return true;});
 }
 function renderCourses(){
   const scope=$('courseScopeText');if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. All courses assigned to this programme and level are shown together.';
