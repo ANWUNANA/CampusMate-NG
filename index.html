@@ -14,8 +14,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .back{border:0;background:none;color:#fff;font-size:20px;margin-right:8px}.row{display:flex;align-items:center}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#e6f6ef;color:var(--g);font-size:11px;font-weight:800}.danger{color:var(--red)}.adminStat{font-size:27px;font-weight:900;color:var(--n)}.tableRow{display:grid;grid-template-columns:1.3fr 1fr 50px;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:center}.tableRow:last-child{border:0}.smallbtn{border:0;background:#eef5f2;border-radius:8px;padding:7px 8px;font-weight:700;color:var(--n)}
 
 .motivation-marquee{position:relative;overflow:hidden;width:100%;background:var(--n);color:#fff;border-radius:11px;margin:10px 0;padding:10px 0;white-space:nowrap;border:1px solid #0d4269}
-.motivation-track{display:inline-block;min-width:max-content;padding-left:100%;font-size:13px;font-weight:800;letter-spacing:.2px;animation:campusMarquee 16s linear infinite}
-.motivation-track span{display:inline-block;padding-right:70px}
+.motivation-track{display:inline-block;min-width:max-content;padding-left:100%;font-size:13px;font-weight:800;letter-spacing:.2px;animation:campusMarquee 32s linear infinite}
+.motivation-track span{display:inline-block;padding-right:70px}.onboarding-marquee .motivation-track{animation-duration:50s}
 @keyframes campusMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.motivation-track{animation:none;transform:none;padding-left:0;display:block;text-align:center;white-space:normal;padding:0 14px}}
 
@@ -39,7 +39,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 <div id="student" class="hidden">
 <section id="onboarding" class="card" style="margin:15px">
-<div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🌟 Your journey starts with one step — choose your path, stay consistent, and keep learning.</span><span>🌟 Your journey starts with one step — choose your path, stay consistent, and keep learning.</span></div></div>
+<div class="motivation-marquee onboarding-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🌟 Your journey starts with one step — choose your path, stay consistent, and keep learning.</span><span>🌟 Your journey starts with one step — choose your path, stay consistent, and keep learning.</span></div></div>
 <h2>Set up your student profile</h2><p class="mut">Choose your academic details so CampusMate can load the right courses.</p>
 <label>University</label><input id="uniSearch" placeholder="🔎 Search university…" oninput="filterUniversities()"><select id="uni"><option value="">Loading universities…</option></select><div id="uniMeta" class="uniMeta"></div>
 <label>Faculty</label><select id="facultySelect"><option value="">Select faculty</option></select>
@@ -531,7 +531,10 @@ function quizCountChanged(){
 }
 function questionText(q){return q.question_text||q.question||q.text||q.prompt||q.body||'Question';}
 function questionOptions(q){
-  if(Array.isArray(q.options))return q.options.map((x,i)=>typeof x==='object'?{key:x.key||String.fromCharCode(65+i),text:x.text||x.label||''}:{key:String.fromCharCode(65+i),text:String(x)});
+  if(Array.isArray(q.options))return q.options.map((x,i)=>typeof x==='object'?{key:x.key||String.fromCharCode(65+i),text:x.text||x.label||x.value||''}:{key:String.fromCharCode(65+i),text:String(x)}).filter(x=>String(x.text).trim()!=='');
+  if(q.options&&typeof q.options==='object'){
+    return Object.entries(q.options).map(([k,v],i)=>({key:String(k).length===1?String(k).toUpperCase():String.fromCharCode(65+i),text:typeof v==='object'?(v.text||v.label||v.value||''):String(v)})).filter(x=>String(x.text).trim()!=='');
+  }
   const keys=[['A',q.option_a||q.optionA||q.a],['B',q.option_b||q.optionB||q.b],['C',q.option_c||q.optionC||q.c],['D',q.option_d||q.optionD||q.d],['E',q.option_e||q.optionE||q.e]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='');
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
@@ -539,8 +542,10 @@ function correctKey(q){
   const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
   if(v==null)return '';
   const z=String(v).trim();
+  const opts=questionOptions(q);
+  if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}
   if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
-  const opts=questionOptions(q), idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
+  const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
   return idx>=0?opts[idx].key:'';
 }
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
@@ -549,34 +554,39 @@ function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.f
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
 async function startSelectedQuiz(){
-  if(!currentCourse?.id){msg('This course is available for study, but its quiz question bank has not been published yet.','error');return}
   if(!currentCourse?.id){alert('Choose a course first.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
-  if(count>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');return;}
+  if(count>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');if($('quizCount'))$('quizCount').value='25';return;}
   const mode=$('quizMode')?.value||'practice', topicId=$('quizTopic')?.value||'';
-  $('quizSetup')?.classList.add('hidden'); $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
-  let query=sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published');
-  const {data:quizzes,error:qErr}=await query;
-  if(qErr||!quizzes?.length){$('quizBox').innerHTML='<p class="mut">No published quiz is available for this course yet.</p>';return;}
-  let questionRows=[];
-  for(const qz of quizzes){
-    let qquery=sb.from('quiz_questions').select('*').eq('quiz_id',qz.id);
-    const {data,error}=await qquery;
-    if(!error&&data)questionRows.push(...data.map(q=>({...q,_quiz_title:qz.title||'Quiz'})));
+  $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
+  try{
+    const {data:quizzes,error:qErr}=await sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published');
+    if(qErr)throw qErr;
+    if(!quizzes?.length){$('quizBoxCard')?.classList.add('hidden');alert('No published quiz is available for this course yet. The course needs a published question bank before a quiz can start.');return;}
+    let questionRows=[];
+    for(const qz of quizzes){
+      const {data,error}=await sb.from('quiz_questions').select('*').eq('quiz_id',qz.id);
+      if(error)throw error;
+      if(data)questionRows.push(...data.map(q=>({...q,_quiz_title:qz.title||'Quiz'})));
+    }
+    if(topicId)questionRows=questionRows.filter(q=>!q.topic_id||String(q.topic_id)===String(topicId));
+    const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
+    if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
+    if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
+    let seen=new Set(getSeenQuestionIds());
+    let fresh=valid.filter(q=>!seen.has(String(q.id)));
+    if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+    const selected=shuffled(fresh).slice(0,count);
+    currentQuiz={mode,count,courseId:currentCourse.id,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
+    quizQuestions=selected;quizAnswers={};
+    saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
+    if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
+    $('quizSetup')?.classList.add('hidden');
+    renderQuizQuestion();
+    if(mode==='cbt')startQuizTimer();else if($('quizTimer'))$('quizTimer').textContent='Untimed';
+  }catch(err){
+    console.error('Quiz start error:',err);$('quizBoxCard')?.classList.add('hidden');alert('The quiz could not start because CampusMate could not load the question bank. Please check that the quiz and its questions are published.');
   }
-  if(topicId)questionRows=questionRows.filter(q=>String(q.topic_id||q.topicId||'')===String(topicId));
-  const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2);
-  if(!valid.length){$('quizBox').innerHTML='<p class="mut">No usable questions were found for this course/topic. Add published questions to its question bank first.</p>';return;}
-  let seen=new Set(getSeenQuestionIds());
-  let fresh=valid.filter(q=>!seen.has(String(q.id)));
-  if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
-  const selected=shuffled(fresh).slice(0,count);
-  currentQuiz={mode,count,courseId:currentCourse.id,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
-  quizQuestions=selected;quizAnswers={};
-  saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
-  if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
-  renderQuizQuestion();
-  if(mode==='cbt')startQuizTimer();else if($('quizTimer'))$('quizTimer').textContent='Untimed';
 }
 function renderQuizQuestion(){
   if(!quizQuestions.length)return;
