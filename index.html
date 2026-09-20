@@ -264,6 +264,83 @@ async function saveOnboarding(){
   if(error){msg(error.message,'error');return}
   await loadProfile(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
 }
+
+const BUILTIN_NURSING_CATALOG={
+  100:[
+    ['CHM101','GENERAL CHEMISTRY I',['Matter and Measurement','Atomic Structure and Periodic Table','Chemical Bonding','Chemical Reactions and Stoichiometry','Solutions and Concentrations']],
+    ['CHM102','GENERAL CHEMISTRY II',['Thermochemistry','Chemical Equilibrium','Acids Bases and Buffers','Electrochemistry','Organic Chemistry Basics']],
+    ['BIO101','GENERAL BIOLOGY I',['Introduction to Biology','Cell Structure and Function','Biological Molecules','Cell Division','Genetics and Heredity']],
+    ['BIO102','GENERAL BIOLOGY II',['Plant Biology','Animal Biology','Evolution and Classification','Ecology and Ecosystems','Microorganisms and Disease']],
+    ['PHY101','GENERAL PHYSICS I',['Units and Measurement','Motion and Forces','Work Energy and Power','Heat and Temperature','Waves and Sound']],
+    ['PHY102','GENERAL PHYSICS II',['Electricity and Circuits','Magnetism','Light and Optics','Radiation and Nuclear Physics','Physics in Healthcare']],
+    ['GST111','COMMUNICATION IN ENGLISH',['Parts of Speech','Sentence Structure','Reading and Comprehension','Academic Writing','Oral Communication']],
+    ['CMP101','COMPUTER FUNDAMENTALS',['Computer Hardware','Operating Systems','Word Processing','Internet and Networking','Cybersecurity and Digital Safety']],
+    ['PSY101','STRESS MANAGEMENT',['Concept of Stress','Sources and Types of Stress','Stress Response','Coping Strategies','Stress Management for Students']],
+    ['PSY102','SUBSTANCE ABUSE AND MISUSE',['Drugs and Psychoactive Substances','Causes and Risk Factors','Patterns of Misuse','Effects on the Body','Prevention and Rehabilitation']],
+    ['NSC101','INTRODUCTION TO NURSING SCIENCE',['Nursing as a Profession','History of Nursing','Nursing Theories','Roles and Functions of the Nurse','Professional Values and Ethics']]
+  ],
+  200:[
+    ['NUR201','Fundamentals of Nursing',['Nursing Process','Vital Signs','Patient Hygiene','Comfort and Positioning','Documentation and Reporting']],
+    ['ANA201','Human Anatomy I',['Anatomical Terminology','Bones and Joints','Muscles','Thorax','Abdomen']],
+    ['ANA202','Human Anatomy II',['Pelvis and Perineum','Head and Neck','Nervous System Anatomy','Endocrine Organs','Reproductive System Anatomy']],
+    ['PHS201','Human Physiology I',['Homeostasis','Cell Physiology','Blood Physiology','Cardiovascular Physiology','Respiratory Physiology']],
+    ['PHS202','Human Physiology II',['Renal Physiology','Gastrointestinal Physiology','Endocrine Physiology','Reproductive Physiology','Nervous System Physiology']],
+    ['BCH201','Biochemistry I',['Biomolecules','Amino Acids and Proteins','Enzymes','Carbohydrate Metabolism','Lipid Metabolism']],
+    ['BCH202','Biochemistry II',['Protein Metabolism','Nucleic Acids','Vitamins and Minerals','Clinical Biochemistry','Integration of Metabolism']],
+    ['MIC201','Medical Microbiology',['Bacteria','Viruses','Fungi','Parasites','Specimen Collection and Infection Control']],
+    ['IMM201','Immunology',['Innate Immunity','Adaptive Immunity','Antigens and Antibodies','Hypersensitivity','Autoimmunity and Immunodeficiency']],
+    ['PHM201','Pharmacology I',['Pharmacokinetics','Pharmacodynamics','Routes of Administration','Autonomic Drugs','Adverse Drug Reactions']],
+    ['PHM202','Pharmacology II',['Antimicrobial Drugs','Cardiovascular Drugs','CNS Drugs','Endocrine Drugs','Drug Safety and Interactions']],
+    ['NUR202','Health Assessment',['Health History','Physical Examination','General Survey','System-by-System Assessment','Health Assessment Documentation']],
+    ['NUR203','Medical-Surgical Nursing I',['Perioperative Nursing','Fluid and Electrolyte Balance','Respiratory Disorders','Cardiovascular Disorders','Gastrointestinal Disorders']],
+    ['NUR204','Medical-Surgical Nursing II',['Renal Disorders','Neurological Disorders','Endocrine Disorders','Musculoskeletal Disorders','Skin Disorders']],
+    ['NUR205','Medical-Surgical Nursing III',['Hematological Disorders','Oncology Nursing','Immunological Disorders','Critical Care Principles','Rehabilitation Nursing']],
+    ['NUR206','Maternal and Child Health Nursing',['Maternal Health','Antenatal Care','Normal Pregnancy','Complications of Pregnancy','Postnatal Care']],
+    ['NUR207','Paediatric Nursing',['Growth and Development','Paediatric Assessment','Common Childhood Illnesses','Nutrition in Children','Paediatric Emergencies']],
+    ['NUR208','Mental Health Nursing',['Mental Health Concepts','Therapeutic Communication','Common Mental Disorders','Psychiatric Assessment','Mental Health Nursing Interventions']],
+    ['NUR209','Community Health Nursing',['Community Assessment','Primary Health Care','Family Health','Health Promotion','Community-Based Nursing']],
+    ['NUR210','Nursing Research',['Research Concepts','Research Problems and Questions','Research Designs','Data Collection','Research Ethics']],
+    ['NUR211','Nursing Ethics and Law',['Ethical Principles','Codes of Professional Conduct','Patient Rights','Consent and Confidentiality','Professional Liability']],
+    ['NUR212','Nutrition and Diet Therapy',['Nutrients','Balanced Diet','Nutrition Assessment','Therapeutic Diets','Nutrition in Disease']],
+    ['NUR213','Pathophysiology',['Cell Injury','Inflammation','Fluid Imbalance','Hemodynamic Disorders','Neoplasia']],
+    ['NUR214','Health Education and Promotion',['Health Education Principles','Learning in Health','Communication Methods','Behaviour Change','Health Promotion Strategies']],
+    ['NUR215','First Aid and Emergency Care',['Emergency Assessment','Basic Life Support','Bleeding and Shock','Fractures and Soft Tissue Injuries','Poisoning and Emergencies']],
+    ['NUR216','Aseptic Technique and Infection Prevention',['Chain of Infection','Hand Hygiene','Aseptic Technique','Sterilization and Disinfection','Healthcare-Associated Infections']],
+    ['NUR217','Maternal-Newborn Nursing',['Labour and Delivery','Fetal Monitoring','Immediate Newborn Care','Neonatal Assessment','Postpartum Complications']],
+    ['NUR218','Geriatric Nursing',['Ageing Process','Geriatric Assessment','Falls and Safety','Chronic Illness in Older Adults','End-of-Life Care']],
+    ['NUR219','Public Health',['Public Health Concepts','Disease Prevention','Screening','Environmental Health','Health Systems']],
+    ['NUR220','Epidemiology and Biostatistics',['Measures of Disease Frequency','Study Designs','Data Presentation','Descriptive Statistics','Interpretation of Health Data']],
+    ['NUR221','Clinical Skills and Procedures',['Medication Administration','Wound Care','Catheterization','Intravenous Therapy','Clinical Documentation']],
+    ['NUR222','Nursing Leadership and Management',['Leadership Theories','Delegation','Teamwork','Conflict Management','Quality Improvement']],
+    ['NUR223','Health Informatics',['Health Information Systems','Electronic Health Records','Clinical Documentation','Data Security','Digital Health']],
+    ['NUR224','Psychology for Health Sciences',['Human Development','Learning','Personality','Motivation','Psychology of Health and Illness']],
+    ['NUR225','Sociology of Health and Illness',['Culture and Health','Family and Society','Social Determinants of Health','Health Inequality','Patient Social Support']],
+    ['NUR226','Professional Nursing Practice',['Professional Identity','Scope of Practice','Standards of Care','Continuing Professional Development','Accountability']],
+    ['NUR227','Clinical Pharmacotherapy',['Medication Selection','Dose Calculations','Drug Monitoring','Polypharmacy','Safe Medication Practice']],
+    ['NUR228','Anatomy and Physiology of Special Senses',['Vision','Hearing and Balance','Taste','Smell','Sensory Disorders']],
+    ['NUR229','Environmental and Occupational Health',['Environmental Hazards','Occupational Hazards','Workplace Safety','Ergonomics','Occupational Disease Prevention']],
+    ['NUR230','Health Policy and Primary Health Care',['Health Policy','Primary Health Care Principles','Healthcare Financing','Universal Health Coverage','Health Policy Implementation']]
+  ]
+};
+function builtinCoursesForProfile(){
+  const prog=(profile?.programmes?.name||'').trim().toLowerCase();
+  const level=Number((profile?.levels?.name||'').match(/\d+/)?.[0]||0);
+  if(prog!=='nursing science'||!BUILTIN_NURSING_CATALOG[level])return [];
+  return BUILTIN_NURSING_CATALOG[level].map(([code,name,topics])=>({
+    id:null,code,name,description:`${name} for Nursing Science students.`,credit_units:0,
+    topics:topics.map(title=>({title,description:'Study this topic through CampusMate learning materials.'}))
+  }));
+}
+function mergeCourses(dbCourses){
+  const merged=[...(dbCourses||[])];
+  const seen=new Set(merged.map(c=>String(c.code||'').replace(/\s/g,'').toUpperCase()));
+  for(const c of builtinCoursesForProfile()){
+    const key=String(c.code||'').replace(/\s/g,'').toUpperCase();
+    if(!seen.has(key)){merged.push(c);seen.add(key);}
+  }
+  return merged;
+}
+
 async function loadStudentData(){
   tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
   courses=[];
@@ -273,7 +350,7 @@ async function loadStudentData(){
       .eq('programme_id',profile.programme_id)
       .eq('level_id',profile.level_id);
     if(error){console.error('Programme course loading error:',error);courses=[];return}
-    courses=(pcs||[]).map(x=>x.courses).filter(c=>c&&c.id);
+    courses=mergeCourses((pcs||[]).map(x=>x.courses).filter(c=>c&&c.id));
   }
   // IMPORTANT: never fall back to demo courses. A student's dashboard must contain
   // only courses explicitly assigned to that student's programme + level.
@@ -295,16 +372,29 @@ function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
   $('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s');
   const scope=$('courseScopeText');
-  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Only programme_courses assigned to this programme and level are shown.';
+  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Programme-specific courses assigned to this programme and level are shown, including the current CampusMate Nursing course library.';
   $('courseList').innerHTML=courses.length
     ?courses.map((c,i)=>`<div class="card course" data-name="${escapeHtml((c.name||'').toLowerCase())} ${(c.code||'').toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${escapeHtml((c.code||'COURSE').replace(' ','\n'))}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Units • ${escapeHtml(profile?.levels?.name||'Level')}</p></div><b>›</b></div>`).join('')
     :'<div class="card"><p class="mut">No courses have been assigned to this programme and level yet. Courses from other programmes or faculties will not be displayed.</p></div>';
 }
 function filterCourses(){let q=($('search').value||'').toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
-async function openCourse(i){currentCourse=courses[i];$('courseTitle').textContent=currentCourse.name;$('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';$('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';const {data:ts}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id||'00000000-0000-0000-0000-000000000000').eq('status','published').order('sort_order');
-  if(ts?.length){$('topics').innerHTML=ts.map(t=>`<div class="card course" onclick="openStudy('${t.id}','${escapeHtml(t.title)}')"><div class="badge">TOP</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('')}
-  else $('topics').innerHTML=(currentCourse.topics||[]).map((t,j)=>`<div class="card course" onclick="openStudy(null,'${escapeHtml(t)}')"><div class="badge">${String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t)}</h4><p>Learning material</p></div><b>›</b></div>`).join('')||'<p class="mut">No published study topics are available for this course yet.</p>';go('course');}
-async function openStudy(topicId,title){$('studyTitle').textContent=title;const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to nursing practice.','Apply the concept to examination questions.'];$('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');$('studyBody').innerHTML='<p class="mut">Loading material…</p>';if(topicId){const {data}=await sb.from('learning_materials').select('title,content,material_type').eq('topic_id',topicId).eq('status','published').order('created_at',{ascending:true});if(data?.length){$('studyBody').innerHTML=data.map((m,i)=>`<article style="margin-bottom:18px"><h3>${escapeHtml(m.title||('Material '+(i+1)))}</h3><div class="mut" style="white-space:pre-wrap;line-height:1.7">${escapeHtml(m.content||'No content yet.')}</div></article>`).join('');}else $('studyBody').innerHTML='<p class="mut">No published material yet.</p>';}else $('studyBody').innerHTML='<p class="mut">Starter topic. Approved learning material will appear here.</p>';go('study')}
+async function openCourse(i){
+  currentCourse=courses[i];
+  $('courseTitle').textContent=currentCourse.name;
+  $('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';
+  $('courseDesc').textContent=currentCourse.description||currentCourse.desc||'';
+  let ts=[];
+  if(currentCourse.id){
+    const {data}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published').order('sort_order');
+    ts=data||[];
+  }
+  if(!ts.length && currentCourse.topics?.length) ts=currentCourse.topics;
+  if(ts.length){
+    $('topics').innerHTML=ts.map((t,j)=>`<div class="card course" onclick="openStudy('${t.id||''}','${escapeHtml(t.title)}')"><div class="badge">${t.id?'TOP':String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Learning material')}</p></div><b>›</b></div>`).join('');
+  }else $('topics').innerHTML='<p class="mut">No published study topics are available for this course yet.</p>';
+  go('course');
+}
+async function openStudy(topicId,title){$('studyTitle').textContent=title;const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to nursing practice.','Apply the concept to examination questions.'];$('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');$('studyBody').innerHTML='<p class="mut">Loading material…</p>';if(topicId){const {data}=await sb.from('learning_materials').select('title,content,material_type').eq('topic_id',topicId).eq('status','published').order('created_at',{ascending:true});if(data?.length){$('studyBody').innerHTML=data.map((m,i)=>`<article style="margin-bottom:18px"><h3>${escapeHtml(m.title||('Material '+(i+1)))}</h3><div class="mut" style="white-space:pre-wrap;line-height:1.7">${escapeHtml(m.content||'No content yet.')}</div></article>`).join('');}else $('studyBody').innerHTML='<p class="mut">No published material yet.</p>';}else $('studyBody').innerHTML='<p class="mut">This topic is part of the course outline. Full approved learning material will appear here as the topic content is published.</p>';go('study')}
 
 function renderPerformance(){
   if(!session?.user?.id)return;
@@ -366,6 +456,7 @@ function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.f
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
 async function startSelectedQuiz(){
+  if(!currentCourse?.id){msg('This course is available for study, but its quiz question bank has not been published yet.','error');return}
   if(!currentCourse?.id){alert('Choose a course first.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
   if(count>50&&!quizIsPro()){alert('Questions above 50 require CampusMate Pro at ₦500/month.');return;}
