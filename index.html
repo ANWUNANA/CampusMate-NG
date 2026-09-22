@@ -15,7 +15,10 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 .motivation-marquee{position:relative;overflow:hidden;width:100%;background:var(--n);color:#fff;border-radius:11px;margin:10px 0;padding:10px 0;white-space:nowrap;border:1px solid #0d4269}
 .motivation-track{display:inline-block;min-width:max-content;padding-left:100%;font-size:13px;font-weight:800;letter-spacing:.2px;animation:campusMarquee 32s linear infinite}
-.motivation-track span{display:inline-block;padding-right:70px}.onboarding-marquee .motivation-track{animation-duration:50s}
+.motivation-track span{display:inline-block;padding-right:70px}
+.auth-marquee{margin-top:0;margin-bottom:12px}
+.auth-marquee .motivation-track{animation-duration:55s}
+.onboarding-marquee .motivation-track{animation-duration:50s}
 @keyframes campusMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.motivation-track{animation:none;transform:none;padding-left:0;display:block;text-align:center;white-space:normal;padding:0 14px}}
 
@@ -29,7 +32,14 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 <div id="auth">
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub">Your university life, organized.</div></header>
-<main><div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
+<main>
+<div class="motivation-marquee auth-marquee" aria-label="Motivational message">
+  <div class="motivation-track">
+    <span>🌟 Your background does not determine your destination. Learn with discipline, stay consistent, ask questions, and keep moving forward — the professional you dream of becoming is built one day, one lesson, and one step at a time.</span>
+    <span>🌟 Your background does not determine your destination. Learn with discipline, stay consistent, ask questions, and keep moving forward — the professional you dream of becoming is built one day, one lesson, and one step at a time.</span>
+  </div>
+</div>
+<div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
 <div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
@@ -393,12 +403,12 @@ async function openCourse(i){
     const dbByTitle=new Map(ts.map(t=>[String(t.title||'').trim().toLowerCase(),t]));
     const merged=[];
     for(const bt of currentCourse.topics){
-      const key=String(bt).trim().toLowerCase();
-      merged.push(dbByTitle.get(key)||{id:'',title:bt,description:'Comprehensive study material'});
+      const key=String(bt?.title||bt||'').trim().toLowerCase();
+      merged.push(dbByTitle.get(key)||{id:'',title:bt?.title||String(bt||''),description:'Comprehensive study material'});
     }
     for(const t of ts){
       const key=String(t.title||'').trim().toLowerCase();
-      if(!currentCourse.topics.some(bt=>String(bt).trim().toLowerCase()===key)) merged.push(t);
+      if(!currentCourse.topics.some(bt=>String(bt?.title||bt||'').trim().toLowerCase()===key)) merged.push(t);
     }
     ts=merged;
   }
@@ -514,10 +524,35 @@ function selectQuizCourse(v){
   if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
   loadQuizTopics();
 }
+async function resolveCurrentCourseId(){
+  if(!currentCourse)return null;
+  if(currentCourse.id)return currentCourse.id;
+  let row=null;
+  let error=null;
+  if(currentCourse.code){
+    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('code',currentCourse.code).maybeSingle();
+    row=r.data; error=r.error;
+  }
+  if(!row && currentCourse.name){
+    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('name',currentCourse.name).maybeSingle();
+    row=r.data; error=r.error;
+  }
+  if(error)throw error;
+  if(row){
+    currentCourse={...currentCourse,...row};
+    return row.id;
+  }
+  return null;
+}
+
 async function loadQuizTopics(){
-  const t=$('quizTopic'); if(!t||!currentCourse?.id)return;
-  const {data}=await sb.from('topics').select('id,title').eq('course_id',currentCourse.id).eq('status','published').order('sort_order');
-  t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
+  const t=$('quizTopic'); if(!t||!currentCourse)return;
+  try{
+    const courseId=await resolveCurrentCourseId();
+    if(!courseId){t.innerHTML='<option value="">All topics</option>';return;}
+    const {data}=await sb.from('topics').select('id,title').eq('course_id',courseId).eq('status','published').order('sort_order');
+    t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
+  }catch(e){console.error('Quiz topic loading error:',e);t.innerHTML='<option value="">All topics</option>';}
 }
 function updateQuizMode(){if($('quizTimer'))$('quizTimer').textContent=$('quizMode')?.value==='cbt'?'20 seconds/question':'Untimed';}
 function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
@@ -554,13 +589,16 @@ function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.f
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
 async function startSelectedQuiz(){
-  if(!currentCourse?.id){alert('Choose a course first.');return;}
+  if(!currentCourse){alert('Choose a course first.');return;}
+  let courseId=null;
+  try{courseId=await resolveCurrentCourseId();}catch(err){console.error('Course resolution error:',err);alert('CampusMate could not connect this course to its question bank. Please try again.');return;}
+  if(!courseId){alert('This course is selected, but it is not yet connected to a CampusMate question bank.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
   if(count>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');if($('quizCount'))$('quizCount').value='25';return;}
   const mode=$('quizMode')?.value||'practice', topicId=$('quizTopic')?.value||'';
   $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
   try{
-    const {data:quizzes,error:qErr}=await sb.from('quizzes').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published');
+    const {data:quizzes,error:qErr}=await sb.from('quizzes').select('id,title,description').eq('course_id',courseId).eq('status','published');
     if(qErr)throw qErr;
     if(!quizzes?.length){$('quizBoxCard')?.classList.add('hidden');alert('No published quiz is available for this course yet. The course needs a published question bank before a quiz can start.');return;}
     let questionRows=[];
@@ -577,7 +615,7 @@ async function startSelectedQuiz(){
     let fresh=valid.filter(q=>!seen.has(String(q.id)));
     if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
     const selected=shuffled(fresh).slice(0,count);
-    currentQuiz={mode,count,courseId:currentCourse.id,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
+    currentQuiz={mode,count,courseId:courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
     quizQuestions=selected;quizAnswers={};
     saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
     if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
