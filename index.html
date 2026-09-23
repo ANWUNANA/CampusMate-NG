@@ -515,13 +515,20 @@ function renderQuizCenter(){
   const sel=$('quizCourseSelect');
   if(!sel)return;
   sel.innerHTML='<option value="">Choose one of your courses</option>'+courses.map((c,i)=>`<option value="${i}">${escapeHtml(c.code||'')} — ${escapeHtml(c.name||'')}</option>`).join('');
-  if(currentCourse){sel.value=String(courses.findIndex(c=>c.id===currentCourse.id));if(sel.value==='-1')sel.value='';}
+  if(currentCourse){
+    const idx=courses.findIndex(c=>{
+      if(currentCourse.code && c.code)return String(c.code).toLowerCase()===String(currentCourse.code).toLowerCase();
+      return c.id && currentCourse.id && c.id===currentCourse.id;
+    });
+    if(idx>=0)sel.value=String(idx);
+  }
 }
 function selectQuizCourse(v){
   const i=Number(v); if(!Number.isInteger(i)||!courses[i])return;
   currentCourse=courses[i];
   $('quizSetup')?.classList.remove('hidden');
   if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
+  if($('quizBankInfo'))$('quizBankInfo').textContent='Connecting to the CampusMate question bank for '+currentCourse.code+'…';
   loadQuizTopics();
 }
 async function resolveCurrentCourseId(){
@@ -529,12 +536,14 @@ async function resolveCurrentCourseId(){
   if(currentCourse.id)return currentCourse.id;
   let row=null;
   let error=null;
-  if(currentCourse.code){
-    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('code',currentCourse.code).maybeSingle();
+  const code=String(currentCourse.code||'').trim();
+  const name=String(currentCourse.name||'').trim();
+  if(code){
+    const r=await sb.from('courses').select('id,code,name,description,credit_units').ilike('code',code).maybeSingle();
     row=r.data; error=r.error;
   }
-  if(!row && currentCourse.name){
-    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('name',currentCourse.name).maybeSingle();
+  if(!row && name && !error){
+    const r=await sb.from('courses').select('id,code,name,description,credit_units').ilike('name',name).maybeSingle();
     row=r.data; error=r.error;
   }
   if(error)throw error;
@@ -584,7 +593,7 @@ function correctKey(q){
   return idx>=0?opts[idx].key:'';
 }
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
-function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
+function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+(currentQuiz?.courseId||currentCourse?.id||currentCourse?.code||'course');}
 function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
@@ -609,8 +618,8 @@ async function startSelectedQuiz(){
     }
     if(topicId)questionRows=questionRows.filter(q=>!q.topic_id||String(q.topic_id)===String(topicId));
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
-    if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
-    if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
+    if(!valid.length){$('quizBoxCard')?.classList.add('hidden');if($('quizBankInfo'))$('quizBankInfo').textContent='The question bank is connected, but no usable questions are published yet.';alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
+    if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');if($('quizBankInfo'))$('quizBankInfo').textContent='Connected: '+valid.length+' usable question'+(valid.length===1?'':'s')+'. Choose '+valid.length+' or fewer, or add more questions.';alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
     let seen=new Set(getSeenQuestionIds());
     let fresh=valid.filter(q=>!seen.has(String(q.id)));
     if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
@@ -619,6 +628,7 @@ async function startSelectedQuiz(){
     quizQuestions=selected;quizAnswers={};
     saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
     if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
+    if($('quizBankInfo'))$('quizBankInfo').textContent='Connected: '+valid.length+' usable question'+(valid.length===1?'':'s')+' currently available for this course.';
     $('quizSetup')?.classList.add('hidden');
     renderQuizQuestion();
     if(mode==='cbt')startQuizTimer();else if($('quizTimer'))$('quizTimer').textContent='Untimed';
@@ -645,7 +655,7 @@ function submitQuiz(timeUp=false){
   clearInterval(currentQuiz.timer);let correct=0;
   quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
   const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
+  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];const perfCourseId=currentQuiz.courseId||currentCourse.id||currentCourse.code;if(perfCourseId&&!d.courses.includes(perfCourseId))d.courses.push(perfCourseId);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
   $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
   $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,25));
   $('quizBox').innerHTML='';go('result');renderPerformance();
