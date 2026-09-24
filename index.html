@@ -553,117 +553,96 @@ function renderQuizCenter(){
   const sel=$('quizCourseSelect');
   if(!sel)return;
   sel.innerHTML='<option value="">Choose one of your courses</option>'+courses.map((c,i)=>`<option value="${i}">${escapeHtml(c.code||'')} — ${escapeHtml(c.name||'')}</option>`).join('');
-  if(currentCourse){sel.value=String(courses.findIndex(c=>c.id===currentCourse.id));if(sel.value==='-1')sel.value='';}
+  if(currentCourse){const i=courses.findIndex(c=>c.id===currentCourse.id);if(i>=0)sel.value=String(i);}
+  $('quizSetup')?.classList.add('hidden');
+  $('quizBoxCard')?.classList.add('hidden');
+  if($('quizBankInfo'))$('quizBankInfo').textContent='Choose a course to load its CampusMate question bank.';
+  if($('quizTopic'))$('quizTopic').innerHTML='<option value="">All topics</option>';
 }
-function selectQuizCourse(v){
-  const i=Number(v); if(!Number.isInteger(i)||!courses[i])return;
+
+async function selectQuizCourse(v){
+  const i=Number(v);
+  if(!Number.isInteger(i)||!courses[i]){currentCourse=null;$('quizSetup')?.classList.add('hidden');return;}
   currentCourse=courses[i];
   $('quizSetup')?.classList.remove('hidden');
   if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
-  loadQuizTopics();
+  if($('quizBankInfo'))$('quizBankInfo').textContent='Connecting to the question bank…';
+  await loadQuizTopics();
+  try{
+    const courseId=await resolveCurrentCourseId();
+    if(!courseId){$('quizBankInfo').textContent='This course is not linked to a CampusMate course record.';return;}
+    const {data:quizzes,error}=await sb.from('quizzes').select('id,title').eq('course_id',courseId).eq('status','published');
+    if(error)throw error;
+    if(!quizzes?.length){$('quizBankInfo').textContent='This course is connected, but no published question bank exists yet.';return;}
+    let total=0;
+    for(const quiz of quizzes){const {data,error:e}=await sb.from('quiz_questions').select('id').eq('quiz_id',quiz.id);if(e)throw e;total+=(data||[]).length;}
+    $('quizBankInfo').textContent=`${total} question${total===1?'':'s'} available for ${currentCourse.name}.`;
+  }catch(e){console.error('Quiz bank connection error:',e);$('quizBankInfo').textContent='CampusMate could not connect to this course question bank.';}
 }
+
 async function resolveCurrentCourseId(){
   if(!currentCourse)return null;
   if(currentCourse.id)return currentCourse.id;
-  let row=null;
-  let error=null;
-  if(currentCourse.code){
-    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('code',currentCourse.code).maybeSingle();
-    row=r.data; error=r.error;
-  }
-  if(!row && currentCourse.name){
-    const r=await sb.from('courses').select('id,code,name,description,credit_units').eq('name',currentCourse.name).maybeSingle();
-    row=r.data; error=r.error;
-  }
-  if(error)throw error;
-  if(row){
-    currentCourse={...currentCourse,...row};
-    return row.id;
-  }
+  if(currentCourse.code){const {data,error}=await sb.from('courses').select('id,code,name,description,credit_units').eq('code',currentCourse.code).maybeSingle();if(error)throw error;if(data){currentCourse={...currentCourse,...data};return data.id;}}
+  if(currentCourse.name){const {data,error}=await sb.from('courses').select('id,code,name,description,credit_units').eq('name',currentCourse.name).maybeSingle();if(error)throw error;if(data){currentCourse={...currentCourse,...data};return data.id;}}
   return null;
 }
 
 async function loadQuizTopics(){
-  const t=$('quizTopic'); if(!t||!currentCourse)return;
-  try{
-    const courseId=await resolveCurrentCourseId();
-    if(!courseId){t.innerHTML='<option value="">All topics</option>';return;}
-    const {data}=await sb.from('topics').select('id,title').eq('course_id',courseId).eq('status','published').order('sort_order');
-    t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');
-  }catch(e){console.error('Quiz topic loading error:',e);t.innerHTML='<option value="">All topics</option>';}
+  const t=$('quizTopic');if(!t||!currentCourse)return;
+  t.innerHTML='<option value="">All topics</option>';
+  try{const courseId=await resolveCurrentCourseId();if(!courseId)return;const {data,error}=await sb.from('topics').select('id,title').eq('course_id',courseId).eq('status','published').order('sort_order');if(error)throw error;t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');}catch(e){console.error('Quiz topic loading error:',e);}
 }
+
 function updateQuizMode(){if($('quizTimer'))$('quizTimer').textContent=$('quizMode')?.value==='cbt'?'20 seconds/question':'Untimed';}
 function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
-function quizCountChanged(){
-  const sel=$('quizCount'); if(!sel)return;
-  const n=Number(sel.value||10); const pro=quizIsPro();
-  if(n>25&&!pro){
-    alert('Questions above 25 require CampusMate Pro at ₦500/month.');
-    sel.value='25';
-  }
-}
+function quizCountChanged(){const sel=$('quizCount');if(!sel)return;const n=Number(sel.value||10);if(n>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');sel.value='25';}}
 function questionText(q){return q.question_text||q.question||q.text||q.prompt||q.body||'Question';}
 function questionOptions(q){
   if(Array.isArray(q.options))return q.options.map((x,i)=>typeof x==='object'?{key:x.key||String.fromCharCode(65+i),text:x.text||x.label||x.value||''}:{key:String.fromCharCode(65+i),text:String(x)}).filter(x=>String(x.text).trim()!=='');
-  if(q.options&&typeof q.options==='object'){
-    return Object.entries(q.options).map(([k,v],i)=>({key:String(k).length===1?String(k).toUpperCase():String.fromCharCode(65+i),text:typeof v==='object'?(v.text||v.label||v.value||''):String(v)})).filter(x=>String(x.text).trim()!=='');
-  }
+  if(q.options&&typeof q.options==='object')return Object.entries(q.options).map(([k,v],i)=>({key:String(k).length===1?String(k).toUpperCase():String.fromCharCode(65+i),text:typeof v==='object'?(v.text||v.label||v.value||''):String(v)})).filter(x=>String(x.text).trim()!=='');
   const keys=[['A',q.option_a||q.optionA||q.a],['B',q.option_b||q.optionB||q.b],['C',q.option_c||q.optionC||q.c],['D',q.option_d||q.optionD||q.d],['E',q.option_e||q.optionE||q.e]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='');
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
-function correctKey(q){
-  const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
-  if(v==null)return '';
-  const z=String(v).trim();
-  const opts=questionOptions(q);
-  if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}
-  if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
-  const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
-  return idx>=0?opts[idx].key:'';
-}
+function correctKey(q){const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;if(v==null)return '';const z=String(v).trim(),opts=questionOptions(q);if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());return idx>=0?opts[idx].key:'';}
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
 function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
 function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
+
 async function startSelectedQuiz(){
   if(!currentCourse){alert('Choose a course first.');return;}
-  let courseId=null;
+  let courseId;
   try{courseId=await resolveCurrentCourseId();}catch(err){console.error('Course resolution error:',err);alert('CampusMate could not connect this course to its question bank. Please try again.');return;}
-  if(!courseId){alert('This course is selected, but it is not yet connected to a CampusMate question bank.');return;}
+  if(!courseId){alert('This course is selected, but it is not connected to a CampusMate course record.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
   if(count>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');if($('quizCount'))$('quizCount').value='25';return;}
-  const mode=$('quizMode')?.value||'practice', topicId=$('quizTopic')?.value||'';
-  $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
+  const mode=$('quizMode')?.value||'practice',topicId=$('quizTopic')?.value||'';
+  $('quizBoxCard')?.classList.remove('hidden');$('quizBox').innerHTML='<p class="mut">Connecting to the CampusMate question bank…</p>';
   try{
     const {data:quizzes,error:qErr}=await sb.from('quizzes').select('id,title,description').eq('course_id',courseId).eq('status','published');
     if(qErr)throw qErr;
     if(!quizzes?.length){$('quizBoxCard')?.classList.add('hidden');alert('No published quiz is available for this course yet. The course needs a published question bank before a quiz can start.');return;}
     let questionRows=[];
-    for(const qz of quizzes){
-      const {data,error}=await sb.from('quiz_questions').select('*').eq('quiz_id',qz.id);
-      if(error)throw error;
-      if(data)questionRows.push(...data.map(q=>({...q,_quiz_title:qz.title||'Quiz'})));
-    }
+    for(const qz of quizzes){const {data,error}=await sb.from('quiz_questions').select('*').eq('quiz_id',qz.id);if(error)throw error;if(data)questionRows.push(...data.map(q=>({...q,_quiz_title:qz.title||'Quiz'})));}
     if(topicId)questionRows=questionRows.filter(q=>!q.topic_id||String(q.topic_id)===String(topicId));
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    let seen=new Set(getSeenQuestionIds());
-    let fresh=valid.filter(q=>!seen.has(String(q.id)));
+    let seen=new Set(getSeenQuestionIds());let fresh=valid.filter(q=>!seen.has(String(q.id)));
     if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
     const selected=shuffled(fresh).slice(0,count);
-    currentQuiz={mode,count,courseId:courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
+    currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
     quizQuestions=selected;quizAnswers={};
     saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
     if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
     $('quizSetup')?.classList.add('hidden');
     renderQuizQuestion();
     if(mode==='cbt')startQuizTimer();else if($('quizTimer'))$('quizTimer').textContent='Untimed';
-  }catch(err){
-    console.error('Quiz start error:',err);$('quizBoxCard')?.classList.add('hidden');alert('The quiz could not start because CampusMate could not load the question bank. Please check that the quiz and its questions are published.');
-  }
+  }catch(err){console.error('Quiz start error:',err);$('quizBoxCard')?.classList.add('hidden');alert('The quiz could not start because CampusMate could not load the question bank. Please check that the quiz and its questions are published.');}
 }
+
 function renderQuizQuestion(){
   if(!quizQuestions.length)return;
   const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
