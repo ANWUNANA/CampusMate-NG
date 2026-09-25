@@ -293,7 +293,7 @@ async function startProPayment(){
   if(btn){btn.disabled=true;btn.textContent='Connecting to Paystack…'}
   if(note)note.textContent='Preparing secure payment…';
   try{
-    const {data,error}=await sb.functions.invoke('initialize-payment',{body:{}});
+    const {data,error}=await sb.functions.invoke('swift-handler',{body:{}});
     if(error)throw error;
     if(!data?.authorization_url)throw new Error(data?.error||'Paystack checkout could not be created.');
     if(note)note.textContent='Opening Paystack checkout…';
