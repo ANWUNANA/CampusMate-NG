@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CampusMate NG — Supabase Student Portal v27</title>
+<title>CampusMate NG — Supabase Student Portal v33</title>
 <style>
 :root{--n:#062b49;--g:#0a9f63;--bg:#f4f8f7;--mut:#718096;--line:#e2ebe7;--red:#c0392b}
 *{box-sizing:border-box}body{margin:0;background:#eaf1ef;font-family:Arial,sans-serif;color:#102a43}.app{width:100%;max-width:none;margin:0;min-height:100dvh;background:var(--bg);box-shadow:none}.hidden{display:none!important}
 header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}
-main{padding:15px 15px 90px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
+main{padding:15px 15px 100px;overflow-x:hidden}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
 button{cursor:pointer}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
-input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px;z-index:5}.nav button{border:0;background:none;color:var(--mut);font-size:11px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;transform:none!important;width:100%!important;max-width:none!important;min-height:64px;background:#fff;border-top:1px solid var(--line);display:flex!important;align-items:stretch;justify-content:stretch;padding:7px 4px calc(7px + env(safe-area-inset-bottom));z-index:5000;box-shadow:0 -4px 14px rgba(6,43,73,.08);overflow:visible}.nav button{border:0;background:none;color:var(--mut);font-size:11px;line-height:1.1;flex:1 1 0;min-width:0;padding:4px 2px;margin:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:20px;line-height:1;margin:0}.nav button:active{background:#f1f7f4;border-radius:10px}@media (min-width:700px){.nav{padding-left:12px;padding-right:12px}.nav button{font-size:12px}.nav span{font-size:21px}}
 .course{display:flex;gap:12px;align-items:center;cursor:pointer}.badge{width:48px;height:48px;border-radius:12px;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center}.course h4{margin:0 0 4px;font-size:14px}.course p{margin:0;color:var(--mut);font-size:12px}.course b:last-child{margin-left:auto}
 .back{border:0;background:none;color:#fff;font-size:20px;margin-right:8px}.row{display:flex;align-items:center}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#e6f6ef;color:var(--g);font-size:11px;font-weight:800}.danger{color:var(--red)}.adminStat{font-size:27px;font-weight:900;color:var(--n)}.tableRow{display:grid;grid-template-columns:1.3fr 1fr 50px;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:center}.tableRow:last-child{border:0}.smallbtn{border:0;background:#eef5f2;border-radius:8px;padding:7px 8px;font-weight:700;color:var(--n)}
 
@@ -271,11 +271,35 @@ async function login(){
   if(error){msg(error.message,'error');return} await finishLogin(data.session);
 }
 async function finishLogin(s){
-  session=s; $('auth').classList.add('hidden'); $('student').classList.remove('hidden');
+  session=s;
+  $('auth').classList.add('hidden');
+  $('student').classList.remove('hidden');
+
+  // Determine profile completion before showing either the dashboard or
+  // the onboarding form. This prevents the setup screen from flashing
+  // during every subsequent login.
+  $('onboarding').classList.add('hidden');
+  $('portal').classList.add('hidden');
+
   await loadProfile();
   await refreshProStatus();
-  await loadAcademicOptions();
-  await loadStudentData(); startStudent();
+
+  const profileComplete=!!(
+    profile?.university_id &&
+    profile?.programme_id &&
+    profile?.level_id
+  );
+
+  if(profileComplete){
+    await loadStudentData();
+    $('onboarding').classList.add('hidden');
+    $('portal').classList.remove('hidden');
+    startStudent();
+  }else{
+    $('portal').classList.add('hidden');
+    $('onboarding').classList.remove('hidden');
+    await loadAcademicOptions();
+  }
 }
 async function loadProfile(){
   const {data,error}=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
@@ -404,9 +428,10 @@ function startStudent(){
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
   $('academicLine').textContent=prog+' • '+level+' • '+uni;
   $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
-  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
-  $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
-  $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
+  $('rolePill').textContent=profile?.role||'student';
+  $('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
+  $('onboarding').classList.add('hidden');
+  $('portal').classList.remove('hidden');
   renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
 }
 let currentPage='home'; let backExitArmed=false; let backExitTimer=null;
@@ -1007,7 +1032,11 @@ async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
 $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
-$('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
+$('openOnboarding').onclick=async()=>{
+  $('portal').classList.add('hidden');
+  $('onboarding').classList.remove('hidden');
+  await loadAcademicOptions();
+};
 
 
 const CAMPUSMATE_MOTIVATIONS=[
