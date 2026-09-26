@@ -334,9 +334,30 @@ async function startProPayment(source='profile'){
       if(btn){btn.disabled=false;btn.textContent=source==='quiz'?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
       return true;
     }
-    const {data,error}=await sb.functions.invoke('swift-handler',{body:{}});
+    const result=await sb.functions.invoke('swift-handler',{body:{}});
+    const data=result?.data;
+    const error=result?.error;
     if(error){
-      const serverMessage=data?.error||error?.context?.error||error?.message||'Unable to start Pro payment.';
+      let status=Number(error?.context?.status||error?.status||0);
+      let body=null;
+      try{
+        const response=error?.context;
+        if(response?.clone){
+          const copy=response.clone();
+          const contentType=copy.headers?.get?.('content-type')||'';
+          if(contentType.includes('application/json')) body=await copy.json();
+          else {const txt=await copy.text();try{body=JSON.parse(txt)}catch(_){body={error:txt}}}
+        }
+      }catch(parseErr){console.warn('Could not parse Pro payment error response:',parseErr)}
+      const serverMessage=body?.error||body?.message||data?.error||error?.message||'Unable to start Pro payment.';
+      const alreadyActive=status===409||body?.already_active===true||/already active|active subscription|already have an active/i.test(String(serverMessage));
+      if(alreadyActive){
+        profile=profile||{};profile.pro_active=true;profile.subscription_status='active';
+        if(source==='quiz'){closeProGate(false);if(note)note.textContent='Your Pro subscription is active. You can now start extended quizzes.';alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
+        else if(note)note.textContent='Your Pro subscription is already active.';
+        if(btn){btn.disabled=false;btn.textContent=source==='quiz'?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
+        return true;
+      }
       throw new Error(serverMessage);
     }
     if(!data?.authorization_url)throw new Error(data?.error||'Paystack checkout could not be created.');
@@ -678,12 +699,21 @@ async function startSelectedQuiz(){
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    let seen=new Set(getSeenQuestionIds());let fresh=valid.filter(q=>!seen.has(String(q.id)));
-    if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
-    const selected=shuffled(fresh).slice(0,count);
+    const pro=quizIsPro();
+    let selected=[];
+    if(pro){
+      // CampusMate Pro: rotate and shuffle the question bank so each attempt can differ.
+      let seen=new Set(getSeenQuestionIds());
+      let fresh=valid.filter(q=>!seen.has(String(q.id)));
+      if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+      selected=shuffled(fresh).slice(0,count);
+      saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
+    }else{
+      // Free plan: keep the question set and order fixed. No randomization or rotation.
+      selected=valid.slice(0,count);
+    }
     currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
     quizQuestions=selected;quizAnswers={};
-    saveSeenQuestionIds([...getSeenQuestionIds(),...selected.map(q=>String(q.id))]);
     if($('quizSelectedCourseName'))$('quizSelectedCourseName').textContent=currentCourse.code+' — '+currentCourse.name;
     $('quizSetup')?.classList.add('hidden');
     renderQuizQuestion();
