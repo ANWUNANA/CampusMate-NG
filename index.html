@@ -8,7 +8,7 @@
 *{box-sizing:border-box}body{margin:0;background:#eaf1ef;font-family:Arial,sans-serif;color:#102a43}.app{width:100%;max-width:none;margin:0;min-height:100dvh;background:var(--bg);box-shadow:none}.hidden{display:none!important}
 header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}
 main{padding:15px 15px 90px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
-button{cursor:pointer}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
+button{cursor:pointer}.quizPriorityCard{border:2px solid var(--g);background:linear-gradient(135deg,#ffffff,#eefaf4);cursor:pointer;box-shadow:0 5px 16px #062b4912}.quizPriorityCard .pill{white-space:nowrap}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
 input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px;z-index:5}.nav button{border:0;background:none;color:var(--mut);font-size:11px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}
 .course{display:flex;gap:12px;align-items:center;cursor:pointer}.badge{width:48px;height:48px;border-radius:12px;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center}.course h4{margin:0 0 4px;font-size:14px}.course p{margin:0;color:var(--mut);font-size:12px}.course b:last-child{margin-left:auto}
 .back{border:0;background:none;color:#fff;font-size:20px;margin-right:8px}.row{display:flex;align-items:center}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#e6f6ef;color:var(--g);font-size:11px;font-weight:800}.danger{color:var(--red)}.adminStat{font-size:27px;font-weight:900;color:var(--n)}.tableRow{display:grid;grid-template-columns:1.3fr 1fr 50px;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:center}.tableRow:last-child{border:0}.smallbtn{border:0;background:#eef5f2;border-radius:8px;padding:7px 8px;font-weight:700;color:var(--n)}
@@ -62,14 +62,13 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
 <main>
-<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
-<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
-<div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
+<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card quizPriorityCard" onclick="go('quiz')"><div class="row" style="justify-content:space-between;gap:10px"><div><b>🧠 Quiz Center</b><p class="mut" style="margin:6px 0 0">Practice your courses, test your understanding and review your answers.</p></div><span class="pill">Start Quiz ›</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
+<div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div><div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div><div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div></div><div class="grid"><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div></section>
 
 <section id="courses" class="page hidden"><div class="head"><h2>My Courses</h2><div class="sub">Only courses assigned to your selected programme and level appear here.</div></div><input id="search" placeholder="🔎 Search your courses..." oninput="filterCourses()"><div id="courseScope" class="card"><b>🎓 Programme-specific courses</b><p class="mut" id="courseScopeText">Loading courses assigned to your programme…</p></div><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
-<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Each course has its own question bank — questions never mix between courses.</div></div>
+<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Each course has its own question bank — questions never mix between courses.</div></div><div class="card" style="border:2px solid var(--g);margin-top:14px"><b>🧠 Quiz Center</b><p class="mut" style="margin:6px 0 0">Choose your course below to start practicing. Nigerian University Catalogue and Latest Announcement stay on the main dashboard.</p></div>
 <div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span></div></div>
 <div class="card"><label>Select course</label><select id="quizCourseSelect" onchange="selectQuizCourse(this.value)"><option value="">Choose one of your courses</option></select>
 <div id="quizSetup" class="hidden"><label>Quiz mode</label><select id="quizMode" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
@@ -390,9 +389,57 @@ function startStudent(){
   $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
   $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
-  renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
+  renderCourses();renderTasks();renderGpa();renderPerformance();try{history.replaceState({campusmatePage:'home'},'', '#home')}catch(e){}go('home',null,false);
 }
-function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
+let currentPage='home'; let backExitArmed=false; let backExitTimer=null;
+function go(id,btn,pushHistory=true){
+  document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
+  const target=$(id);
+  if(!target)return;
+  target.classList.remove('hidden');
+  document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(id==='courses')renderCourses();
+  if(id==='planner')renderTasks();
+  if(id==='quiz')renderQuizCenter();
+  if(id==='catalogue')renderCatalogue();
+  if(id==='council')loadCouncilPractice();
+  if(id==='councilAdmin')loadCouncilAdmin();
+  if(id==='councilAnalytics')loadCouncilAnalytics();
+  currentPage=id;
+  if(pushHistory){
+    try{history.pushState({campusmatePage:id},'', '#'+id)}catch(e){}
+  }
+  window.scrollTo(0,0);
+}
+function showExitHint(){
+  let toast=$('backExitToast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='backExitToast';
+    toast.style.cssText='position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:#102a43;color:#fff;padding:11px 16px;border-radius:22px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.2);white-space:nowrap';
+    toast.textContent='Press back again to exit CampusMate';
+    document.body.appendChild(toast);
+  }
+  toast.classList.remove('hidden');
+  clearTimeout(backExitTimer);
+  backExitTimer=setTimeout(()=>toast.classList.add('hidden'),2000);
+}
+window.addEventListener('popstate',()=>{
+  if(currentPage!=='home'){
+    go('home',null,false);
+    return;
+  }
+  if(backExitArmed){
+    backExitArmed=false;
+    return;
+  }
+  backExitArmed=true;
+  showExitHint();
+  try{history.pushState({campusmatePage:'home'},'','#home')}catch(e){}
+  clearTimeout(backExitTimer);
+  backExitTimer=setTimeout(()=>{backExitArmed=false},2000);
+});
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
