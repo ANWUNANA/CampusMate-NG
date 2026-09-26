@@ -395,6 +395,23 @@ function startStudent(){
   renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
 }
 let currentPage='home'; let backExitArmed=false; let backExitTimer=null;
+function keepSingleUtilityCards(pageId){
+  const page=document.getElementById(pageId);
+  if(!page)return;
+  const cards=[...page.querySelectorAll('.card')];
+  const matches=cards.filter(c=>/Nigerian University Catalogue|Latest Announcement/.test(c.textContent||''));
+  const keep={};
+  matches.forEach(c=>{
+    const key=/Nigerian University Catalogue/.test(c.textContent||'')?'catalogue':'announcement';
+    keep[key]=c;
+  });
+  matches.forEach(c=>{
+    const key=/Nigerian University Catalogue/.test(c.textContent||'')?'catalogue':'announcement';
+    if(c!==keep[key])c.remove();
+  });
+  ['catalogue','announcement'].forEach(k=>{if(keep[k])page.appendChild(keep[k]);});
+}
+
 function go(id,btn,pushHistory=true){
   document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
   const target=$(id);
@@ -404,7 +421,7 @@ function go(id,btn,pushHistory=true){
   if(btn)btn.classList.add('on');
   if(id==='courses')renderCourses();
   if(id==='planner')renderTasks();
-  if(id==='quiz')renderQuizCenter();
+  if(id==='quiz'){renderQuizCenter();keepSingleUtilityCards('quiz');} if(id==='profile'){keepSingleUtilityCards('profile');}
   if(id==='catalogue')renderCatalogue();
   if(id==='council')loadCouncilPractice();
   if(id==='councilAdmin')loadCouncilAdmin();
