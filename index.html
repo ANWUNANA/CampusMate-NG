@@ -395,6 +395,25 @@ function startStudent(){
   renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
 }
 let currentPage='home'; let backExitArmed=false; let backExitTimer=null;
+// Keep the browser's history aligned with the portal's internal pages.
+// Each portal page gets its own history entry, so Android Back returns to the
+// actual previous CampusMate page instead of always jumping to Dashboard.
+try{history.replaceState({campusmatePage:'home',campusmateRoot:true},'',location.href.split('#')[0]+'#home')}catch(e){}
+relocateGlobalUtilityCards();
+function relocateGlobalUtilityCards(){
+  const student=document.getElementById('student');
+  const home=document.getElementById('home');
+  if(!student||!home)return;
+  // The catalogue/announcement that appear before Profile or Quiz are global
+  // direct children of #student. Move those existing cards into the Home page
+  // instead of creating another copy.
+  [...student.children].forEach(el=>{
+    if(!el.classList || !el.classList.contains('card')) return;
+    const text=el.textContent||'';
+    if(/Nigerian University Catalogue|Latest Announcement/.test(text)) home.appendChild(el);
+  });
+}
+
 function keepSingleUtilityCards(pageId){
   const page=document.getElementById(pageId);
   if(!page)return;
@@ -445,20 +464,39 @@ function showExitHint(){
   clearTimeout(backExitTimer);
   backExitTimer=setTimeout(()=>toast.classList.add('hidden'),2000);
 }
-window.addEventListener('popstate',()=>{
-  if(currentPage!=='home'){
+window.addEventListener('popstate',(event)=>{
+  const previousPage=event.state&&event.state.campusmatePage;
+
+  // When Back lands on another CampusMate page, return to that exact page.
+  if(previousPage && previousPage!=='home'){
+    backExitArmed=false;
+    clearTimeout(backExitTimer);
+    go(previousPage,null,false);
+    return;
+  }
+
+  // Back from another page to Dashboard.
+  if(currentPage!=='home' && previousPage==='home'){
+    backExitArmed=false;
+    clearTimeout(backExitTimer);
     go('home',null,false);
     return;
   }
-  if(backExitArmed){
-    backExitArmed=false;
-    return;
+
+  // Already on Dashboard: first Back shows the exit hint. A second Back
+  // within two seconds is allowed to leave the portal/browser history.
+  if(currentPage==='home'){
+    if(backExitArmed){
+      backExitArmed=false;
+      clearTimeout(backExitTimer);
+      return;
+    }
+    backExitArmed=true;
+    showExitHint();
+    try{history.pushState({campusmatePage:'home',campusmateRoot:true},'','#home')}catch(e){}
+    clearTimeout(backExitTimer);
+    backExitTimer=setTimeout(()=>{backExitArmed=false},2000);
   }
-  backExitArmed=true;
-  showExitHint();
-  try{history.pushState({campusmatePage:'home'},'','#home')}catch(e){}
-  clearTimeout(backExitTimer);
-  backExitTimer=setTimeout(()=>{backExitArmed=false},2000);
 });
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
