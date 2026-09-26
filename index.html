@@ -24,6 +24,38 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 .quizOption{display:block;width:100%;text-align:left;margin:8px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--n);cursor:pointer}.quizOption.selected{border-color:var(--g);background:#eefaf4}.qnav{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.qnavBtn{min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}.qnavBtn.active{outline:2px solid var(--g)}.qnavBtn.answered{background:#eefaf4;border-color:var(--g)}
 .profileIcon{width:30px;height:30px;margin:0 auto 2px;display:grid;place-items:center;color:var(--n)}.profileIcon svg{width:27px;height:27px;display:block}.nav button.on .profileIcon{color:var(--g)}.profileAvatar{width:76px;height:76px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;margin:0 auto 10px;border:2px solid #b9e6d1}.profileAvatar svg{width:48px;height:48px;display:block}.profileCard{text-align:center}.profileCard h2{margin:4px 0 5px}.profileMeta{text-align:left;margin-top:14px}.profileMeta p{margin:11px 0}.profileMeta b{color:var(--n)}
+
+/* CampusMate NG v36 — full-screen responsive layout */
+html,body{width:100%;min-width:0;overflow-x:hidden}
+body{font-size:15px}
+.app{width:100%;min-height:100vh}
+#student,#portal{width:100%}
+#portal>header{width:100%}
+#portal main{width:100%;max-width:none;margin:0 auto;padding:18px clamp(14px,3vw,42px) 105px;box-sizing:border-box}
+.page{width:100%;max-width:1500px;margin:0 auto}
+.card{box-sizing:border-box}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+#courseList{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+#courseList>.card{margin:0}
+#topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+#topics>.card{margin:0}
+.nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;max-width:none!important;box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;align-items:stretch!important;justify-content:stretch!important;padding:7px max(6px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right))!important;min-height:68px!important;margin:0!important;transform:none!important;z-index:5000!important}
+.nav button{width:100%!important;min-width:0!important;margin:0!important;padding:5px 2px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;box-sizing:border-box!important}
+.nav span{display:block!important;font-size:21px!important;line-height:1!important;margin:0!important}
+@media (min-width:900px){
+  #portal main{padding-left:clamp(24px,4vw,64px);padding-right:clamp(24px,4vw,64px)}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .tile{min-height:130px}
+  .nav{padding-left:18px!important;padding-right:18px!important}
+}
+@media (max-width:640px){
+  body{font-size:14px}
+  #portal main{padding:12px 12px 98px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #courseList,#topics{grid-template-columns:1fr;gap:12px}
+  .nav{min-height:64px!important}
+  .nav span{font-size:19px!important}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:12px}</style><style>
@@ -269,11 +301,32 @@ async function login(){
   if(error){msg(error.message,'error');return} await finishLogin(data.session);
 }
 async function finishLogin(s){
-  session=s; $('auth').classList.add('hidden'); $('student').classList.remove('hidden');
+  session=s;
+  $('auth').classList.add('hidden');
+  $('student').classList.remove('hidden');
+  $('onboarding').classList.add('hidden');
+  $('portal').classList.add('hidden');
+
   await loadProfile();
   await refreshProStatus();
+
+  const profileComplete=!!(
+    profile?.university_id &&
+    profile?.programme_id &&
+    profile?.level_id
+  );
+
+  if(profileComplete){
+    // Existing students go directly to the portal after a successful login.
+    await loadStudentData();
+    $('portal').classList.remove('hidden');
+    startStudent();
+    return;
+  }
+
+  // Only first-time/incomplete accounts need academic setup.
+  $('onboarding').classList.remove('hidden');
   await loadAcademicOptions();
-  await loadStudentData(); startStudent();
 }
 async function loadProfile(){
   const {data,error}=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
@@ -294,7 +347,7 @@ async function refreshProStatus(){
   }catch(e){console.warn('Pro status lookup failed:',e)}
   profile=profile||{}; profile.pro_active=active; profile.pro_subscription=sub;
   const status=$(`proStatusText`); const upgrade=$(`upgradeProBtn`); const refresh=$(`refreshProBtn`); const note=$(`proPaymentMsg`);
-  if(status)status.textContent=active?'CampusMate Pro is active. You can use GPA CampusMate Pro is active. You can take quizzes above 25 questions. CGPA and take quizzes above 10 questions.':'Free plan: up to 10 questions per quiz.';
+  if(status)status.textContent=active?'CampusMate Pro is active. You can use GPA & CGPA and take quizzes above 10 questions.':'Free plan: up to 10 questions per quiz.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(refresh)refresh.classList.toggle('hidden',!active && !sub);
   if(active && note)note.textContent='Your Pro subscription is active.';
@@ -897,8 +950,7 @@ async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
 $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
-$('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('loginPassword').focus()}});
-$('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();login()}});
+
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
