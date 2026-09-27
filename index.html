@@ -45,7 +45,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
 <div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button><button id="forgotPasswordBtn" type="button" class="secondary" style="width:100%;margin-top:9px">Forgot password?</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button><button id="resendConfirmationBtn" type="button" class="secondary hidden" style="width:100%;margin-top:9px">Resend confirmation email</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
+<div id="verifyForm" class="hidden"><h3 style="margin-top:0">Confirm your email</h3><p class="mut">We’ve sent a <strong>6-digit confirmation code</strong> to <span id="verifyEmailLabel">your email</span>. Enter the code below to activate your CampusMate account.</p><label>Confirmation code</label><input id="verifyCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter 6-digit code"><button id="verifyCodeBtn" class="primary">Confirm email</button><button id="resendConfirmationBtn" type="button" class="secondary" style="width:100%;margin-top:9px">Resend confirmation code</button><button id="backToSignupBtn" type="button" class="secondary" style="width:100%;margin-top:9px">Back to registration</button><p class="mut" style="margin-top:10px;font-size:13px">Didn’t receive it? Check your Spam/Junk folder, then tap “Resend confirmation code”.</p></div>
 <div id="forgotForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter your account email and we’ll send you a secure password reset link.</p><label>Email</label><input id="forgotEmail" type="email" placeholder="you@example.com"><button id="sendResetBtn" class="primary">Send reset link</button><button type="button" class="secondary" style="width:100%;margin-top:9px" onclick="showAuth('login')">Back to login</button></div>
 <div id="resetForm" class="hidden"><h3 style="margin-top:0">Create a new password</h3><p class="mut">Choose a new password for your CampusMate account.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('resetPassword',this)">Show</button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter your new password"><button type="button" onclick="togglePw('resetConfirm',this)">Show</button></div><button id="saveResetBtn" class="primary">Save new password</button></div>
 </div></main>
@@ -67,7 +68,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
 <main>
 <section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
-<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div></div><div class="home-bottom-features" style="margin-top:12px"><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div><div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></div></section>
+<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Pro only</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div></div><div class="home-bottom-features" style="margin-top:12px"><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div><div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></div></section>
 
 <section id="courses" class="page hidden"><div class="head"><h2>My Courses</h2><div class="sub">Only courses assigned to your selected programme and level appear here.</div></div><input id="search" placeholder="🔎 Search your courses..." oninput="filterCourses()"><div id="courseScope" class="card"><b>🎓 Programme-specific courses</b><p class="mut" id="courseScopeText">Loading courses assigned to your programme…</p></div><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div></section>
@@ -83,11 +84,11 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="proGateModal">
   <div class="proGateIcon">🚀</div>
   <h3 id="proGateTitle">Unlock CampusMate Pro</h3>
-  <p id="proGateMessage" class="mut">Quizzes above 10 questions are available with CampusMate Pro.</p>
+  <p id="proGateMessage" class="mut">Quizzes with 15–100 questions are available with CampusMate Pro. GPA & CGPA are also Pro-only.</p>
   <p class="mut" style="margin-bottom:0">Pro costs <b style="color:var(--g)">₦500/month</b> and payment opens securely through Paystack.</p>
   <div class="proGateActions">
     <button class="secondary" type="button" onclick="closeProGate(true)">Not now</button>
-    <button class="primary" id="proGateUpgradeBtn" type="button" onclick="upgradeFromQuiz()">Upgrade to Pro</button>
+    <button class="primary" id="proGateUpgradeBtn" type="button" onclick="proGateSource==='gpa'?upgradeFromGpa():upgradeFromQuiz()">Upgrade to Pro</button>
   </div>
 </div>
 </div>
@@ -179,7 +180,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 Option B
 Option C
 Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" maxlength="1" placeholder="A"><label>Topic</label><input id="qaTopic" placeholder="e.g. Fundamentals of Nursing"><label>Difficulty</label><select id="qaDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select><label>Verification status</label><select id="qaStatus"><option value="reviewed_reference">Reviewed Reference</option><option value="licensed_partner">Licensed Partner</option><option value="officially_verified">Officially Verified</option><option value="draft">Draft</option></select><label>Source title</label><input id="qaSource" placeholder="Book, authorized source, partner material, etc."><label>Source URL</label><input id="qaSourceUrl" placeholder="https://…"><label>Content origin</label><select id="qaOrigin"><option value="campusmate_authored">CampusMate authored</option><option value="licensed_partner">Licensed partner</option><option value="official_authorized">Official / authorized</option><option value="reviewed_reference">Reviewed reference</option></select><label>Review note</label><textarea id="qaNote" rows="3" placeholder="Why this question is approved for this status"></textarea><button class="primary" onclick="adminAddCouncilQuestion()">Add to review bank</button></div><input id="qaSearch" placeholder="🔎 Search question, topic or source…" oninput="renderAdminQuestions()"><div id="qaList"></div></section><section id="challenges" class="page hidden"><div class="head"><h2>Challenges</h2><div class="sub">Practise • Compete • Improve</div></div><div class="card"><h3>🏆 Academic Challenges</h3><p class="mut">Challenge formats planned for CampusMate:</p><p>⚡ Quick Quiz<br>📚 Topic Battle<br>🎓 Course Challenge<br>🏫 Department Championship<br>🇳🇬 National Championship</p><button class="primary" onclick="go('quiz')">Start practising</button></div><div class="card"><b>Leaderboard</b><p class="mut">Leaderboards will rank students by challenge performance while protecting academic integrity and user safety.</p></div></section>
-<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card profileCard"><div class="profileAvatar" aria-label="Student profile icon"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="32" cy="19" r="10" stroke="currentColor" stroke-width="4"/><path d="M13 55C14.8 42.8 22.1 36 32 36C41.9 36 49.2 42.8 51 55" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M22 39C24.7 42 27.9 43.5 32 43.5C36.1 43.5 39.3 42 42 39" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg></div><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><div class="profileMeta"><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div></div><div class="card" id="proCard"><div class="row" style="justify-content:space-between;gap:10px"><div><span class="pill">🚀 CampusMate Pro</span><h3 style="margin:9px 0 4px">Unlock extended quizzes</h3><p class="mut" id="proStatusText">Free plan: up to 10 questions per quiz.</p></div><b style="font-size:20px;color:var(--g)">₦500<span class="mut" style="font-size:11px">/month</span></b></div><p class="mut">Pro access is required for quizzes above 10 questions. Payment opens securely through Paystack.</p><button class="primary" id="upgradeProBtn" onclick="startProPayment()">Upgrade to Pro — ₦500/month</button><button class="secondary hidden" id="refreshProBtn" onclick="refreshProStatus()" style="margin-top:8px">Refresh Pro status</button><p class="mut" id="proPaymentMsg" style="margin-bottom:0"></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button><div class="card" style="margin-top:14px;text-align:center"><p class="mut" style="margin:0">CampusMate NG • Student Profile</p></div></section>
+<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card profileCard"><div class="profileAvatar" aria-label="Student profile icon"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="32" cy="19" r="10" stroke="currentColor" stroke-width="4"/><path d="M13 55C14.8 42.8 22.1 36 32 36C41.9 36 49.2 42.8 51 55" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M22 39C24.7 42 27.9 43.5 32 43.5C36.1 43.5 39.3 42 42 39" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg></div><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><div class="profileMeta"><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div></div><div class="card" id="proCard"><div class="row" style="justify-content:space-between;gap:10px"><div><span class="pill">🚀 CampusMate Pro</span><h3 style="margin:9px 0 4px">Unlock extended quizzes</h3><p class="mut" id="proStatusText">Free plan: 5 or 10 questions per quiz. Pro unlocks 15–100 questions.</p></div><b style="font-size:20px;color:var(--g)">₦500<span class="mut" style="font-size:11px">/month</span></b></div><p class="mut">Pro access is required for 15–100 question quizzes and for GPA & CGPA. Payment opens securely through Paystack.</p><button class="primary" id="upgradeProBtn" onclick="startProPayment()">Upgrade to Pro — ₦500/month</button><button class="secondary hidden" id="refreshProBtn" onclick="refreshProStatus()" style="margin-top:8px">Refresh Pro status</button><p class="mut" id="proPaymentMsg" style="margin-bottom:0"></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button><div class="card" style="margin-top:14px;text-align:center"><p class="mut" style="margin:0">CampusMate NG • Student Profile</p></div></section>
 </main><nav class="nav"><button class="on" onclick="go('home',this)"><span>⌂</span>Home</button><button onclick="go('courses',this)"><span>▦</span>Courses</button><button onclick="go('quiz',this)"><span>🧠</span>Quiz</button><button onclick="go('community',this)"><span>👥</span>Community</button><button onclick="go('profile',this)"><span class="profileIcon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="19" r="10" stroke="currentColor" stroke-width="4"/><path d="M13 55C14.8 42.8 22.1 36 32 36C41.9 36 49.2 42.8 51 55" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span>Profile</button></nav>
 </div>
 
@@ -196,7 +197,7 @@ let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
 function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
-function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('forgotForm').classList.toggle('hidden',mode!=='forgot'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); clearMsg(); }
+function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('verifyForm').classList.toggle('hidden',mode!=='verify'); $('forgotForm').classList.toggle('hidden',mode!=='forgot'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); clearMsg(); }
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
@@ -262,20 +263,32 @@ async function signUp(){
   if(pw!==cpw){msg('Passwords do not match.','error');return}
   const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
   if(error){msg(error.message,'error');return}
-  if(data.session){await finishLogin(data.session);}
-  else {
-    $('resendConfirmationBtn')?.classList.remove('hidden');
-    $('loginEmail').value=e;
-    msg('Registration successful. A confirmation link has been sent to your email. Click the link to confirm your account, and you will be returned to CampusMate.','success');
-  }
+  if(data.session){await finishLogin(data.session);return}
+  $('loginEmail').value=e;
+  $('verifyEmailLabel').textContent=e;
+  $('verifyCode').value='';
+  showAuth('verify');
+  msg('Registration successful. A confirmation code has been sent to your email. Enter the code here to confirm your account.','success');
+}
+
+async function verifyConfirmationCode(){
+  clearMsg(); const e=($('signupEmail').value||$('loginEmail').value||'').trim(); const token=$('verifyCode').value.trim();
+  if(!e){msg('Enter the email address you used to create your account.','error');return}
+  if(!/^\d{6}$/.test(token)){msg('Enter the 6-digit confirmation code sent to your email.','error');return}
+  const {data,error}=await sb.auth.verifyOtp({email:e,token,type:'email'});
+  if(error){msg(error.message,'error');return}
+  if(data?.session){msg('Email confirmed successfully. Setting up your CampusMate account…','success');await finishLogin(data.session);}
+  else {msg('Email confirmed successfully. You can now log in.','success');setTimeout(()=>showAuth('login'),900);}
 }
 
 async function resendConfirmation(){
-  clearMsg(); const e=$('signupEmail').value.trim();
+  clearMsg(); const e=($('signupEmail').value||$('loginEmail').value||'').trim();
   if(!e){msg('Enter the email address you used to create your account.','error');return}
   const {error}=await sb.auth.resend({type:'signup',email:e,options:{emailRedirectTo:authRedirectUrl()}});
   if(error){msg(error.message,'error');return}
-  msg('A new confirmation link has been sent to your email. Click the link to confirm your account and return to CampusMate.','success');
+  $('verifyEmailLabel').textContent=e;
+  showAuth('verify');
+  msg('A new confirmation code has been sent to your email. Check your inbox and enter the new 6-digit code.','success');
 }
 
 async function sendPasswordReset(){
@@ -304,9 +317,11 @@ async function login(){
   if(error){
     const em=String(error.message||'').toLowerCase();
     if(em.includes('email not confirmed')){
-      $('resendConfirmationBtn')?.classList.remove('hidden');
       $('signupEmail').value=e;
-      msg('Your email has not been confirmed yet. Use “Resend confirmation email” to receive a new confirmation link.','error');
+      $('verifyEmailLabel').textContent=e;
+      $('verifyCode').value='';
+      showAuth('verify');
+      msg('Your email has not been confirmed yet. Enter the confirmation code sent to your email, or tap “Resend confirmation code” if you did not receive it.','error');
     } else msg(error.message,'error');
     return;
   }
@@ -387,14 +402,16 @@ async function refreshProStatus(){
   }catch(e){console.warn('Pro status lookup failed:',e)}
   profile=profile||{}; profile.pro_active=active; profile.pro_subscription=sub;
   const status=$(`proStatusText`); const upgrade=$(`upgradeProBtn`); const refresh=$(`refreshProBtn`); const note=$(`proPaymentMsg`);
-  if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes above 10 questions.':'Free plan: up to 10 questions per quiz.';
+  if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes above 10 questions.':'Free plan: 5 or 10 questions per quiz. Pro unlocks 15–100 questions.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(refresh)refresh.classList.toggle('hidden',!active && !sub);
   if(active && note)note.textContent='Your Pro subscription is active.';
   return active;
 }
 
+let proGateSource='quiz';
 function openProGate(count){
+  proGateSource='quiz';
   const modal=$('proGate');
   const message=$('proGateMessage');
   const upgrade=$('proGateUpgradeBtn');
@@ -402,6 +419,15 @@ function openProGate(count){
   if(message)message.textContent=`${count} questions are available with CampusMate Pro. Upgrade now to unlock extended quizzes, or choose Not now to stay on the free plan.`;
   if(upgrade){upgrade.disabled=false;upgrade.textContent='Upgrade to Pro';}
   modal.classList.remove('hidden');
+}
+function openGpaGate(){
+  proGateSource='gpa';
+  const modal=$('proGate');
+  const message=$('proGateMessage');
+  const upgrade=$('proGateUpgradeBtn');
+  if(message)message.textContent='GPA & CGPA are available only to CampusMate Pro subscribers. Upgrade to Pro for ₦500/month to unlock the GPA and CGPA calculators.';
+  if(upgrade){upgrade.disabled=false;upgrade.textContent='Upgrade to Pro';}
+  if(modal)modal.classList.remove('hidden');
 }
 function closeProGate(resetCount=true){
   const modal=$('proGate');
@@ -411,6 +437,10 @@ function closeProGate(resetCount=true){
 async function upgradeFromQuiz(){
   closeProGate(false);
   await startProPayment('quiz');
+}
+async function upgradeFromGpa(){
+  closeProGate(false);
+  await startProPayment('gpa');
 }
 
 async function startProPayment(source='profile'){
@@ -475,6 +505,26 @@ async function saveOnboarding(){
   await loadProfile(); await refreshProStatus(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
 }
 
+const BUILTIN_PROGRAMME_CATALOG={
+  'chemistry education':{
+    100:[
+      ['MATH101','GENERAL MATHEMATICS',[]],
+      ['MATH102','INTRODUCTION TO CALCULUS',[]],
+      ['CHEM101','GENERAL CHEMISTRY',[]],
+      ['CHEM102','GENERAL CHEMISTRY',[]],
+      ['EDU101','INTRODUCTION TO EDUCATION FOUNDATION',[]],
+      ['EDU122','HISTORY AND PHILOSOPHY OF CHEMISTRY',[]],
+      ['PHY101','GENERAL PHYSICS',[]],
+      ['BIO101','GENERAL BIOLOGY',[]],
+      ['CMP101','INTRODUCTION TO COMPUTING SCIENCE',[]],
+      ['GST111','COMMUNICATION IN ENGLISH',[]],
+      ['GST112','NIGERIA PEOPLE AND CULTURE',[]],
+      ['SED104','ENERGY AND MATTER',[]],
+      ['SED124','CHEMISTRY METHOD',[]]
+    ]
+  }
+};
+
 const BUILTIN_NURSING_CATALOG={
   100:[
     ['CHM101','GENERAL CHEMISTRY I',['Matter and Measurement','Atomic Structure and Periodic Table','Chemical Bonding','Chemical Reactions and Stoichiometry','Solutions and Concentrations']],
@@ -520,16 +570,35 @@ const BUILTIN_NURSING_CATALOG={
     ['NUR228','Anatomy and Physiology of Special Senses',['Vision','Hearing and Balance','Taste','Smell','Sensory Disorders']],
     ['NUR229','Environmental and Occupational Health',['Environmental Hazards','Occupational Hazards','Workplace Safety','Ergonomics','Occupational Disease Prevention']],
     ['NUR230','Health Policy and Primary Health Care',['Health Policy','Primary Health Care Principles','Healthcare Financing','Universal Health Coverage','Health Policy Implementation']]
+    ['ANA201','General Anatomy I',[]],
+    ['ANA202','General Anatomy II',[]],
+    ['BCH201','General Biochemistry I',[]],
+    ['BCH202','General Biochemistry II',[]],
+    ['ANA203','Human Embryology',[]],
+    ['NSC201','Foundation of Professional Nursing Practice I',[]],
+    ['NSC202','Foundation of Professional Nursing Practice II',[]],
+    ['NSC203','Developmental Psychology',[]],
+    ['PIO201','General Physiology I',[]],
+    ['PIO202','General Physiology II',[]],
+    ['GST211','Entrepreneurship and Innovation',[]],
+    ['NSC206','General and Cellular Pathology',[]],
+    ['GST212','Philosophy, Logic and Human Existence',[]],
+    ['GST216','Use of Library and Information Studies',[]],
+    ['NSC208','Human Behavior in Health and Illness',[]],
   ]
 };
 function builtinCoursesForProfile(){
   const prog=(profile?.programmes?.name||'').trim().toLowerCase().replace(/\s+/g,' ');
   const level=Number((profile?.levels?.name||'').match(/\d+/)?.[0]||0);
-  const isNursing=prog==='nursing science'||prog.includes('nursing science')||prog.includes('nursing');
-  if(!isNursing||!BUILTIN_NURSING_CATALOG[level])return [];
-  return BUILTIN_NURSING_CATALOG[level].map(([code,name,topics])=>({
-    id:code==='ANA204'?'fb9c764e-3167-42be-ac26-ec24b80bab28':null,code,name,description:`${name} for Nursing Science students.`,credit_units:0,
-    topics:topics.map(title=>({title,description:'Study this topic through CampusMate learning materials.'}))
+  const nursing=prog==='nursing science'||prog.includes('nursing science')||prog.includes('nursing');
+  const nursingRows=nursing ? BUILTIN_NURSING_CATALOG[level] : null;
+  const programmeRows=BUILTIN_PROGRAMME_CATALOG[prog]?.[level]||null;
+  const rows=nursingRows||programmeRows;
+  if(!rows)return [];
+  return rows.map(([code,name,topics])=>({
+    id:null,code,name,description:`${name} for ${profile?.programmes?.name||'students'}.`,credit_units:0,
+    builtin:true,
+    topics:(topics||[]).map(title=>({title,description:'Study this topic through CampusMate learning materials.'}))
   }));
 }
 
@@ -592,6 +661,7 @@ function startStudent(){
   else { $('portal').classList.add('hidden'); $('onboarding').classList.remove('hidden'); }
 }
 function go(id,btn){
+  if(id==='gpa'&&!quizIsPro()){openGpaGate();return;}
   const target=$(id);
   if(!target)return;
   document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
@@ -613,7 +683,7 @@ function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
   $('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s');
   const scope=$('courseScopeText');
-  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Programme-specific courses assigned to this programme and level are shown, including the current CampusMate Nursing course library.';
+  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Programme-specific courses assigned to this programme and level are shown, including CampusMate built-in course libraries where available.';
   $('courseList').innerHTML=courses.length
     ?courses.map((c,i)=>`<div class="card course" data-name="${escapeHtml((c.name||'').toLowerCase())} ${(c.code||'').toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${escapeHtml((c.code||'COURSE').replace(' ','\n'))}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Units • ${escapeHtml(profile?.levels?.name||'Level')}</p></div><b>›</b></div>`).join('')
     :'<div class="card"><p class="mut">No courses have been assigned to this programme and level yet. Courses from other programmes or faculties will not be displayed.</p></div>';
@@ -876,6 +946,7 @@ let selectedGradingSystem = null;
 let gpaRowCounter = 0;
 
 function selectGradingSystem(scale){
+  if(!quizIsPro()){openGpaGate();return;}
   selectedGradingSystem = Number(scale);
   $('gpaCalculator').classList.remove('hidden');
   $('cgpaCalculator').classList.remove('hidden');
@@ -1000,7 +1071,7 @@ function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.l
 async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
-$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('forgotPasswordBtn').onclick=()=>showAuth('forgot');$('sendResetBtn').onclick=sendPasswordReset;$('saveResetBtn').onclick=saveNewPassword;$('resendConfirmationBtn').onclick=resendConfirmation;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
+$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('forgotPasswordBtn').onclick=()=>showAuth('forgot');$('sendResetBtn').onclick=sendPasswordReset;$('saveResetBtn').onclick=saveNewPassword;$('verifyCodeBtn').onclick=verifyConfirmationCode;$('resendConfirmationBtn').onclick=resendConfirmation;$('backToSignupBtn').onclick=()=>showAuth('signup');$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
