@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CampusMate NG — Supabase Student Portal v33</title>
+<title>CampusMate NG — Supabase Student Portal</title>
 <style>
 :root{--n:#062b49;--g:#0a9f63;--bg:#f4f8f7;--mut:#718096;--line:#e2ebe7;--red:#c0392b}
 *{box-sizing:border-box}body{margin:0;background:#eaf1ef;font-family:Arial,sans-serif;color:#102a43}.app{width:100%;max-width:none;margin:0;min-height:100dvh;background:var(--bg);box-shadow:none}.hidden{display:none!important}
 header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}
-main{padding:15px 15px 100px;overflow-x:hidden}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
+main{padding:15px 15px 105px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
 button{cursor:pointer}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
-input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;transform:none!important;width:100%!important;max-width:none!important;min-height:64px;background:#fff;border-top:1px solid var(--line);display:flex!important;align-items:stretch;justify-content:stretch;padding:7px 4px calc(7px + env(safe-area-inset-bottom));z-index:5000;box-shadow:0 -4px 14px rgba(6,43,73,.08);overflow:visible}.nav button{border:0;background:none;color:var(--mut);font-size:11px;line-height:1.1;flex:1 1 0;min-width:0;padding:4px 2px;margin:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:20px;line-height:1;margin:0}.nav button:active{background:#f1f7f4;border-radius:10px}@media (min-width:700px){.nav{padding-left:12px;padding-right:12px}.nav button{font-size:12px}.nav span{font-size:21px}}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px;z-index:5}.nav button{border:0;background:none;color:var(--mut);font-size:11px}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}.nav{left:0;transform:none;width:100%;grid-template-columns:repeat(5,minmax(0,1fr));padding:7px 4px calc(7px + env(safe-area-inset-bottom));min-height:70px;align-items:stretch;box-shadow:0 -4px 14px rgba(6,43,73,.08)}.nav button{font-size:11px;line-height:1.1;min-width:0;padding:4px 2px;margin:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.nav button b{font-weight:700}.navIcon{width:25px;height:25px;margin:0!important;display:flex!important;align-items:center;justify-content:center}.navIcon svg{width:23px;height:23px;display:block}.nav button.on{color:#0a9f63}.nav button:not(.on){color:#718096}
 .course{display:flex;gap:12px;align-items:center;cursor:pointer}.badge{width:48px;height:48px;border-radius:12px;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center}.course h4{margin:0 0 4px;font-size:14px}.course p{margin:0;color:var(--mut);font-size:12px}.course b:last-child{margin-left:auto}
 .back{border:0;background:none;color:#fff;font-size:20px;margin-right:8px}.row{display:flex;align-items:center}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#e6f6ef;color:var(--g);font-size:11px;font-weight:800}.danger{color:var(--red)}.adminStat{font-size:27px;font-weight:900;color:var(--n)}.tableRow{display:grid;grid-template-columns:1.3fr 1fr 50px;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:center}.tableRow:last-child{border:0}.smallbtn{border:0;background:#eef5f2;border-radius:8px;padding:7px 8px;font-weight:700;color:var(--n)}
 
@@ -18,7 +18,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .motivation-track span{display:inline-block;padding-right:70px}
 .auth-marquee{margin-top:0;margin-bottom:12px}
 .auth-marquee .motivation-track{animation-duration:55s}
-.proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
 .onboarding-marquee .motivation-track{animation-duration:50s}
 @keyframes campusMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.motivation-track{animation:none;transform:none;padding-left:0;display:block;text-align:center;white-space:normal;padding:0 14px}}
@@ -43,7 +42,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
+<div id="loginForm" onkeydown="if(event.key==='Enter'){event.preventDefault();}"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
 <div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
@@ -76,10 +75,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div id="quizSetup" class="hidden"><label>Quiz mode</label><select id="quizMode" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
 <label>Number of questions</label><select id="quizCount" onchange="quizCountChanged()"><option value="5">5 questions — Free</option><option value="10">10 questions — Free</option><option value="15">15 questions — Free</option><option value="20">20 questions — Free</option><option value="25">25 questions — Free maximum</option><option value="30">30 questions — Pro</option><option value="40">40 questions — Pro</option><option value="50">50 questions — Pro</option><option value="75">75 questions — Pro</option><option value="100">100 questions — Pro</option><option value="150">150 questions — Pro</option><option value="200">200 questions — Pro</option><option value="300">300 questions — Pro</option><option value="500">500 questions — Pro</option><option value="1000">1,000 questions — Pro</option><option value="5000">5,000 questions — Pro</option></select>
 <label>Topic</label><select id="quizTopic"><option value="">All topics</option></select><p class="mut" id="quizBankInfo">Questions are loaded only from the selected course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div></div>
-<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button class="secondary" onclick="previousQuizQuestion()">Previous</button><button class="primary" onclick="nextQuizQuestion()">Next</button></div><div class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div>
-<div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
-<div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div>
-</section><section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button><div id="quizReview" style="margin-top:12px"></div></section>
+<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button class="secondary" onclick="previousQuizQuestion()">Previous</button><button class="primary" onclick="nextQuizQuestion()">Next</button></div><div class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button><div id="quizReview" style="margin-top:12px"></div></section>
 <section id="gpa" class="page hidden">
 <div class="head"><h2>GPA & CGPA</h2><div class="sub">Choose your grading system before calculating.</div></div>
 
@@ -167,21 +164,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 Option B
 Option C
 Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" maxlength="1" placeholder="A"><label>Topic</label><input id="qaTopic" placeholder="e.g. Fundamentals of Nursing"><label>Difficulty</label><select id="qaDifficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select><label>Verification status</label><select id="qaStatus"><option value="reviewed_reference">Reviewed Reference</option><option value="licensed_partner">Licensed Partner</option><option value="officially_verified">Officially Verified</option><option value="draft">Draft</option></select><label>Source title</label><input id="qaSource" placeholder="Book, authorized source, partner material, etc."><label>Source URL</label><input id="qaSourceUrl" placeholder="https://…"><label>Content origin</label><select id="qaOrigin"><option value="campusmate_authored">CampusMate authored</option><option value="licensed_partner">Licensed partner</option><option value="official_authorized">Official / authorized</option><option value="reviewed_reference">Reviewed reference</option></select><label>Review note</label><textarea id="qaNote" rows="3" placeholder="Why this question is approved for this status"></textarea><button class="primary" onclick="adminAddCouncilQuestion()">Add to review bank</button></div><input id="qaSearch" placeholder="🔎 Search question, topic or source…" oninput="renderAdminQuestions()"><div id="qaList"></div></section><section id="challenges" class="page hidden"><div class="head"><h2>Challenges</h2><div class="sub">Practise • Compete • Improve</div></div><div class="card"><h3>🏆 Academic Challenges</h3><p class="mut">Challenge formats planned for CampusMate:</p><p>⚡ Quick Quiz<br>📚 Topic Battle<br>🎓 Course Challenge<br>🏫 Department Championship<br>🇳🇬 National Championship</p><button class="primary" onclick="go('quiz')">Start practising</button></div><div class="card"><b>Leaderboard</b><p class="mut">Leaderboards will rank students by challenge performance while protecting academic integrity and user safety.</p></div></section>
-<section id="profile" class="page hidden"><div class="head"><div class="row"><div class="profileAvatar" aria-label="Profile"><svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="23" r="9" fill="currentColor"/><path d="M16 49c2.8-9 9.5-13 16-13s13.2 4 16 13" fill="currentColor"/></svg></div><div><h2 style="margin:0">Profile</h2><div class="sub">Student account</div></div></div></div><div class="card"><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div><div class="card" id="proCard"><div class="row" style="justify-content:space-between;gap:10px"><div><span class="pill">🚀 CampusMate Pro</span><h3 style="margin:9px 0 4px">Unlock extended quizzes</h3><p class="mut" id="proStatusText">Free plan: up to 25 questions per quiz.</p></div><b style="font-size:20px;color:var(--g)">₦500<span class="mut" style="font-size:11px">/month</span></b></div><p class="mut">Pro access is required for quizzes above 25 questions. Payment opens securely through Paystack.</p><button class="primary" id="upgradeProBtn" onclick="startProPayment()">Upgrade to Pro — ₦500/month</button><button class="secondary hidden" id="refreshProBtn" onclick="refreshProStatus()" style="margin-top:8px">Refresh Pro status</button><p class="mut" id="proPaymentMsg" style="margin-bottom:0"></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div><div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
-
-<div id="proGate" class="proGateBackdrop hidden" role="dialog" aria-modal="true" aria-labelledby="proGateTitle">
-<div class="proGateModal">
-  <div class="proGateIcon">🚀</div>
-  <h3 id="proGateTitle">Unlock CampusMate Pro</h3>
-  <p id="proGateMessage" class="mut">Quizzes above 25 questions are available with CampusMate Pro.</p>
-  <p class="mut" style="margin-bottom:0">Pro costs <b style="color:var(--g)">₦500/month</b> and payment opens securely through Paystack.</p>
-  <div class="proGateActions">
-    <button class="secondary" type="button" onclick="closeProGate(true)">Not now</button>
-    <button class="primary" id="proGateUpgradeBtn" type="button" onclick="upgradeFromQuiz()">Upgrade to Pro</button>
-  </div>
-</div>
-</div>
-</main><nav class="nav" style="grid-template-columns:repeat(6,1fr)"><button class="on" onclick="go('home',this)"><span>⌂</span>Home</button><button onclick="go('courses',this)"><span>▦</span>Courses</button><button onclick="go('quiz',this)"><span>🧠</span>Quiz</button><button onclick="go('community',this)"><span>👥</span>Community</button><button id="adminCouncilNav" class="hidden" onclick="go('councilAdmin',this)"><span>🛡️</span>Admin</button><button onclick="go('profile',this)"><span>👤</span>Profile</button></nav>
+<section id="profile" class="page hidden"><div class="head"><h2>Profile</h2><div class="sub">Student account</div></div><div class="card"><h2 id="pname"></h2><span id="rolePill" class="pill rolePill">student</span><p id="pemail" class="mut"></p><p>🏫 <b>University</b><br><span id="puni" class="mut"></span></p><p>🎓 <b>Programme</b><br><span id="pprog" class="mut"></span></p><p>📘 <b>Level</b><br><span id="plevel" class="mut"></span></p></div><button class="secondary" id="openOnboarding">Edit academic profile</button><button class="secondary" id="logoutBtn">Log out</button></section>
+</main><nav class="nav"><button class="on" onclick="go('home',this)"><span class="navIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.8 12 3l9 7.8v9.2a1 1 0 0 1-1 1h-5.2v-6h-5.6v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg></span><b>Home</b></button><button onclick="go('courses',this)"><span class="navIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5zm0 0v15A2.5 2.5 0 0 1 6.5 17H20M8 6h8M8 9h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>My Courses</b></button><button onclick="go('quiz',this)"><span class="navIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h5M8 16h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Quiz</b></button><button onclick="go('community',this)"><span class="navIcon people"><svg viewBox="0 0 28 24" aria-hidden="true"><circle cx="10" cy="8" r="4" fill="currentColor"/><circle cx="19" cy="9" r="3.5" fill="currentColor" opacity=".62"/><path d="M3.5 20c.6-4.1 2.8-6 6.5-6s5.9 1.9 6.5 6z" fill="currentColor"/><path d="M15 19.5c.4-3.1 2-4.8 4.8-4.8 2.5 0 4.2 1.6 4.7 4.8z" fill="currentColor" opacity=".62"/></svg></span><b>Community</b></button><button onclick="go('profile',this)"><span class="navIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4" fill="currentColor"/><path d="M4.5 21c.7-4.8 3.2-7.2 7.5-7.2s6.8 2.4 7.5 7.2z" fill="currentColor"/></svg></span><b>Profile</b></button></nav>
 </div>
 
 </div>
@@ -271,35 +255,10 @@ async function login(){
   if(error){msg(error.message,'error');return} await finishLogin(data.session);
 }
 async function finishLogin(s){
-  session=s;
-  $('auth').classList.add('hidden');
-  $('student').classList.remove('hidden');
-
-  // Determine profile completion before showing either the dashboard or
-  // the onboarding form. This prevents the setup screen from flashing
-  // during every subsequent login.
-  $('onboarding').classList.add('hidden');
-  $('portal').classList.add('hidden');
-
+  session=s; $('auth').classList.add('hidden'); $('student').classList.remove('hidden');
   await loadProfile();
-  await refreshProStatus();
-
-  const profileComplete=!!(
-    profile?.university_id &&
-    profile?.programme_id &&
-    profile?.level_id
-  );
-
-  if(profileComplete){
-    await loadStudentData();
-    $('onboarding').classList.add('hidden');
-    $('portal').classList.remove('hidden');
-    startStudent();
-  }else{
-    $('portal').classList.add('hidden');
-    $('onboarding').classList.remove('hidden');
-    await loadAcademicOptions();
-  }
+  await loadAcademicOptions();
+  await loadStudentData(); startStudent();
 }
 async function loadProfile(){
   const {data,error}=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
@@ -313,7 +272,7 @@ async function saveOnboarding(){
   if(!university_id||!faculty_id||!department_id||!programme_id||!level_id){msg('Select your university, faculty, department, programme and level first.','error');return}
   const {error}=await sb.from('profiles').update({full_name:profile.full_name||session.user.user_metadata?.full_name,university_id,programme_id,level_id,updated_at:new Date().toISOString()}).eq('id',session.user.id);
   if(error){msg(error.message,'error');return}
-  await loadProfile(); await refreshProStatus(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
+  await loadProfile(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
 }
 
 const BUILTIN_NURSING_CATALOG={
@@ -400,144 +359,24 @@ async function loadStudentData(){
       .select('course_id,courses(id,code,name,description,credit_units)')
       .eq('programme_id',profile.programme_id)
       .eq('level_id',profile.level_id);
-    if(error){console.error('Programme course loading error:',error);courses=[]}
-    else courses=mergeCourses((pcs||[]).map(x=>x.courses).filter(c=>c&&c.id));
+    if(error){console.error('Programme course loading error:',error);courses=[];return}
+    courses=mergeCourses((pcs||[]).map(x=>x.courses).filter(c=>c&&c.id));
   }
-
-  // Nursing 200L recovery path: duplicate 200-Level assignment rows in the
-  // catalogue must not prevent a real course from appearing. ANA 204 is
-  // resolved directly from public.courses and stays connected to its quiz bank.
-  const isNursing200 = String(profile?.programmes?.name||'').toLowerCase().includes('nursing')
-    && String(profile?.levels?.name||'').toLowerCase().includes('200');
-  if(isNursing200){
-    try{
-      const {data:ana,error:anaError}=await sb.from('courses')
-        .select('id,code,name,description,credit_units')
-        .eq('code','ANA 204')
-        .maybeSingle();
-      if(anaError) console.error('ANA 204 recovery lookup:',anaError);
-      if(ana?.id && !courses.some(c=>c.id===ana.id)) courses.push(ana);
-    }catch(e){console.error('ANA 204 recovery error:',e)}
-  }
-  courses=mergeCourses(courses);
+  // IMPORTANT: never fall back to demo courses. A student's dashboard must contain
+  // only courses explicitly assigned to that student's programme + level.
 }
-
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
   $('academicLine').textContent=prog+' • '+level+' • '+uni;
   $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
-  $('rolePill').textContent=profile?.role||'student';
-  $('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
-  $('onboarding').classList.add('hidden');
-  $('portal').classList.remove('hidden');
+  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
+  $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
+  $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   renderCourses();renderTasks();renderGpa();renderPerformance();go('home');
 }
-let currentPage='home'; let backExitArmed=false; let backExitTimer=null;
-// Keep the browser's history aligned with the portal's internal pages.
-// Each portal page gets its own history entry, so Android Back returns to the
-// actual previous CampusMate page instead of always jumping to Dashboard.
-try{history.replaceState({campusmatePage:'home',campusmateRoot:true},'',location.href.split('#')[0]+'#home')}catch(e){}
-relocateGlobalUtilityCards();
-function relocateGlobalUtilityCards(){
-  const student=document.getElementById('student');
-  const home=document.getElementById('home');
-  if(!student||!home)return;
-  // The catalogue/announcement that appear before Profile or Quiz are global
-  // direct children of #student. Move those existing cards into the Home page
-  // instead of creating another copy.
-  [...student.children].forEach(el=>{
-    if(!el.classList || !el.classList.contains('card')) return;
-    const text=el.textContent||'';
-    if(/Nigerian University Catalogue|Latest Announcement/.test(text)) home.appendChild(el);
-  });
-}
-
-function keepSingleUtilityCards(pageId){
-  const page=document.getElementById(pageId);
-  if(!page)return;
-  const cards=[...page.querySelectorAll('.card')];
-  const matches=cards.filter(c=>/Nigerian University Catalogue|Latest Announcement/.test(c.textContent||''));
-  const keep={};
-  matches.forEach(c=>{
-    const key=/Nigerian University Catalogue/.test(c.textContent||'')?'catalogue':'announcement';
-    keep[key]=c;
-  });
-  matches.forEach(c=>{
-    const key=/Nigerian University Catalogue/.test(c.textContent||'')?'catalogue':'announcement';
-    if(c!==keep[key])c.remove();
-  });
-  ['catalogue','announcement'].forEach(k=>{if(keep[k])page.appendChild(keep[k]);});
-}
-
-function go(id,btn,pushHistory=true){
-  document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
-  const target=$(id);
-  if(!target)return;
-  target.classList.remove('hidden');
-  document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));
-  if(btn)btn.classList.add('on');
-  if(id==='courses')renderCourses();
-  if(id==='planner')renderTasks();
-  if(id==='quiz'){renderQuizCenter();keepSingleUtilityCards('quiz');} if(id==='profile'){keepSingleUtilityCards('profile');}
-  if(id==='catalogue')renderCatalogue();
-  if(id==='council')loadCouncilPractice();
-  if(id==='councilAdmin')loadCouncilAdmin();
-  if(id==='councilAnalytics')loadCouncilAnalytics();
-  currentPage=id;
-  if(pushHistory){
-    try{history.pushState({campusmatePage:id},'', '#'+id)}catch(e){}
-  }
-  window.scrollTo(0,0);
-}
-function showExitHint(){
-  let toast=$('backExitToast');
-  if(!toast){
-    toast=document.createElement('div');
-    toast.id='backExitToast';
-    toast.style.cssText='position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:#102a43;color:#fff;padding:11px 16px;border-radius:22px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.2);white-space:nowrap';
-    toast.textContent='Press back again to exit CampusMate';
-    document.body.appendChild(toast);
-  }
-  toast.classList.remove('hidden');
-  clearTimeout(backExitTimer);
-  backExitTimer=setTimeout(()=>toast.classList.add('hidden'),2000);
-}
-window.addEventListener('popstate',(event)=>{
-  const previousPage=event.state&&event.state.campusmatePage;
-
-  // When Back lands on another CampusMate page, return to that exact page.
-  if(previousPage && previousPage!=='home'){
-    backExitArmed=false;
-    clearTimeout(backExitTimer);
-    go(previousPage,null,false);
-    return;
-  }
-
-  // Back from another page to Dashboard.
-  if(currentPage!=='home' && previousPage==='home'){
-    backExitArmed=false;
-    clearTimeout(backExitTimer);
-    go('home',null,false);
-    return;
-  }
-
-  // Already on Dashboard: first Back shows the exit hint. A second Back
-  // within two seconds is allowed to leave the portal/browser history.
-  if(currentPage==='home'){
-    if(backExitArmed){
-      backExitArmed=false;
-      clearTimeout(backExitTimer);
-      return;
-    }
-    backExitArmed=true;
-    showExitHint();
-    try{history.pushState({campusmatePage:'home',campusmateRoot:true},'','#home')}catch(e){}
-    clearTimeout(backExitTimer);
-    backExitTimer=setTimeout(()=>{backExitArmed=false},2000);
-  }
-});
+function go(id,btn){document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}window.scrollTo(0,0)}
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
@@ -716,103 +555,14 @@ async function loadQuizTopics(){
   }catch(e){console.error('Quiz topic loading error:',e);t.innerHTML='<option value="">All topics</option>';}
 }
 function updateQuizMode(){if($('quizTimer'))$('quizTimer').textContent=$('quizMode')?.value==='cbt'?'20 seconds/question':'Untimed';}
-async function refreshProStatus(){
-  if(!session?.user?.id)return false;
-  let active=false, sub=null;
-  try{
-    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
-    if(error){console.warn('Pro status lookup unavailable:',error.message)}
-    sub=data||null;
-    active=!!sub && (!sub.expires_at || new Date(sub.expires_at)>new Date());
-  }catch(e){console.warn('Pro status lookup failed:',e)}
-  profile=profile||{}; profile.pro_active=active; profile.pro_subscription=sub;
-  const status=$(`proStatusText`); const upgrade=$(`upgradeProBtn`); const refresh=$(`refreshProBtn`); const note=$(`proPaymentMsg`);
-  if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes above 25 questions.':'Free plan: up to 25 questions per quiz.';
-  if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
-  if(refresh)refresh.classList.toggle('hidden',!active && !sub);
-  if(active && note)note.textContent='Your Pro subscription is active.';
-  return active;
-}
-
-
-function openProGate(count){
-  const modal=$('proGate');
-  const message=$('proGateMessage');
-  const upgrade=$('proGateUpgradeBtn');
-  if(!modal)return;
-  if(message)message.textContent=`${count} questions are available with CampusMate Pro. Upgrade now to unlock extended quizzes, or choose Not now to stay on the free plan.`;
-  if(upgrade){upgrade.disabled=false;upgrade.textContent='Upgrade to Pro';}
-  modal.classList.remove('hidden');
-}
-function closeProGate(resetCount=true){
-  const modal=$('proGate');
-  if(modal)modal.classList.add('hidden');
-  if(resetCount&&$('quizCount'))$('quizCount').value='25';
-}
-async function upgradeFromQuiz(){
-  closeProGate(false);
-  await startProPayment('quiz');
-}
-
-async function startProPayment(source='profile'){
-  if(!session?.user){alert('Please log in before upgrading to CampusMate Pro.');return false}
-  const btn=source==='quiz'?$('proGateUpgradeBtn'):$('upgradeProBtn');
-  const note=$('proPaymentMsg');
-  if(btn){btn.disabled=true;btn.textContent='Connecting to Paystack…'}
-  if(note)note.textContent='Preparing secure payment…';
-  try{
-    const isActive=await refreshProStatus();
-    if(isActive){
-      if(source==='quiz'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-      else if(note)note.textContent='Your Pro subscription is already active.';
-      if(btn){btn.disabled=false;btn.textContent=source==='quiz'?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
-      return true;
-    }
-    const result=await sb.functions.invoke('swift-handler',{body:{}});
-    const data=result?.data;
-    const error=result?.error;
-    if(error){
-      let status=Number(error?.context?.status||error?.status||0);
-      let body=null;
-      try{
-        const response=error?.context;
-        if(response?.clone){
-          const copy=response.clone();
-          const contentType=copy.headers?.get?.('content-type')||'';
-          if(contentType.includes('application/json')) body=await copy.json();
-          else {const txt=await copy.text();try{body=JSON.parse(txt)}catch(_){body={error:txt}}}
-        }
-      }catch(parseErr){console.warn('Could not parse Pro payment error response:',parseErr)}
-      const serverMessage=body?.error||body?.message||data?.error||error?.message||'Unable to start Pro payment.';
-      const alreadyActive=status===409||body?.already_active===true||/already active|active subscription|already have an active/i.test(String(serverMessage));
-      if(alreadyActive){
-        profile=profile||{};profile.pro_active=true;profile.subscription_status='active';
-        if(source==='quiz'){closeProGate(false);if(note)note.textContent='Your Pro subscription is active. You can now start extended quizzes.';alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-        else if(note)note.textContent='Your Pro subscription is already active.';
-        if(btn){btn.disabled=false;btn.textContent=source==='quiz'?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
-        return true;
-      }
-      throw new Error(serverMessage);
-    }
-    if(!data?.authorization_url)throw new Error(data?.error||'Paystack checkout could not be created.');
-    if(note)note.textContent='Opening Paystack checkout…';
-    window.location.href=data.authorization_url;
-    return true;
-  }catch(e){
-    console.error('CampusMate Pro payment error:',e);
-    const message=e?.message||'Unable to start payment. Please try again.';
-    if(note)note.textContent=message;
-    alert(message);
-    if(btn){btn.disabled=false;btn.textContent=source==='quiz'?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
-    return false;
-  }
-}
-
 function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
 function quizCountChanged(){
   const sel=$('quizCount'); if(!sel)return;
-  const n=Number(sel.value||10);
-  if(n>25&&!quizIsPro()) openProGate(n);
+  const n=Number(sel.value||10); const pro=quizIsPro();
+  if(n>25&&!pro){
+    alert('Questions above 25 require CampusMate Pro at ₦500/month.');
+    sel.value='25';
+  }
 }
 function questionText(q){return q.question_text||q.question||q.text||q.prompt||q.body||'Question';}
 function questionOptions(q){
@@ -844,7 +594,7 @@ async function startSelectedQuiz(){
   try{courseId=await resolveCurrentCourseId();}catch(err){console.error('Course resolution error:',err);alert('CampusMate could not connect this course to its question bank. Please try again.');return;}
   if(!courseId){alert('This course is selected, but it is not yet connected to a CampusMate question bank.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
-  if(count>25&&!quizIsPro()){openProGate(count);return;}
+  if(count>25&&!quizIsPro()){alert('Questions above 25 require CampusMate Pro at ₦500/month.');if($('quizCount'))$('quizCount').value='25';return;}
   const mode=$('quizMode')?.value||'practice', topicId=$('quizTopic')?.value||'';
   $('quizBoxCard')?.classList.remove('hidden'); $('quizBox').innerHTML='<p class="mut">Loading questions…</p>';
   try{
@@ -1032,41 +782,9 @@ async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
 $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
-$('openOnboarding').onclick=async()=>{
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.remove('hidden');
-  await loadAcademicOptions();
-};
-
-
-const CAMPUSMATE_MOTIVATIONS=[
-  '🌟 Small progress every day becomes remarkable growth over time.',
-  '📚 Study with purpose today so tomorrow feels easier.',
-  '🧠 Do not just memorise — understand, explain, and apply what you learn.',
-  '🚀 Your future profession is built through the lessons you master today.',
-  '💪 One difficult topic at a time. Keep going.',
-  '🎯 Set a clear target, focus on the next question, and keep moving.',
-  '🔥 Consistency beats last-minute pressure. Give yourself another focused study session.',
-  '🌱 Every question you answer is an opportunity to discover what you know and what to improve.',
-  '🏆 Excellence is built from ordinary study sessions repeated consistently.',
-  '💡 When a topic feels difficult, slow down, break it into parts, and learn it step by step.',
-  '📖 Read it. Explain it. Test yourself. Review it. Repeat.',
-  '✨ Keep learning — the student you are becoming is shaped by what you do today.'
-];
-function updateMotivationalTexts(){
-  const tracks=document.querySelectorAll('.motivation-track');
-  if(!tracks.length)return;
-  const bucket=Math.floor(Date.now()/(4*60*60*1000));
-  tracks.forEach((track,i)=>{
-    const text=CAMPUSMATE_MOTIVATIONS[(bucket+i)%CAMPUSMATE_MOTIVATIONS.length];
-    track.querySelectorAll('span').forEach(span=>span.textContent=text);
-  });
-}
-updateMotivationalTexts();
-setInterval(updateMotivationalTexts,15*60*1000);
-
+$('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
 sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()} });
-(async()=>{const {data}=await sb.auth.getSession();if(data.session){await finishLogin(data.session)}else{$('auth').classList.remove('hidden');showAuth('login')}})();
+(async()=>{$('auth').classList.remove('hidden');$('student').classList.add('hidden');showAuth('login')})();
 </script></div></body></html>
