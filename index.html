@@ -66,9 +66,57 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
 <main>
-<section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
-<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div></div><div class="card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
-<div class="card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div></section>
+<section id="home" class="page">
+  <h2 id="hello">Welcome 👋</h2>
+  <div class="motivation-marquee" aria-label="Motivational message">
+    <div class="motivation-track">
+      <span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span>
+      <span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <b>📈 CampusMate Learning Performance</b>
+    <p class="mut">Based only on your activity inside CampusMate — not official university results.</p>
+    <div class="grid" style="margin-top:10px">
+      <div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div>
+      <div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div>
+      <div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div>
+      <div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div>
+    </div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+    <span>🔥 Study streak <b id="perfStreak">0 days</b></span>
+    <span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span>
+  </div>
+
+  <div class="grid">
+    <div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div>
+    <div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div>
+    <div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div>
+    <div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div>
+  </div>
+
+  <div class="grid">
+    <div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div>
+    <div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div>
+  </div>
+
+  <div class="grid">
+    <div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div>
+  </div>
+
+  <!-- Dashboard secondary features stay at the bottom -->
+  <div class="card">
+    <b>🇳🇬 Nigerian University Catalogue</b>
+    <p class="mut">CampusMate is being expanded around the National Universities Commission (NUC) university directory. Institution-specific programmes will only be added when verified.</p>
+    <button class="secondary" onclick="go('catalogue')">Browse catalogue</button>
+  </div>
+
+  <div class="card">
+    <b>📢 Latest Announcement</b>
+    <p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p>
+  </div>
+</section>
 
 <section id="courses" class="page hidden"><div class="head"><h2>My Courses</h2><div class="sub">Only courses assigned to your selected programme and level appear here.</div></div><input id="search" placeholder="🔎 Search your courses..." oninput="filterCourses()"><div id="courseScope" class="card"><b>🎓 Programme-specific courses</b><p class="mut" id="courseScopeText">Loading courses assigned to your programme…</p></div><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div></section>
