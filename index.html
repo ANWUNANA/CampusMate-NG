@@ -652,78 +652,63 @@ let portalHistoryReady=false;
 let homeBackPromptAt=0;
 let currentPortalPage='home';
 let portalBackHandling=false;
-let portalHistoryBaseUrl='';
-function portalHistoryUrl(page){
-  try{
-    const u=new URL(location.href);
-    u.search='';
-    u.hash='cm-'+encodeURIComponent(page||'home');
-    return u.href;
-  }catch(e){return location.href.split('#')[0]+'#cm-'+encodeURIComponent(page||'home')}
-}
-function cleanPortalUrl(){
-  try{const u=new URL(location.href);u.hash='';u.search='';return u.href;}
-  catch(e){return location.href.split('#')[0].split('?')[0]}
+function portalUrl(page){
+  try{const u=new URL(location.href);u.search='';u.hash='cm-'+encodeURIComponent(page);return u.href;}
+  catch(e){return location.href.split('?')[0].split('#')[0]+'#cm-'+encodeURIComponent(page)}
 }
 function initPortalHistory(){
   if(portalHistoryReady)return;
   portalHistoryReady=true;
   currentPortalPage='home';
   homeBackPromptAt=0;
-  portalHistoryBaseUrl=cleanPortalUrl();
-
-  // Create one dedicated CampusMate history entry for the Home page.
-  // The entry before it is retained as the browser's native exit point.
-  history.replaceState({campusmate:'home-root',page:'home'},'',portalHistoryUrl('home'));
+  // Keep the current browser entry as CampusMate Home, then add a guard entry.
+  // The native phone Back action will therefore trigger popstate while the user
+  // is still inside the portal instead of immediately leaving the page.
+  history.replaceState({campusmate:'home',page:'home'},'',portalUrl('home'));
+  history.pushState({campusmate:'homeGuard',page:'home'},'',portalUrl('home-guard'));
 }
 function portalExit(){
   sessionStorage.removeItem('cm_login_session');
   sessionStorage.setItem('cm_forced_signout','1');
-  sb.auth.signOut().catch(()=>{});
   portalHistoryReady=false;
   currentPortalPage='home';
   homeBackPromptAt=0;
+  sb.auth.signOut().catch(()=>{});
   $('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('student')?.classList.add('hidden');$('auth')?.classList.remove('hidden');
   showAuth('login');window.scrollTo(0,0);
-}
-function handleNativePortalBack(){
-  const now=Date.now();
-  if(now-homeBackPromptAt<2500){
-    homeBackPromptAt=0;
-    portalExit();
-    return;
-  }
-  homeBackPromptAt=now;
-  go('home',null,true);
-  alert('Press Back again within 2 seconds to exit CampusMate.');
-  // Restore the protected Home entry after consuming the native Back action.
-  // history.forward() is more reliable on Android/iOS than creating another
-  // history entry while popstate is being processed.
-  setTimeout(()=>{
-    try{if(portalHistoryReady)history.forward();}catch(e){}
-  },0);
 }
 window.addEventListener('popstate',function(e){
   if(!portalHistoryReady||portalBackHandling||!$('portal')||$('portal').classList.contains('hidden'))return;
   portalBackHandling=true;
   try{
-    const state=e.state;
-    if(state && state.campusmate==='page' && state.page){
+    const state=e.state||{};
+    if(state.campusmate==='page' && state.page){
       currentPortalPage=state.page;
       go(state.page,null,true);
       return;
     }
-    // No CampusMate page state means the user has pressed the phone's native
-    // Back while already on Home. Consume the first Back and require a second.
-    if(!state || state.campusmate==='home-root'){
-      handleNativePortalBack();
+    if(state.campusmate==='home' && state.page==='home'){
+      currentPortalPage='home';
+      go('home',null,true);
+      const now=Date.now();
+      if(now-homeBackPromptAt<2500){
+        homeBackPromptAt=0;
+        portalExit();
+        return;
+      }
+      homeBackPromptAt=now;
+      alert('Press Back again within 2 seconds if you really want to exit CampusMate.');
+      history.forward();
+      return;
     }
-  }finally{
-    portalBackHandling=false;
-  }
+    if(state.campusmate==='homeGuard' && state.page==='home'){
+      currentPortalPage='home';
+      go('home',null,true);
+      return;
+    }
+  }finally{portalBackHandling=false;}
 });
 function startStudent(){
-
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
@@ -746,12 +731,12 @@ function go(id,btn,fromBack){
   if(portalHistoryReady&&!fromBack){
     if(currentPortalPage!==id){
       currentPortalPage=id;
-      history.pushState({campusmate:'page',page:id},'',portalHistoryUrl(id));
+      history.pushState({campusmate:'page',page:id},'',portalUrl(id));
     }
   }
   document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden')); target.classList.remove('hidden');
   document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));
-  const navBtn=btn||document.querySelector('#student .nav button[onclick*="go(\''+id+'\'")"]'); if(navBtn)navBtn.classList.add('on');
+  const navBtn=btn||document.querySelector('#student .nav button[onclick*="go(\''+id+'\'"]'); if(navBtn)navBtn.classList.add('on');
   if(id==='courses')renderCourses(); if(id==='planner')renderTasks(); if(id==='quiz')renderQuizCenter(); if(id==='catalogue')renderCatalogue(); if(id==='council')loadCouncilPractice(); if(id==='councilAdmin')loadCouncilAdmin(); if(id==='councilAnalytics')loadCouncilAnalytics(); window.scrollTo(0,0);
 }
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
@@ -1167,5 +1152,10 @@ sb.auth.onAuthStateChange(async(event,s)=>{
   showAuth('login');
   const {data}=await sb.auth.getSession();
   if(data.session){
-    if(isPasswor
+    if(isPasswordRecoveryUrl()){
+      session=data.session; $('auth').classList.remove('hidden'); $('student').classList.add('hidden'); showAuth('reset');
+    } else if(sessionStorage.getItem('cm_login_session')==='1'){
+      await finishLogin(data.session);
+    } else {
+      sessionStorage.setItem('cm_forced_signout','1'); await sb.auth.signOut(); sessionStorage.removeItem('cm_lo
 Preview truncated for large file
