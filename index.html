@@ -356,17 +356,25 @@ async function saveNewPassword(){
 async function login(){
   clearMsg(); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
-  const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
-  if(error){
-    const em=String(error.message||'').toLowerCase();
-    if(em.includes('email not confirmed')){
-      $('loginResendConfirmationBtn')?.classList.remove('hidden');
-      $('signupEmail').value=e;
-      msg('Your email has not been confirmed yet. Tap “Resend confirmation email” below to request a new confirmation link.','error');
-    } else msg(error.message,'error');
-    return;
+  const btn=$('loginBtn');
+  const originalText=btn?.textContent||'Log in';
+  if(btn){btn.disabled=true;btn.textContent='Logging in...';}
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
+    if(error){
+      const em=String(error.message||'').toLowerCase();
+      if(em.includes('email not confirmed')){
+        $('loginResendConfirmationBtn')?.classList.remove('hidden');
+        $('signupEmail').value=e;
+        msg('Your email has not been confirmed yet. Tap “Resend confirmation email” below to request a new confirmation link.','error');
+      } else msg(error.message,'error');
+      return;
+    }
+    msg('Login successful. Opening your CampusMate portal...','success');
+    await finishLogin(data.session);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=originalText;}
   }
-  await finishLogin(data.session);
 }
 async function finishLogin(s){
   session=s;
@@ -642,51 +650,85 @@ async function loadStudentData(){
 }
 let portalHistoryReady=false;
 let homeBackPromptAt=0;
+let currentPortalPage='home';
+let portalBackHandling=false;
 function cleanPortalUrl(){
-  try{
-    const u=new URL(location.href);
-    u.hash='';
-    u.search='';
-    return u.href;
-  }catch(e){return location.href.split('#')[0].split('?')[0]}
+  try{const u=new URL(location.href);u.hash='';u.search='';return u.href;}
+  catch(e){return location.href.split('#')[0].split('?')[0]}
 }
 function initPortalHistory(){
   if(portalHistoryReady)return;
   portalHistoryReady=true;
-  const clean=cleanPortalUrl();
-  history.replaceState({campusmate:'sentinel'},'',clean);
-  history.pushState({campusmate:'page',page:'home'},'',clean);
+  currentPortalPage='home';
+  homeBackPromptAt=0;
+  // Sentinel entry: the browser can move back to this protected CampusMate
+  // entry without leaving the portal. A second Back can then be used to exit.
+  history.replaceState({campusmate:'root',page:'home'},'',cleanPortalUrl());
+  history.pushState({campusmate:'homeGuard',page:'home'},'',cleanPortalUrl());
 }
 function portalExit(){
   sessionStorage.removeItem('cm_login_session');
   sessionStorage.setItem('cm_forced_signout','1');
   sb.auth.signOut().catch(()=>{});
-  $('portal')?.classList.add('hidden');
-  $('onboarding')?.classList.add('hidden');
-  $('student')?.classList.add('hidden');
-  $('auth')?.classList.remove('hidden');
-  showAuth('login');
-  window.scrollTo(0,0);
+  portalHistoryReady=false;
+  currentPortalPage='home';
+  homeBackPromptAt=0;
+  $('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('student')?.classList.add('hidden');$('auth')?.classList.remove('hidden');
+  showAuth('login');window.scrollTo(0,0);
 }
 window.addEventListener('popstate',function(e){
-  if(!portalHistoryReady||!$('portal')||$('portal').classList.contains('hidden'))return;
-  if(e.state?.campusmate==='page'&&e.state.page){
-    go(e.state.page,null,true);
-    return;
-  }
-  if(e.state?.campusmate==='sentinel'){
-    const now=Date.now();
-    if(now-homeBackPromptAt<2500){
-      homeBackPromptAt=0;
-      portalExit();
+  if(!portalHistoryReady||portalBackHandling||!$('portal')||$('portal').classList.contains('hidden'))return;
+  portalBackHandling=true;
+  try{
+    const state=e.state||{};
+
+    // Back from any inner CampusMate page returns to the previous CampusMate
+    // page. No new browser entry is created while handling Back.
+    if(state.campusmate==='page' && state.page){
+      currentPortalPage=state.page;
+      go(state.page,null,true);
       return;
     }
-    homeBackPromptAt=now;
-    alert('You are on the CampusMate home page. Press Back again within 2 seconds if you really want to quit the portal.');
-    history.pushState({campusmate:'page',page:'home'},'',cleanPortalUrl());
+
+    // Back from the first page lands on the protected Home sentinel. Stay in
+    // CampusMate instead of allowing the browser to leave the portal.
+    if(state.campusmate==='homeGuard' && state.page==='home'){
+      currentPortalPage='home';
+      go('home',null,true);
+      const now=Date.now();
+      if(now-homeBackPromptAt<2500){
+        // This is the second Back within the short window: leave the portal.
+        homeBackPromptAt=0;
+        setTimeout(()=>portalExit(),0);
+        return;
+      }
+      homeBackPromptAt=now;
+      alert('You are on the CampusMate home page. Press Back again within 2 seconds if you really want to exit.');
+      history.pushState({campusmate:'homeGuard',page:'home'},'',cleanPortalUrl());
+      return;
+    }
+
+    // The phone's native Back gesture/button can land on the root history
+    // entry first. Treat that exactly like the protected Home entry: stay in
+    // CampusMate on the first Back, then allow exit on a second Back within
+    // the short confirmation window.
+    if(state.campusmate==='root' || !state.campusmate){
+      currentPortalPage='home';
+      go('home',null,true);
+      const now=Date.now();
+      if(now-homeBackPromptAt<2500){
+        homeBackPromptAt=0;
+        setTimeout(()=>portalExit(),0);
+        return;
+      }
+      homeBackPromptAt=now;
+      alert('You are on the CampusMate home page. Press Back again within 2 seconds if you really want to exit.');
+      history.pushState({campusmate:'homeGuard',page:'home'},'',cleanPortalUrl());
+    }
+  }finally{
+    portalBackHandling=false;
   }
 });
-
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
@@ -707,7 +749,12 @@ function go(id,btn,fromBack){
     return;
   }
   const target=$(id); if(!target)return;
-  if(portalHistoryReady&&!fromBack){const current=history.state?.campusmate==='page'?history.state.page:null;if(current!==id)history.pushState({campusmate:'page',page:id},'',location.href);}
+  if(portalHistoryReady&&!fromBack){
+    if(currentPortalPage!==id){
+      currentPortalPage=id;
+      history.pushState({campusmate:'page',page:id},'',cleanPortalUrl());
+    }
+  }
   document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden')); target.classList.remove('hidden');
   document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));
   const navBtn=btn||document.querySelector('#student .nav button[onclick*="go(\''+id+'\'")"]'); if(navBtn)navBtn.classList.add('on');
@@ -1110,32 +1157,5 @@ $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboardi
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
 sb.auth.onAuthStateChange(async(event,s)=>{
-  if(event==='SIGNED_OUT'){if(sessionStorage.getItem('cm_forced_signout')==='1'){sessionStorage.removeItem('cm_forced_signout');session=null;$('student').classList.add('hidden');$('auth').classList.remove('hidden');showAuth('login');return} location.reload();return}
-  if(event==='PASSWORD_RECOVERY'){
-    if(!isPasswordRecoveryUrl())return;
-    session=s;
-    $('auth').classList.remove('hidden');
-    $('student').classList.add('hidden');
-    showAuth('reset');
-    msg('Password reset link verified. Create your new password below.','success');
-  }
-});
-(async()=>{
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  showAuth('login');
-  const {data}=await sb.auth.getSession();
-  if(data.session){
-    if(isPasswordRecoveryUrl()){
-      session=data.session; $('auth').classList.remove('hidden'); $('student').classList.add('hidden'); showAuth('reset');
-    } else if(sessionStorage.getItem('cm_login_session')==='1'){
-      await finishLogin(data.session);
-    } else {
-      sessionStorage.setItem('cm_forced_signout','1'); await sb.auth.signOut(); sessionStorage.removeItem('cm_login_session'); $('auth').classList.remove('hidden'); $('student').classList.add('hidden'); showAuth('login');
-    }
-    const ref=new URLSearchParams(location.search).get('reference')||new URLSearchParams(location.search).get('trxref');
-    if(ref&&$('proPaymentMsg')){ $('proPaymentMsg').textContent='Payment returned from Paystack. Checking your Pro subscription…'; setTimeout(()=>refreshProStatus(),1200); }
-  }else{$('auth').classList.remove('hidden');showAuth('login')}
-  if(!isPasswordRecoveryUrl() && location.hash) clearRecoveryUrl();
-})();
-</script></div></body></html>
+  if(event==='SIGNED_OUT'){if(sessionStorage.getItem('cm_forced_signout')==='1'){sessionStorage.removeItem('cm_forced_signout');session=nul
+Preview truncated for large file
