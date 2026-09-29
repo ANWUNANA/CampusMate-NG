@@ -310,6 +310,8 @@ async function saveNewPassword(){
 async function login(){
   clearMsg(); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
+  const btn=$('loginBtn');
+  if(btn){btn.disabled=true;btn.textContent='Logging in…';}
   const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
   if(error){
     const em=String(error.message||'').toLowerCase();
@@ -318,9 +320,17 @@ async function login(){
       $('signupEmail').value=e;
       msg('Your email has not been confirmed yet. Use “Resend confirmation email” to receive a new confirmation link.','error');
     } else msg(error.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='Log in';}
     return;
   }
-  await finishLogin(data.session);
+  // Give the successful login a brief, consistent transition before opening
+  // the portal. The delay starts only after Supabase has accepted the details.
+  await new Promise(resolve=>setTimeout(resolve,2000));
+  try{
+    await finishLogin(data.session);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Log in';}
+  }
 }
 async function finishLogin(s){
   session=s;
@@ -492,74 +502,6 @@ async function saveOnboarding(){
   await loadProfile(); await refreshProStatus(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent();
 }
 
-const BUILTIN_NURSING_CATALOG={
-  100:[
-    ['CHM101','GENERAL CHEMISTRY I',['Matter and Measurement','Atomic Structure and Periodic Table','Chemical Bonding','Chemical Reactions and Stoichiometry','Solutions and Concentrations']],
-    ['CHM102','GENERAL CHEMISTRY II',['Thermochemistry','Chemical Equilibrium','Acids Bases and Buffers','Electrochemistry','Organic Chemistry Basics']],
-    ['BIO101','GENERAL BIOLOGY I',['Introduction to Biology','Cell Structure and Function','Biological Molecules','Cell Division','Genetics and Heredity']],
-    ['BIO102','GENERAL BIOLOGY II',['Plant Biology','Animal Biology','Evolution and Classification','Ecology and Ecosystems','Microorganisms and Disease']],
-    ['PHY101','GENERAL PHYSICS I',['Units and Measurement','Motion and Forces','Work Energy and Power','Heat and Temperature','Waves and Sound']],
-    ['PHY102','GENERAL PHYSICS II',['Electricity and Circuits','Magnetism','Light and Optics','Radiation and Nuclear Physics','Physics in Healthcare']],
-    ['GST111','COMMUNICATION IN ENGLISH',['Parts of Speech','Sentence Structure','Reading and Comprehension','Academic Writing','Oral Communication']],
-    ['CMP101','COMPUTER FUNDAMENTALS',['Computer Hardware','Operating Systems','Word Processing','Internet and Networking','Cybersecurity and Digital Safety']],
-    ['PSY101','STRESS MANAGEMENT',['Concept of Stress','Sources and Types of Stress','Stress Response','Coping Strategies','Stress Management for Students']],
-    ['PSY102','SUBSTANCE ABUSE AND MISUSE',['Drugs and Psychoactive Substances','Causes and Risk Factors','Patterns of Misuse','Effects on the Body','Prevention and Rehabilitation']],
-    ['NSC101','INTRODUCTION TO NURSING SCIENCE',['Nursing as a Profession','History of Nursing','Nursing Theories','Roles and Functions of the Nurse','Professional Values and Ethics']]
-  ],
-  200:[
-    ['NUR201','Fundamentals of Nursing',['Nursing Process','Vital Signs','Patient Hygiene','Comfort and Positioning','Documentation and Reporting','Pain Management','Stress and Adaptation','Stress Management','Professionalism in Nursing','Nursing Ethics','Nursing Etiquette and Professional Conduct','Infection Prevention and Control','Patient Safety','Communication in Nursing','Health Assessment','Admission Transfer and Discharge of Patients','Mobility and Immobility','Body Mechanics and Safe Patient Handling','Sleep and Rest','Nutrition and Hydration','Elimination','Skin Integrity and Pressure Injury Prevention','Patient-Centred Care','Confidentiality and Patients Rights','Nursing Care Plans','Clinical Decision-Making and Critical Thinking','Delegation and Teamwork in Nursing','End-of-Life Care','Cultural and Spiritual Considerations in Nursing','Health Education and Patient Teaching']],
-    ['NUR202','Health Assessment',['Health History','Physical Examination','General Survey','System-by-System Assessment','Health Assessment Documentation']],
-    ['NUR203','Medical-Surgical Nursing I',['Perioperative Nursing','Fluid and Electrolyte Balance','Respiratory Disorders','Cardiovascular Disorders','Gastrointestinal Disorders']],
-    ['NUR204','Medical-Surgical Nursing II',['Renal Disorders','Neurological Disorders','Endocrine Disorders','Musculoskeletal Disorders','Skin Disorders']],
-    ['NUR205','Medical-Surgical Nursing III',['Hematological Disorders','Oncology Nursing','Immunological Disorders','Critical Care Principles','Rehabilitation Nursing']],
-    ['NUR206','Maternal and Child Health Nursing',['Maternal Health','Antenatal Care','Normal Pregnancy','Complications of Pregnancy','Postnatal Care']],
-    ['NUR207','Paediatric Nursing',['Growth and Development','Paediatric Assessment','Common Childhood Illnesses','Nutrition in Children','Paediatric Emergencies']],
-    ['NUR208','Mental Health Nursing',['Mental Health Concepts','Therapeutic Communication','Common Mental Disorders','Psychiatric Assessment','Mental Health Nursing Interventions']],
-    ['NUR209','Community Health Nursing',['Community Assessment','Primary Health Care','Family Health','Health Promotion','Community-Based Nursing']],
-    ['NUR210','Nursing Research',['Research Concepts','Research Problems and Questions','Research Designs','Data Collection','Research Ethics']],
-    ['NUR211','Nursing Ethics and Law',['Ethical Principles','Codes of Professional Conduct','Patient Rights','Consent and Confidentiality','Professional Liability']],
-    ['NUR212','Nutrition and Diet Therapy',['Nutrients','Balanced Diet','Nutrition Assessment','Therapeutic Diets','Nutrition in Disease']],
-    ['NUR213','Pathophysiology',['Cell Injury','Inflammation','Fluid Imbalance','Hemodynamic Disorders','Neoplasia']],
-    ['NUR214','Health Education and Promotion',['Health Education Principles','Learning in Health','Communication Methods','Behaviour Change','Health Promotion Strategies']],
-    ['NUR215','First Aid and Emergency Care',['Emergency Assessment','Basic Life Support','Bleeding and Shock','Fractures and Soft Tissue Injuries','Poisoning and Emergencies']],
-    ['NUR216','Aseptic Technique and Infection Prevention',['Chain of Infection','Hand Hygiene','Aseptic Technique','Sterilization and Disinfection','Healthcare-Associated Infections']],
-    ['NUR217','Maternal-Newborn Nursing',['Labour and Delivery','Fetal Monitoring','Immediate Newborn Care','Neonatal Assessment','Postpartum Complications']],
-    ['NUR218','Geriatric Nursing',['Ageing Process','Geriatric Assessment','Falls and Safety','Chronic Illness in Older Adults','End-of-Life Care']],
-    ['NUR219','Public Health',['Public Health Concepts','Disease Prevention','Screening','Environmental Health','Health Systems']],
-    ['NUR220','Epidemiology and Biostatistics',['Measures of Disease Frequency','Study Designs','Data Presentation','Descriptive Statistics','Interpretation of Health Data']],
-    ['NUR221','Clinical Skills and Procedures',['Medication Administration','Wound Care','Catheterization','Intravenous Therapy','Clinical Documentation']],
-    ['NUR222','Nursing Leadership and Management',['Leadership Theories','Delegation','Teamwork','Conflict Management','Quality Improvement']],
-    ['NUR223','Health Informatics',['Health Information Systems','Electronic Health Records','Clinical Documentation','Data Security','Digital Health']],
-    ['NUR224','Psychology for Health Sciences',['Human Development','Learning','Personality','Motivation','Psychology of Health and Illness']],
-    ['NUR225','Sociology of Health and Illness',['Culture and Health','Family and Society','Social Determinants of Health','Health Inequality','Patient Social Support']],
-    ['NUR226','Professional Nursing Practice',['Professional Identity','Scope of Practice','Standards of Care','Continuing Professional Development','Accountability']],
-    ['NUR227','Clinical Pharmacotherapy',['Medication Selection','Dose Calculations','Drug Monitoring','Polypharmacy','Safe Medication Practice']],
-    ['NUR228','Anatomy and Physiology of Special Senses',['Vision','Hearing and Balance','Taste','Smell','Sensory Disorders']],
-    ['NUR229','Environmental and Occupational Health',['Environmental Hazards','Occupational Hazards','Workplace Safety','Ergonomics','Occupational Disease Prevention']],
-    ['NUR230','Health Policy and Primary Health Care',['Health Policy','Primary Health Care Principles','Healthcare Financing','Universal Health Coverage','Health Policy Implementation']]
-  ]
-};
-function builtinCoursesForProfile(){
-  const prog=(profile?.programmes?.name||'').trim().toLowerCase().replace(/\s+/g,' ');
-  const level=Number((profile?.levels?.name||'').match(/\d+/)?.[0]||0);
-  const isNursing=prog==='nursing science'||prog.includes('nursing science')||prog.includes('nursing');
-  if(!isNursing||!BUILTIN_NURSING_CATALOG[level])return [];
-  return BUILTIN_NURSING_CATALOG[level].map(([code,name,topics])=>({
-    id:code==='ANA204'?'fb9c764e-3167-42be-ac26-ec24b80bab28':null,code,name,description:`${name} for Nursing Science students.`,credit_units:0,
-    topics:topics.map(title=>({title,description:'Study this topic through CampusMate learning materials.'}))
-  }));
-}
-
-function mergeCourses(dbCourses){
-  const merged=[...(dbCourses||[])];
-  const seen=new Set(merged.map(c=>String(c.code||'').replace(/\s/g,'').toUpperCase()));
-  for(const c of builtinCoursesForProfile()){
-    const key=String(c.code||'').replace(/\s/g,'').toUpperCase();
-    if(!seen.has(key)){merged.push(c);seen.add(key);}
-  }
-  return merged;
-}
-
 async function loadStudentData(){
   // Optional dashboard data must never prevent the main portal from opening.
   try{
@@ -580,24 +522,73 @@ async function loadStudentData(){
         console.warn('Programme course loading skipped:',error);
         courses=[];
       }else{
-        courses=mergeCourses((pcs||[]).map(x=>x.courses).filter(c=>c&&c.id));
+        courses=(pcs||[]).map(x=>x.courses).filter(c=>c&&c.id);
       }
     }catch(err){
       console.warn('Programme course loading skipped:',err);
       courses=[];
     }
   }
-  // The built-in Nursing catalogue is a safe fallback when the programme-course
-  // relationship is unavailable or has not yet been populated. It never adds
-  // courses for other programmes.
-  if(!courses.length){
-    courses=mergeCourses([]);
-  }
+  // Supabase programme_courses is the single source of truth.
+  // No built-in/demo Nursing courses are injected when the database has no assignments.
 }
-let portalHistoryReady=false; let homeBackPromptAt=0;
-function initPortalHistory(){if(portalHistoryReady)return;portalHistoryReady=true;history.replaceState({campusmate:'sentinel'},'',location.href);history.pushState({campusmate:'page',page:'home'},'',location.href);}
-function portalExit(){sessionStorage.removeItem('cm_login_session');sessionStorage.setItem('cm_forced_signout','1');sb.auth.signOut().catch(()=>{});$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('student')?.classList.add('hidden');$('auth')?.classList.remove('hidden');showAuth('login');window.scrollTo(0,0);}
-window.addEventListener('popstate',function(e){if(!portalHistoryReady||!$('portal')||$('portal').classList.contains('hidden'))return;if(e.state?.campusmate==='page'&&e.state.page){go(e.state.page,null,true);return;}if(e.state?.campusmate==='sentinel'){const now=Date.now();if(now-homeBackPromptAt<2500){homeBackPromptAt=0;portalExit();return;}homeBackPromptAt=now;alert('You are on the CampusMate home page. Press Back again within 2 seconds if you really want to quit the portal.');history.pushState({campusmate:'page',page:'home'},'',location.href);}});
+let portalHistoryReady=false;
+let portalBackArmed=false;
+let portalAllowExit=false;
+let portalBackNoticeTimer=null;
+function initPortalHistory(){
+  if(portalHistoryReady)return;
+  portalHistoryReady=true;
+  portalBackArmed=false;
+  portalAllowExit=false;
+  // Keep one protected base state underneath the CampusMate page stack.
+  // The first Back from Home reaches this base state; the second Back is used
+  // to leave the portal deliberately.
+  history.replaceState({campusmate:'base'},'',location.href);
+  history.pushState({campusmate:'page',page:'home'},'',location.href);
+}
+function showBackToExitMessage(){
+  clearTimeout(portalBackNoticeTimer);
+  let n=document.getElementById('cmBackNotice');
+  if(!n){
+    n=document.createElement('div');
+    n.id='cmBackNotice';
+    n.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#062b49;color:#fff;padding:11px 16px;border-radius:24px;font-size:13px;font-weight:800;z-index:10001;box-shadow:0 5px 20px rgba(0,0,0,.22);max-width:90%;text-align:center;';
+    document.body.appendChild(n);
+  }
+  n.textContent='Tap Back again to exit CampusMate.';
+  n.style.display='block';
+  portalBackNoticeTimer=setTimeout(()=>{n.style.display='none';portalBackArmed=false;},2200);
+}
+// Android/browser Back stays inside CampusMate while navigating pages.
+// At Home: first Back shows an exit message; second Back actually leaves.
+window.addEventListener('popstate',function(e){
+  if(portalAllowExit)return;
+  if(!portalHistoryReady||!$('portal')||$('portal').classList.contains('hidden'))return;
+  if(e.state?.campusmate==='page'&&e.state.page){
+    portalBackArmed=false;
+    clearTimeout(portalBackNoticeTimer);
+    const n=document.getElementById('cmBackNotice');if(n)n.style.display='none';
+    go(e.state.page,null,true);
+    return;
+  }
+  if(e.state?.campusmate==='base'){
+    if(portalBackArmed){
+      portalAllowExit=true;
+      history.back();
+      return;
+    }
+    portalBackArmed=true;
+    go('home',null,true);
+    showBackToExitMessage();
+    history.pushState({campusmate:'page',page:'home'},'',location.href);
+    return;
+  }
+  // If a browser delivers an unmarked state while the portal is active,
+  // restore the protected Home state instead of allowing an accidental exit.
+  go('home',null,true);
+  history.pushState({campusmate:'page',page:'home'},'',location.href);
+});
 
 function startStudent(){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
@@ -630,7 +621,7 @@ function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
   $('courseCount').textContent=courses.length+' course'+(courses.length===1?'':'s');
   const scope=$('courseScopeText');
-  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Programme-specific courses assigned to this programme and level are shown, including the current CampusMate Nursing course library.';
+  if(scope)scope.textContent=(profile?.programmes?.name||'Your selected programme')+' • '+(profile?.levels?.name||'Selected level')+'. Programme-specific courses assigned to this programme and level are shown, from your Supabase course assignments.';
   $('courseList').innerHTML=courses.length
     ?courses.map((c,i)=>`<div class="card course" data-name="${escapeHtml((c.name||'').toLowerCase())} ${(c.code||'').toLowerCase()}" onclick="openCourse(${i})"><div class="badge">${escapeHtml((c.code||'COURSE').replace(' ','\n'))}</div><div><h4>${escapeHtml(c.name||'Course')}</h4><p>${c.credit_units??c.units??0} Units • ${escapeHtml(profile?.levels?.name||'Level')}</p></div><b>›</b></div>`).join('')
     :'<div class="card"><p class="mut">No courses have been assigned to this programme and level yet. Courses from other programmes or faculties will not be displayed.</p></div>';
