@@ -682,9 +682,14 @@ window.addEventListener('popstate',function(e){
   portalBackHandling=true;
   try{
     const state=e.state||{};
-    if(state.campusmate==='page' && state.page){
-      currentPortalPage=state.page;
-      go(state.page,null,true);
+    // From any portal subpage, one native Back press returns directly to Home.
+    // Rebuild the Home/guard pair so the next Back press triggers the exit prompt.
+    if(currentPortalPage!=='home' || state.campusmate==='page'){
+      currentPortalPage='home';
+      go('home',null,true);
+      history.replaceState({campusmate:'home',page:'home'},'',portalUrl('home'));
+      history.pushState({campusmate:'homeGuard',page:'home'},'',portalUrl('home-guard'));
+      homeBackPromptAt=0;
       return;
     }
     if(state.campusmate==='home' && state.page==='home'){
@@ -714,7 +719,11 @@ function startStudent(){
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
   $('academicLine').textContent=prog+' • '+level+' • '+uni;
   $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
-  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
+  $('rolePill').textContent=profile?.role||'student';
+  // The admin-only navigation item is optional in this build. Never let a
+  // missing element stop the authenticated dashboard from rendering.
+  const adminCouncilNav=$('adminCouncilNav');
+  if(adminCouncilNav) adminCouncilNav.classList.toggle('hidden',profile?.role!=='admin');
   $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   renderCourses();renderTasks();renderGpa();renderPerformance();refreshProStatus();
@@ -1143,19 +1152,5 @@ sb.auth.onAuthStateChange(async(event,s)=>{
     $('auth').classList.remove('hidden');
     $('student').classList.add('hidden');
     showAuth('reset');
-    msg('Password reset link verified. Create your new password below.','success');
-  }
-});
-(async()=>{
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  showAuth('login');
-  const {data}=await sb.auth.getSession();
-  if(data.session){
-    if(isPasswordRecoveryUrl()){
-      session=data.session; $('auth').classList.remove('hidden'); $('student').classList.add('hidden'); showAuth('reset');
-    } else if(sessionStorage.getItem('cm_login_session')==='1'){
-      await finishLogin(data.session);
-    } else {
-      sessionStorage.setItem('cm_forced_signout','1'); await sb.auth.signOut(); sessionStorage.removeItem('cm_lo
+    msg('Password reset link verified. Create your new password below.','s
 Preview truncated for large file
