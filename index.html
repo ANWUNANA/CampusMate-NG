@@ -48,7 +48,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button><button type="button" id="forgotPasswordBtn" class="secondary" style="width:100%;margin-top:8px">Forgot password?</button><button type="button" id="resendConfirmationBtn" class="secondary hidden" style="width:100%;margin-top:8px">Resend confirmation email</button></div>
+<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('resetPassword',this)">Show</button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('resetConfirm',this)">Show</button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
 <div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
@@ -206,7 +207,7 @@ let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
 function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
-function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); clearMsg(); }
+function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); $('resendConfirmationBtn')?.classList.add('hidden'); clearMsg(); }
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
@@ -264,17 +265,49 @@ async function loadLevels(){
   if(profile?.level_id)$('levelSelect').value=profile.level_id;
 }
 
+function authRedirectUrl(){return window.location.origin+window.location.pathname;}
+
+async function resendConfirmation(emailOverride){
+  clearMsg();
+  const e=(emailOverride||$('loginEmail').value.trim()||$('signupEmail').value.trim());
+  if(!e){msg('Enter your email address first so we can send the confirmation link.','error');return}
+  const {error}=await sb.auth.resend({type:'signup',email:e,options:{emailRedirectTo:authRedirectUrl()}});
+  if(error){msg(error.message,'error');return}
+  msg('A new confirmation link has been sent to your email. Check your inbox and spam folder, then click the link to confirm your account.','success');
+}
+
+async function sendPasswordReset(){
+  clearMsg();
+  const e=$('loginEmail').value.trim();
+  if(!e){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:authRedirectUrl()});
+  if(error){msg(error.message,'error');return}
+  msg('Password reset link sent. Check your email and follow the link to create a new password.','success');
+}
+
+async function saveNewPassword(){
+  clearMsg();
+  const pw=$('resetPassword').value,cpw=$('resetConfirm').value;
+  if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
+  if(pw!==cpw){msg('Passwords do not match.','error');return}
+  const {error}=await sb.auth.updateUser({password:pw});
+  if(error){msg(error.message,'error');return}
+  $('resetPassword').value=''; $('resetConfirm').value='';
+  msg('Your password has been reset successfully. You can now log in with your new password.','success');
+  setTimeout(()=>showAuth('login'),900);
+}
+
 async function signUp(){
   clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
   if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
-  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n}}});
+  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
   if(error){msg(error.message,'error');return}
   if(data.session){await finishLogin(data.session);}
-  else msg('Account created. Check your email to confirm your account, then return here and log in.','success');
+  else msg('Account created. A confirmation link has been sent to your email. Click the link to confirm your account, then return here and log in.','success');
 }
 async function login(){
-  clearMsg(); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  clearMsg(); $('resendConfirmationBtn')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
@@ -964,7 +997,7 @@ function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.l
 async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
-$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
+$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('forgotPasswordBtn').onclick=sendPasswordReset;$('resendConfirmationBtn').onclick=()=>resendConfirmation();$('saveNewPasswordBtn').onclick=saveNewPassword;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
@@ -976,7 +1009,7 @@ window.addEventListener('popstate',e=>{
   handlingPopState=false;
 });
 
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()} });
+sb.auth.onAuthStateChange(async(event,s)=>{if(event==='PASSWORD_RECOVERY'){session=s;showAuth('reset');msg('Password reset link verified. Enter your new password below.','success')}else if(event==='SIGNED_OUT'){location.reload()} });
 (async()=>{
   // Always show the login page first. Existing Supabase sessions are not used to auto-open the portal.
   window.scrollTo(0,0);
