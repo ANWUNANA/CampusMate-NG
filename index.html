@@ -1009,9 +1009,12 @@ window.addEventListener('popstate',e=>{
   handlingPopState=false;
 });
 
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='PASSWORD_RECOVERY'){session=s;showAuth('reset');msg('Password reset link verified. Enter your new password below.','success')}else if(event==='SIGNED_OUT'){location.reload()} });
-(async()=>{
-  // Always show the login page first. Existing Supabase sessions are not used to auto-open the portal.
+function isPasswordRecoveryUrl(){
+  const raw=(window.location.hash||'')+' '+(window.location.search||'');
+  return /(?:^|[&#?\s])type=recovery(?:&|#|\s|$)/i.test(raw);
+}
+
+async function openPasswordRecovery(){
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
@@ -1019,6 +1022,48 @@ sb.auth.onAuthStateChange(async(event,s)=>{if(event==='PASSWORD_RECOVERY'){sessi
   $('student').classList.add('hidden');
   $('portal').classList.add('hidden');
   $('onboarding').classList.add('hidden');
-  showAuth('login');
+  showAuth('reset');
+  msg('Password reset link verified. Enter your new password below.','success');
+}
+
+sb.auth.onAuthStateChange(async(event,s)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    session=s;
+    await openPasswordRecovery();
+  }else if(event==='SIGNED_OUT'){
+    location.reload();
+  }
+});
+
+(async()=>{
+  // Preserve the existing no-auto-login behavior. The only exception is a genuine
+  // password-recovery link, which must open the password-reset form.
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  $('auth').classList.remove('hidden');
+  $('student').classList.add('hidden');
+  $('portal').classList.add('hidden');
+  $('onboarding').classList.add('hidden');
+
+  if(isPasswordRecoveryUrl()){
+    // Let Supabase consume the recovery URL and establish the temporary recovery session.
+    // This does NOT auto-login normal users; it is only executed for a recovery URL.
+    const {data,error}=await sb.auth.getSession();
+    if(error){
+      showAuth('login');
+      msg('This password-reset link could not be verified. Please request a new reset link.','error');
+      return;
+    }
+    if(data?.session){
+      session=data.session;
+      await openPasswordRecovery();
+    }else{
+      showAuth('login');
+      msg('This password-reset link has expired or is invalid. Please request a new one.','error');
+    }
+  }else{
+    showAuth('login');
+  }
 })();
 </script></div></body></html>
