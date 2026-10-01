@@ -337,7 +337,6 @@ async function login(){
 }
 async function finishLogin(s){
   session=s;
-  let profileState='unknown';
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
@@ -354,13 +353,9 @@ async function finishLogin(s){
   profile.id=session.user.id;
   profile.full_name=profile.full_name||session.user.user_metadata?.full_name||session.user.email;
   profile.role=profile.role||'student';
-  // IMPORTANT: do not call startStudent() here. Until the real profile has
-  // loaded, the temporary profile object has no academic IDs and startStudent()
-  // would incorrectly interpret that as an incomplete profile and reveal setup.
-  // The dashboard shell is already visible above; startStudent() is called only
-  // after the actual profile has been read successfully.
+  startStudent();
 
-  const profileLoad=loadProfile().then(state=>{profileState=state;return state});
+  const profileLoad=loadProfile();
 
   // Give the profile lookup a short foreground window. If it is fast, we can
   // immediately decide whether this is a returning or new/incomplete student.
@@ -373,13 +368,6 @@ async function finishLogin(s){
   }catch(e){console.warn('Profile initialization:',e)}
 
   if(loaded){
-    if(profileState==='error'){
-      // A database/network/profile-read failure must NEVER send an existing
-      // student to the setup screen. Keep the dashboard visible and retry.
-      console.warn('Profile could not be read; keeping returning user on dashboard.');
-      history.replaceState({cmPage:'home'},'',location.href);
-      return;
-    }
     if(hasCompletedAcademicProfile()){
       $('onboarding').classList.add('hidden');
       $('portal').classList.remove('hidden');
@@ -400,13 +388,7 @@ async function finishLogin(s){
     // Keep the dashboard visible while the profile request finishes in the
     // background. A completed returning profile will remain on the dashboard;
     // an incomplete/new profile will be moved to setup when the lookup resolves.
-    profileLoad.then(async(state)=>{
-      if(state==='error'){
-        // Do not redirect a returning student to setup just because a profile
-        // request was temporarily unavailable.
-        console.warn('Background profile lookup failed; dashboard remains open.');
-        return;
-      }
+    profileLoad.then(async()=>{
       if(hasCompletedAcademicProfile()){
         $('onboarding').classList.add('hidden');
         $('portal').classList.remove('hidden');
@@ -428,14 +410,9 @@ async function loadProfile(){
     console.warn('Detailed profile lookup failed; retrying basic profile lookup:',result.error.message);
     const fallback=await sb.from('profiles').select('*').eq('id',session.user.id).single();
     if(fallback.error){
-      // PGRST116 means there is genuinely no profile row yet. Other errors
-      // mean the existing profile could not be read; those must not trigger setup.
-      if(fallback.error.code==='PGRST116'){
-        profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
-        return 'missing';
-      }
       console.error('Profile lookup failed:',fallback.error);
-      return 'error';
+      profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
+      return;
     }
     profile=fallback.data||{};
   }else{
@@ -446,7 +423,6 @@ async function loadProfile(){
   profile.role=profile.role||'student';
   profile.department_id=profile.department_id||profile.programmes?.department_id||null;
   profile.faculty_id=profile.faculty_id||profile.programmes?.departments?.faculty_id||null;
-  return 'ok';
 }
 
 async function refreshProStatus(){
@@ -1043,5 +1019,26 @@ async function openCouncilSetup(key){
 }
 async function beginCouncilCbt(){
   if(!currentCouncilTrack)return;
-  if(!getEligibleCounci
+  if(!getEligibleCouncilTracks().some(x=>x.key===currentCouncilTrack.key)){
+    alert('This council track is not available for your selected professional programme.');
+    return;
+  }
+  const topic=$('councilTopic').value;
+  let rows=councilQuestions.filter(q=>!topic||String(q.topic||q.topic_name||q.subject||'')===topic);
+  if(!rows.length){alert('No approved questions are available for this council track and topic yet.');return;}
+  const mode=$('councilMode').value;
+  const count=mode==='quick'?10:mode==='practice'?20:Math.min(100,rows.length);
+  if(rows.length<count){alert(`This ${currentCouncilTrack.short} track currently has only ${rows.length} approved usable questions. Choose a smaller practice mode or add more approved questions.`);return;}
+  rows=shuffled(rows).slice(0,count);
+  const timed=$('councilTiming').value==='timed';
+  currentCouncilCbt={track:currentCouncilTrack,questions:rows,answers:{},index:0,startedAt:Date.now(),timed,seconds:timed?count*20:0,timer:null};
+  $('cbtTitle').textContent=currentCouncilTrack.profession+' — '+currentCouncilTrack.short;
+  $('cbtSub').textContent=currentCouncilTrack.body;
+  go('councilCbt');
+  renderCouncilCbtQuestion();
+  if(timed)startCouncilTimer();
+}
+function renderCouncilCbtQuestion(){
+  const c=currentCouncilCbt;if(!c)return;
+  const q=c.questions[c.index],opts=questio
 Preview truncated for large file
