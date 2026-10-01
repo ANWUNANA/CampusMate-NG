@@ -30,7 +30,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:12px}</style><style>
+<style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;color:var(--n);display:grid;place-items:center;padding:0}.pw button svg{width:21px;height:21px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
 </style></head>
@@ -48,9 +48,9 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button><button type="button" id="forgotPasswordBtn" class="secondary" style="width:100%;margin-top:8px">Forgot password?</button><button type="button" id="resendConfirmationBtn" class="secondary hidden" style="width:100%;margin-top:8px">Resend confirmation email</button></div>
-<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('resetPassword',this)">Show</button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('resetConfirm',this)">Show</button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="loginBtn" class="primary">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
+<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
 
@@ -70,7 +70,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
 <main>
 <section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
-<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div>
+<div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div id="councilTile" class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div>
 <div class="portal-bottom-resources" aria-label="CampusMate information resources">
   <div class="card resource-card"><b>🇳🇬 Nigerian University Catalogue</b><p class="mut">Browse the CampusMate Nigerian university catalogue. Institution-specific programmes will only be added when verified.</p><button class="secondary" onclick="go('catalogue')">Browse catalogue</button></div>
   <div class="card resource-card"><b>📢 Latest Announcement</b><p class="mut">Welcome to the new CampusMate NG academic portal. More departmental resources are coming soon.</p></div>
@@ -207,7 +207,7 @@ let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
 function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
-function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); $('resendConfirmationBtn')?.classList.add('hidden'); clearMsg(); }
+function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); $('resendConfirmationWrap')?.classList.add('hidden'); clearMsg(); }
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
@@ -270,10 +270,16 @@ function authRedirectUrl(){return window.location.origin+window.location.pathnam
 async function resendConfirmation(emailOverride){
   clearMsg();
   const e=(emailOverride||$('loginEmail').value.trim()||$('signupEmail').value.trim());
-  if(!e){msg('Enter your email address first so we can send the confirmation link.','error');return}
-  const {error}=await sb.auth.resend({type:'signup',email:e,options:{emailRedirectTo:authRedirectUrl()}});
-  if(error){msg(error.message,'error');return}
-  msg('A new confirmation link has been sent to your email. Check your inbox and spam folder, then click the link to confirm your account.','success');
+  if(!e){msg('Enter the email address you used to create your CampusMate account.','error');return}
+  const btn=$('resendConfirmationBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending confirmation link…'}
+  try{
+    const {error}=await sb.auth.resend({type:'signup',email:e,options:{emailRedirectTo:authRedirectUrl()}});
+    if(error){msg(error.message,'error');return}
+    msg('Confirmation link sent. Check your inbox and spam folder, then click the link to confirm your account.','success');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Resend confirmation email'}
+  }
 }
 
 async function sendPasswordReset(){
@@ -304,10 +310,10 @@ async function signUp(){
   const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
   if(error){msg(error.message,'error');return}
   if(data.session){await finishLogin(data.session);}
-  else msg('Account created. A confirmation link has been sent to your email. Click the link to confirm your account, then return here and log in.','success');
+  else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
 }
 async function login(){
-  clearMsg(); $('resendConfirmationBtn')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
@@ -316,9 +322,9 @@ async function login(){
     if(error){
       const em=String(error.message||'').toLowerCase();
       if(em.includes('email not confirmed')||em.includes('email_not_confirmed')){
-        $('resendConfirmationBtn')?.classList.remove('hidden');
+        $('resendConfirmationWrap')?.classList.remove('hidden');
         $('signupEmail').value=e;
-        msg('Your email has not been confirmed yet. Use “Resend confirmation email” to receive a new confirmation link.','error');
+        msg('Please confirm your email before logging in. A new confirmation link is ready to be sent below.','error');
       }else msg(error.message,'error');
       return;
     }
@@ -331,33 +337,89 @@ async function login(){
 }
 async function finishLogin(s){
   session=s;
+  let profileState='unknown';
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  // Keep the student area completely hidden while we determine whether this is
-  // a returning student or a new/incomplete student. This prevents the setup
-  // screen from flashing on every login.
+
+  // Hide authentication immediately and never flash the academic setup screen.
   $('auth').classList.add('hidden');
   $('student').classList.remove('hidden');
-  $('portal').classList.add('hidden');
+  $('portal').classList.remove('hidden');
   $('onboarding').classList.add('hidden');
 
-  await loadProfile();
-  const profileComplete=hasCompletedAcademicProfile();
+  // Build a dashboard shell immediately from the authenticated user so returning
+  // students do not wait for secondary data before seeing the dashboard.
+  profile=profile||{};
+  profile.id=session.user.id;
+  profile.full_name=profile.full_name||session.user.user_metadata?.full_name||session.user.email;
+  profile.role=profile.role||'student';
+  // IMPORTANT: do not call startStudent() here. Until the real profile has
+  // loaded, the temporary profile object has no academic IDs and startStudent()
+  // would incorrectly interpret that as an incomplete profile and reveal setup.
+  // The dashboard shell is already visible above; startStudent() is called only
+  // after the actual profile has been read successfully.
 
-  if(profileComplete){
-    // RETURNING USER: go straight to the dashboard. Do not load or show setup.
-    await refreshProStatus();
-    await loadStudentData();
-    startStudent();
-    $('onboarding').classList.add('hidden');
-    $('portal').classList.remove('hidden');
-    history.replaceState({cmPage:'home'},'',location.href);
+  const profileLoad=loadProfile().then(state=>{profileState=state;return state});
+
+  // Give the profile lookup a short foreground window. If it is fast, we can
+  // immediately decide whether this is a returning or new/incomplete student.
+  let loaded=false;
+  try{
+    await Promise.race([
+      profileLoad.then(()=>{loaded=true}),
+      new Promise(resolve=>setTimeout(resolve,1200))
+    ]);
+  }catch(e){console.warn('Profile initialization:',e)}
+
+  if(loaded){
+    if(profileState==='error'){
+      // A database/network/profile-read failure must NEVER send an existing
+      // student to the setup screen. Keep the dashboard visible and retry.
+      console.warn('Profile could not be read; keeping returning user on dashboard.');
+      history.replaceState({cmPage:'home'},'',location.href);
+      return;
+    }
+    if(hasCompletedAcademicProfile()){
+      $('onboarding').classList.add('hidden');
+      $('portal').classList.remove('hidden');
+      startStudent();
+      history.replaceState({cmPage:'home'},'',location.href);
+
+      // Non-critical work continues after the dashboard is already visible.
+      Promise.allSettled([refreshProStatus(),loadStudentData()]).then(()=>{
+        startStudent();
+      });
+    }else{
+      // Only an incomplete/new academic profile is sent to setup.
+      $('portal').classList.add('hidden');
+      $('onboarding').classList.remove('hidden');
+      await loadAcademicOptions();
+    }
   }else{
-    // NEW/INCOMPLETE USER: setup is shown only when required.
-    $('portal').classList.add('hidden');
-    $('onboarding').classList.remove('hidden');
-    await loadAcademicOptions();
+    // Keep the dashboard visible while the profile request finishes in the
+    // background. A completed returning profile will remain on the dashboard;
+    // an incomplete/new profile will be moved to setup when the lookup resolves.
+    profileLoad.then(async(state)=>{
+      if(state==='error'){
+        // Do not redirect a returning student to setup just because a profile
+        // request was temporarily unavailable.
+        console.warn('Background profile lookup failed; dashboard remains open.');
+        return;
+      }
+      if(hasCompletedAcademicProfile()){
+        $('onboarding').classList.add('hidden');
+        $('portal').classList.remove('hidden');
+        startStudent();
+        history.replaceState({cmPage:'home'},'',location.href);
+        await Promise.allSettled([refreshProStatus(),loadStudentData()]);
+        startStudent();
+      }else{
+        $('portal').classList.add('hidden');
+        $('onboarding').classList.remove('hidden');
+        await loadAcademicOptions();
+      }
+    }).catch(err=>console.warn('Background profile loading:',err));
   }
 }
 async function loadProfile(){
@@ -366,9 +428,14 @@ async function loadProfile(){
     console.warn('Detailed profile lookup failed; retrying basic profile lookup:',result.error.message);
     const fallback=await sb.from('profiles').select('*').eq('id',session.user.id).single();
     if(fallback.error){
+      // PGRST116 means there is genuinely no profile row yet. Other errors
+      // mean the existing profile could not be read; those must not trigger setup.
+      if(fallback.error.code==='PGRST116'){
+        profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
+        return 'missing';
+      }
       console.error('Profile lookup failed:',fallback.error);
-      profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
-      return;
+      return 'error';
     }
     profile=fallback.data||{};
   }else{
@@ -379,6 +446,7 @@ async function loadProfile(){
   profile.role=profile.role||'student';
   profile.department_id=profile.department_id||profile.programmes?.department_id||null;
   profile.faculty_id=profile.faculty_id||profile.programmes?.departments?.faculty_id||null;
+  return 'ok';
 }
 
 async function refreshProStatus(){
@@ -582,7 +650,7 @@ function startStudent(){
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
   $('academicLine').textContent=prog+' • '+level+' • '+uni;
   $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
-  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
+  $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');if($('councilTile'))$('councilTile').classList.toggle('hidden',getEligibleCouncilTracks().length===0);
   const completed=hasCompletedAcademicProfile();
   $('onboarding').classList.toggle('hidden',completed);
   $('portal').classList.toggle('hidden',!completed);
@@ -867,203 +935,113 @@ function submitQuiz(timeUp=false){
   const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
 }
 
-function togglePw(id,btn){const el=$(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'Show':'Hide'}
-let selectedGradingSystem = null;
-let gpaRowCounter = 0;
+/* ===================== PROFESSIONAL COUNCIL PRACTICE ===================== */
+const COUNCIL_TRACKS = [
+  {key:'nursing', names:['nursing','nursing science'], profession:'Nursing Science', body:'Nursing and Midwifery Council of Nigeria (NMCN)', short:'NMCN'},
+  {key:'medicine', names:['medicine and surgery','medicine & surgery','medicine'], profession:'Medicine and Surgery', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
+  {key:'dentistry', names:['dentistry','dental surgery'], profession:'Dentistry', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
+  {key:'pharmacy', names:['pharmacy'], profession:'Pharmacy', body:'Pharmacy Council of Nigeria (PCN)', short:'PCN'},
+  {key:'medical-lab', names:['medical laboratory science','medical laboratory sciences'], profession:'Medical Laboratory Science', body:'Medical Laboratory Science Council of Nigeria (MLSCN)', short:'MLSCN'},
+  {key:'radiography', names:['radiography','radiography and radiation science'], profession:'Radiography', body:'Radiographers Registration Board of Nigeria (RRBN)', short:'RRBN'},
+  {key:'physiotherapy', names:['physiotherapy'], profession:'Physiotherapy', body:'Medical Rehabilitation Therapists Board of Nigeria (MRTB)', short:'MRTB'},
+  {key:'optometry', names:['optometry'], profession:'Optometry', body:'Optometrists and Dispensing Opticians Registration Board of Nigeria (ODORBN)', short:'ODORBN'},
+  {key:'veterinary-medicine', names:['veterinary medicine','veterinary medicine and surgery'], profession:'Veterinary Medicine', body:'Veterinary Council of Nigeria (VCN)', short:'VCN'},
+  {key:'law', names:['law','llb','bachelor of laws'], profession:'Law', body:'Council of Legal Education (CLE)', short:'CLE'},
+  {key:'accounting', names:['accounting'], profession:'Accounting', body:'Institute of Chartered Accountants of Nigeria (ICAN)', short:'ICAN'}
+];
 
-function selectGradingSystem(scale){
-  if(!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');return;}
-  selectedGradingSystem = Number(scale);
-  $('gpaCalculator').classList.remove('hidden');
-  $('cgpaCalculator').classList.remove('hidden');
-  $('gradingChoice').textContent = scale===4
-    ? 'Selected: 4 grading system'
-    : 'Selected: 5 grading system';
-  $('gpaScaleInfo').textContent = scale===4
-    ? '4-point scale: A=4 • B=3 • C=2 • D=1 • F=0'
-    : '5-point scale: A=5 • B=4 • C=3 • D=2 • E=1 • F=0';
-  $('cgpaScaleInfo').textContent = scale===4
-    ? 'CGPA will be calculated on the 4-point scale.'
-    : 'CGPA will be calculated on the 5-point scale.';
-  $('gradeScaleText').textContent = scale===4
-    ? '4-point scale: A=4 • B=3 • C=2 • D=1 • F=0'
-    : '5-point scale: A=5 • B=4 • C=3 • D=2 • E=1 • F=0';
-  $('grade4Btn').classList.toggle('primary',scale===4);
-  $('grade4Btn').classList.toggle('secondary',scale!==4);
-  $('grade5Btn').classList.toggle('primary',scale===5);
-  $('grade5Btn').classList.toggle('secondary',scale!==5);
-  if(!document.querySelector('.gpaRow')) {
-    $('gpaRows').innerHTML='';
-    addGpaRow();
-    addGpaRow();
-  } else {
-    refreshGpaGradeOptions();
-  }
+let councilTracksCache=[];
+let currentCouncilTrack=null;
+let councilQuestions=[];
+let currentCouncilCbt=null;
+
+function programmeText(){
+  return String(profile?.programmes?.name||profile?.programme_name||'').trim().toLowerCase();
 }
-
-function gradeOptions(){
-  if(selectedGradingSystem===4){
-    return '<option value="4">A — 4</option><option value="3">B — 3</option><option value="2">C — 2</option><option value="1">D — 1</option><option value="0">F — 0</option>';
-  }
-  return '<option value="5">A — 5</option><option value="4">B — 4</option><option value="3">C — 3</option><option value="2">D — 2</option><option value="1">E — 1</option><option value="0">F — 0</option>';
+function getEligibleCouncilTracks(){
+  const p=programmeText();
+  return COUNCIL_TRACKS.filter(t=>t.names.some(n=>p===n||p.includes(n)||n.includes(p)));
 }
-
-function addGpaRow(){
-  if(!selectedGradingSystem){
-    alert('Choose 4 grading system or 5 grading system first.');
+function councilQuestionUsable(q){
+  return q && questionText(q)!=='Question' && questionOptions(q).length>=2 && correctKey(q)!=='';
+}
+function councilQuestionApproved(q){
+  const status=String(q?.verification_status||q?.status||q?.verificationStatus||'').toLowerCase();
+  const origin=String(q?.content_origin||q?.origin||q?.source_type||'').toLowerCase();
+  const active=q?.active===undefined ? q?.is_active!==false : q.active!==false;
+  const approved=['officially_verified','licensed_partner','reviewed_reference','official_verified','official_authorized'].includes(status) ||
+                 ['licensed_partner','reviewed_reference','official_authorized'].includes(origin);
+  return active && (approved || !status && !origin);
+}
+async function fetchCouncilQuestions(track){
+  const attempts=[
+    {table:'council_questions',fields:'*'},
+    {table:'professional_council_questions',fields:'*'}
+  ];
+  for(const a of attempts){
+    try{
+      let q=sb.from(a.table).select(a.fields);
+      const {data,error}=await q;
+      if(error)continue;
+      const rows=(data||[]).filter(row=>{
+        const key=String(row.track_key||row.track_id||row.exam_track||row.council_track||row.council||'').toLowerCase();
+        const body=String(row.council_body||row.exam_body||'').toLowerCase();
+        return !key || key===track.key || key===track.short.toLowerCase() || body.includes(track.short.toLowerCase()) || body.includes(track.body.toLowerCase());
+      }).filter(councilQuestionApproved).filter(councilQuestionUsable);
+      if(rows.length)return rows;
+    }catch(e){console.warn('Council question source unavailable:',a.table,e)}
+  }
+  return [];
+}
+function renderCouncilTracks(){
+  const box=$('councilTracks'); if(!box)return;
+  const eligible=getEligibleCouncilTracks();
+  councilTracksCache=eligible;
+  const q=($('councilSearch')?.value||'').trim().toLowerCase();
+  const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
+  if(!eligible.length){
+    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
     return;
   }
-  gpaRowCounter++;
-  const row=document.createElement('div');
-  row.className='gpaRow card';
-  row.style.margin='10px 0';
-  row.dataset.row=String(gpaRowCounter);
-  row.innerHTML=
-    '<label>Course name</label>'+
-    '<input class="gpaCourseName" placeholder="e.g. NSC201 — Fundamentals of Nursing">'+
-    '<label>Credit unit (CU)</label>'+
-    '<input class="gpaCU" type="number" min="0.5" step="0.5" placeholder="e.g. 3">'+
-    '<label>Grade</label>'+
-    '<select class="gpaGrade">'+gradeOptions()+'</select>'+
-    '<button class="secondary" type="button" onclick="removeGpaRow(this)">Remove course</button>';
-  $('gpaRows').appendChild(row);
-}
-
-function removeGpaRow(btn){
-  const row=btn.closest('.gpaRow');
-  if(row)row.remove();
-}
-
-function refreshGpaGradeOptions(){
-  document.querySelectorAll('.gpaGrade').forEach(select=>{
-    const old=select.value;
-    select.innerHTML=gradeOptions();
-    if([...select.options].some(o=>o.value===old))select.value=old;
-  });
-}
-
-function calcGpa(){
-  if(!selectedGradingSystem){
-    alert('Choose a grading system first.');
+  if(!shown.length){
+    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
     return;
   }
-  const rows=[...document.querySelectorAll('.gpaRow')];
-  let points=0, units=0, valid=0;
-  for(const row of rows){
-    const name=row.querySelector('.gpaCourseName').value.trim();
-    const cu=Number(row.querySelector('.gpaCU').value);
-    const grade=Number(row.querySelector('.gpaGrade').value);
-    if(!name && !cu) continue;
-    if(!name || !Number.isFinite(cu) || cu<=0){
-      alert('Complete the course name and credit unit for every course you started.');
-      return;
-    }
-    points += grade*cu;
-    units += cu;
-    valid++;
-  }
-  $('gpaOut').textContent=valid&&units ? (points/units).toFixed(2) : '—';
+  box.innerHTML=shown.map(t=>`
+    <div class="card">
+      <div class="row" style="justify-content:space-between;gap:10px">
+        <div><span class="pill">${escapeHtml(t.short)}</span><h3 style="margin:8px 0 4px">${escapeHtml(t.profession)}</h3><p class="mut" style="margin:0">${escapeHtml(t.body)}</p></div>
+      </div>
+      <button class="primary" style="margin-top:12px" onclick="openCouncilSetup('${t.key}')">Open ${escapeHtml(t.short)} practice</button>
+    </div>`).join('');
 }
-
-function calcCgpa(){
-  if(!selectedGradingSystem){
-    alert('Choose a grading system first.');
+async function loadCouncilPractice(){
+  renderCouncilTracks();
+}
+async function openCouncilSetup(key){
+  const track=COUNCIL_TRACKS.find(x=>x.key===key);
+  if(!track)return;
+  if(!getEligibleCouncilTracks().some(x=>x.key===key)){
+    alert('Council exam practice is available only to students in the matching professional programme.');
     return;
   }
-  const pc=Number($('prevCgpa').value);
-  const pu=Number($('prevUnits').value);
-  const cg=Number($('currGpa').value);
-  const cu=Number($('currUnits').value);
-  const max=selectedGradingSystem;
-  if(!Number.isFinite(pc)||!Number.isFinite(pu)||!Number.isFinite(cg)||!Number.isFinite(cu)||pu<0||cu<=0||pc<0||cg<0||pc>max||cg>max){
-    $('cgpaOut').textContent='—';
-    alert('Enter valid GPA/CGPA values and credit units for the selected grading system.');
-    return;
-  }
-  const totalUnits=pu+cu;
-  if(totalUnits<=0){$('cgpaOut').textContent='—';return}
-  const value=((pc*pu)+(cg*cu))/totalUnits;
-  $('cgpaOut').textContent=value.toFixed(2);
-}
-
-function renderGpa(){
-  // GPA rows are intentionally entered by the student rather than taken from the portal course list.
-  if(selectedGradingSystem) refreshGpaGradeOptions();
-}
-async function addTask(){const t=$('newTask').value.trim();if(!t)return;const {data,error}=await sb.from('study_tasks').insert({student_id:session.user.id,title:t,completed:false}).select().single();if(error){alert(error.message);return}tasks.unshift(data);$('newTask').value='';renderTasks()}
-async function toggleTask(id,checked){const {error}=await sb.from('study_tasks').update({completed:checked}).eq('id',id).eq('student_id',session.user.id);if(!error){const t=tasks.find(x=>x.id===id);if(t)t.completed=checked;renderTasks()}}
-async function deleteTask(id){const {error}=await sb.from('study_tasks').delete().eq('id',id).eq('student_id',session.user.id);if(!error){tasks=tasks.filter(x=>x.id!==id);renderTasks()}}
-function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.length===1?'':'s');$('tasks').innerHTML=tasks.length?tasks.map(t=>`<p><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.id}',this.checked)"> ${escapeHtml(t.title)} <button class="danger" style="float:right;border:0;background:none" onclick="deleteTask('${t.id}')">×</button></p>`).join(''):'<p class="mut">No tasks yet.</p>'}
-async function logout(){await sb.auth.signOut();location.reload()}
-function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
-
-$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('forgotPasswordBtn').onclick=sendPasswordReset;$('resendConfirmationBtn').onclick=()=>resendConfirmation();$('saveNewPasswordBtn').onclick=saveNewPassword;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
-$('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
-
-window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
-window.addEventListener('popstate',e=>{
-  const target=e.state?.cmPage||'home';
-  handlingPopState=true;
-  if(target==='gpa'&&!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');}
-  else go(target,null,'none');
-  handlingPopState=false;
-});
-
-function isPasswordRecoveryUrl(){
-  const raw=(window.location.hash||'')+' '+(window.location.search||'');
-  return /(?:^|[&#?\s])type=recovery(?:&|#|\s|$)/i.test(raw);
-}
-
-async function openPasswordRecovery(){
-  window.scrollTo(0,0);
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-  showAuth('reset');
-  msg('Password reset link verified. Enter your new password below.','success');
-}
-
-sb.auth.onAuthStateChange(async(event,s)=>{
-  if(event==='PASSWORD_RECOVERY'){
-    session=s;
-    await openPasswordRecovery();
-  }else if(event==='SIGNED_OUT'){
-    location.reload();
-  }
-});
-
-(async()=>{
-  // Preserve the existing no-auto-login behavior. The only exception is a genuine
-  // password-recovery link, which must open the password-reset form.
-  window.scrollTo(0,0);
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-
-  if(isPasswordRecoveryUrl()){
-    // Let Supabase consume the recovery URL and establish the temporary recovery session.
-    // This does NOT auto-login normal users; it is only executed for a recovery URL.
-    const {data,error}=await sb.auth.getSession();
-    if(error){
-      showAuth('login');
-      msg('This password-reset link could not be verified. Please request a new reset link.','error');
-      return;
-    }
-    if(data?.session){
-      session=data.session;
-      await openPasswordRecovery();
-    }else{
-      showAuth('login');
-      msg('This password-reset link has expired or is invalid. Please request a new one.','error');
-    }
+  currentCouncilTrack=track;
+  $('councilSetupTitle').textContent=track.profession+' — '+track.short;
+  $('councilSetupSub').textContent=track.body;
+  $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
+  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
+  $('councilTopic').innerHTML='<option value="">All available topics</option>';
+  councilQuestions=await fetchCouncilQuestions(track);
+  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
+  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+  if(councilQuestions.length){
+    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
   }else{
-    showAuth('login');
+    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
   }
-})();
-</script></div></body></html>
+  go('councilSetup');
+}
+async function beginCouncilCbt(){
+  if(!currentCouncilTrack)return;
+  if(!getEligibleCounci
+Preview truncated for large file
