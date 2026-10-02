@@ -645,15 +645,17 @@ function hasCompletedAcademicProfile(){
   return !!(profile?.university_id&&profile?.programme_id&&profile?.level_id);
 }
 function startStudent(){
+  // IMPORTANT: startStudent is a renderer only. It must never decide whether
+  // the authenticated user belongs on the dashboard or on academic setup.
+  // Login/setup visibility is controlled by finishLogin() and saveOnboarding().
+  // Keeping those responsibilities separate prevents a temporary/incomplete
+  // profile object from sending a valid returning user back to setup.
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
   $('academicLine').textContent=prog+' • '+level+' • '+uni;
   $('pname').textContent=profile?.full_name||session.user.email; $('pemail').textContent=session.user.email; $('puni').textContent=uni; $('pprog').textContent=prog; $('plevel').textContent=level;
   $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');if($('councilTile'))$('councilTile').classList.toggle('hidden',getEligibleCouncilTracks().length===0);
-  const completed=hasCompletedAcademicProfile();
-  $('onboarding').classList.toggle('hidden',completed);
-  $('portal').classList.toggle('hidden',!completed);
   renderCourses();renderTasks();renderGpa();renderPerformance();refreshProStatus();go('home');
 }
 let handlingPopState=false;
@@ -1037,11 +1039,5 @@ async function openCouncilSetup(key){
   if(councilQuestions.length){
     $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
   }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async function beginCouncilCbt(){
-  if(!currentCouncilTrack)return;
-  if(!getEligibleCounci
+   
 Preview truncated for large file
