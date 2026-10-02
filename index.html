@@ -30,6 +30,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;color:var(--n);display:grid;place-items:center;padding:0}.pw button svg{width:21px;height:21px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
@@ -46,7 +47,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   </div>
 </div>
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
-<div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
+<div class="tabs"><button type="button" id="loginTab" class="tab active">Log in</button><button type="button" id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
 <div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
 <div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
@@ -198,8 +199,12 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-const { createClient } = window.supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let sb = null;
+if(window.supabase && typeof window.supabase.createClient === 'function'){
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+}else{
+  console.error('CampusMate: Supabase client library did not load.');
+}
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
@@ -207,6 +212,11 @@ let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
 function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
+function authServiceReady(){
+  if(sb?.auth)return true;
+  msg('CampusMate authentication is temporarily unavailable. Please reload the page and try again.','error');
+  return false;
+}
 function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); $('resendConfirmationWrap')?.classList.add('hidden'); clearMsg(); }
 
 async function loadAcademicOptions(){
@@ -268,6 +278,7 @@ async function loadLevels(){
 function authRedirectUrl(){return window.location.origin+window.location.pathname;}
 
 async function resendConfirmation(emailOverride){
+  if(!authServiceReady())return;
   clearMsg();
   const e=(emailOverride||$('loginEmail').value.trim()||$('signupEmail').value.trim());
   if(!e){msg('Enter the email address you used to create your CampusMate account.','error');return}
@@ -283,6 +294,7 @@ async function resendConfirmation(emailOverride){
 }
 
 async function sendPasswordReset(){
+  if(!authServiceReady())return;
   clearMsg();
   const e=$('loginEmail').value.trim();
   if(!e){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}
@@ -292,6 +304,7 @@ async function sendPasswordReset(){
 }
 
 async function saveNewPassword(){
+  if(!authServiceReady())return;
   clearMsg();
   const pw=$('resetPassword').value,cpw=$('resetConfirm').value;
   if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
@@ -304,15 +317,23 @@ async function saveNewPassword(){
 }
 
 async function signUp(){
+  if(!authServiceReady())return;
   clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
   if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
-  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
-  if(error){msg(error.message,'error');return}
-  if(data.session){await finishLogin(data.session);}
-  else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
+  try{
+    const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
+    if(error){msg(error.message,'error');return}
+    if(data.session){await finishLogin(data.session);}
+    else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
+  }catch(err){
+    console.error('CampusMate signup error:',err);
+    msg(err?.message||'Unable to create the account. Please try again.','error');
+    return;
+  }
 }
 async function login(){
+  if(!authServiceReady())return;
   clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
@@ -331,6 +352,9 @@ async function login(){
     msg('Login successful! Opening your dashboard…','success');
     await new Promise(r=>setTimeout(r,450));
     await finishLogin(data.session);
+  }catch(err){
+    console.error('CampusMate login error:',err);
+    msg(err?.message||'Unable to complete login. Please try again.','error');
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Log in';}
   }
@@ -1029,18 +1053,5 @@ async function openCouncilSetup(key){
   $('councilSetupTitle').textContent=track.profession+' — '+track.short;
   $('councilSetupSub').textContent=track.body;
   $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
-  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
-  $('councilTopic').innerHTML='<option value="">All available topics</option>';
-  councilQuestions=await fetchCouncilQuestions(track);
-  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-  if(councilQuestions.length){
-    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
-  }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async function beginCouncilCbt(){
-  if(!currentCouncilTrack)ret
+  $('councilSetupInfo').textContent='This practice track is dedicated t
 Preview truncated for large file
