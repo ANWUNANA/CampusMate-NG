@@ -84,8 +84,11 @@ if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/su
       if(typeof window.finishLogin==='function'){
         await window.finishLogin(data.session);
       }else{
-        // The main script failed before exposing its dashboard routine. Keep the authenticated session,
-        // then reload so the normal V40 startup can resume with the valid Supabase session.
+        // The main V40 script has not exposed its dashboard routine yet. Keep the authenticated
+        // session and mark this as an intentional post-login handoff before reloading. On the
+        // fresh page load, V40 will consume this marker and open the dashboard instead of showing
+        // the login screen again.
+        sessionStorage.setItem('cm_auth_handoff','1');
         window.location.reload();
       }
       return false;
@@ -1029,6 +1032,5 @@ function submitQuiz(timeUp=false){
   if(!currentQuiz||!quizQuestions.length)return;
   clearInterval(currentQuiz.timer);let correct=0;
   quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
-  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.lengt
+  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":
 Preview truncated for large file
