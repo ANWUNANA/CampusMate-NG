@@ -437,7 +437,7 @@ async function login(){
     if(btn){btn.disabled=false;btn.textContent='Log in';}
   }
 }
-async function finishLogin(s){
+window.finishLogin = async function finishLogin(s){
   session=s;
   let profileState='unknown';
   window.scrollTo(0,0);
@@ -1030,5 +1030,5 @@ function submitQuiz(timeUp=false){
   clearInterval(currentQuiz.timer);let correct=0;
   quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
   const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses
+  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.lengt
 Preview truncated for large file
