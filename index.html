@@ -195,228 +195,72 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 </div>
 
+<script>
+/* CampusMate v40 authentication safety bridge.
+   This layer is intentionally independent of the main application code.
+   It gives the login/create-account/reset controls a working Supabase REST path
+   even if another part of the application encounters an initialization error. */
+(function(){
+  const URL='https://ygocrlnijeijzejucnvu.supabase.co';
+  const KEY='sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
+  const H={'apikey':KEY,'Content-Type':'application/json'};
+  const $=id=>document.getElementById(id);
+  const msg=(text,type='info')=>{const e=$('authMsg');if(e){e.textContent=text;e.className='msg '+type;e.classList.remove('hidden')}};
+  const clear=()=>{$('authMsg')?.classList.add('hidden')};
+  const post=async(path,body,token)=>{
+    const h={...H}; if(token) h.Authorization='Bearer '+token;
+    const r=await fetch(URL+path,{method:'POST',headers:h,body:JSON.stringify(body)});
+    const raw=await r.text(); let d=null; try{d=raw?JSON.parse(raw):null}catch{d=raw}
+    if(!r.ok){const e=new Error(d?.msg||d?.message||d?.error_description||d?.error||('Request failed ('+r.status+')'));e.status=r.status;throw e}
+    return d;
+  };
+  const put=async(path,body,token)=>{
+    const h={...H,Authorization:'Bearer '+token};
+    const r=await fetch(URL+path,{method:'PUT',headers:h,body:JSON.stringify(body)});
+    const raw=await r.text(); let d=null; try{d=raw?JSON.parse(raw):null}catch{d=raw}
+    if(!r.ok)throw new Error(d?.msg||d?.message||d?.error_description||d?.error||('Request failed ('+r.status+')'));
+    return d;
+  };
+  window.cmAuthBridge={
+    async login(email,password){return post('/auth/v1/token?grant_type=password',{email,password})},
+    async signup(name,email,password){return post('/auth/v1/signup',{email,password,data:{full_name:name},email_redirect_to:location.href.split('#')[0]})},
+    async resend(email){return post('/auth/v1/resend',{type:'signup',email})},
+    async recover(email){return post('/auth/v1/recover',{email,redirect_to:location.href.split('#')[0]})},
+    async updatePassword(password,token){return put('/auth/v1/user',{password},token)}
+  };
+  // Bind only if the main application has not already bound these controls.
+  function bind(){
+    const lt=$('loginTab'),st=$('signupTab'),lb=$('loginBtn'),sb=$('signupBtn'),fp=$('forgotPasswordBtn'),rp=$('resendConfirmationBtn'),save=$('saveNewPasswordBtn');
+    if(lt && !lt.dataset.cmBridge) lt.dataset.cmBridge='1';
+    if(st && !st.dataset.cmBridge) st.dataset.cmBridge='1';
+    // Inline fallback handlers are used on the controls themselves. They remain
+    // available even if the main application script stops later in initialization.
+    if(lb) lb.setAttribute('onclick','window.cmBridgeLogin && window.cmBridgeLogin()');
+    if(sb) sb.setAttribute('onclick','window.cmBridgeSignup && window.cmBridgeSignup()');
+    if(fp) fp.setAttribute('onclick','window.cmBridgeRecover && window.cmBridgeRecover()');
+    if(rp) rp.setAttribute('onclick','window.cmBridgeResend && window.cmBridgeResend()');
+    if(save) save.setAttribute('onclick','window.cmBridgeSavePassword && window.cmBridgeSavePassword()');
+  }
+  window.cmBridgeLogin=async function(){
+    clear();const email=($('loginEmail')?.value||'').trim(),password=$('loginPassword')?.value||'';if(!email||!password){msg('Enter your email and password.','error');return}
+    const b=$('loginBtn');try{if(b){b.disabled=true;b.textContent='Logging in…'};const d=await window.cmAuthBridge.login(email,password);localStorage.setItem('cm_bridge_session',JSON.stringify(d));msg('Login successful! Opening your dashboard…','success');if(typeof window.finishLogin==='function'){await window.finishLogin(d)}else{location.reload()}}catch(e){const m=String(e.message||e);if(/not confirmed/i.test(m)){const r=$('resendConfirmationBtn');if(r)r.classList.remove('hidden');msg('Your email has not been confirmed yet. Use “Resend confirmation email”.','error')}else msg(m,'error')}finally{if(b){b.disabled=false;b.textContent='Log in'}}
+  };
+  window.cmBridgeSignup=async function(){
+    clear();const n=($('signupName')?.value||'').trim(),email=($('signupEmail')?.value||'').trim(),p=$('signupPassword')?.value||'',c=$('signupConfirm')?.value||'';if(!n||!email||p.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}if(p!==c){msg('Passwords do not match.','error');return}
+    const b=$('signupBtn');try{if(b){b.disabled=true;b.textContent='Creating account…'};const d=await window.cmAuthBridge.signup(n,email,p);if(d?.access_token){localStorage.setItem('cm_bridge_session',JSON.stringify(d));msg('Account created. Opening CampusMate…','success');if(typeof window.finishLogin==='function')await window.finishLogin(d);else location.reload()}else msg('Account created. A confirmation link has been sent to your email. Confirm it, then log in.','success')}catch(e){msg(e.message||String(e),'error')}finally{if(b){b.disabled=false;b.textContent='Create student account'}}
+  };
+  window.cmBridgeRecover=async function(){clear();const email=($('loginEmail')?.value||'').trim();if(!email){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}try{await window.cmAuthBridge.recover(email);msg('Password reset link sent. Check your email.','success')}catch(e){msg(e.message||String(e),'error')}};
+  window.cmBridgeResend=async function(){clear();const email=(($('loginEmail')?.value||$('signupEmail')?.value)||'').trim();if(!email){msg('Enter your email address first.','error');return}try{await window.cmAuthBridge.resend(email);msg('A new confirmation link has been sent to your email.','success')}catch(e){msg(e.message||String(e),'error')}};
+  window.cmBridgeSavePassword=async function(){clear();const p=$('resetPassword')?.value||'',c=$('resetConfirm')?.value||'';if(p.length<6){msg('Your new password must be at least 6 characters.','error');return}if(p!==c){msg('Passwords do not match.','error');return}const s=JSON.parse(localStorage.getItem('cm_bridge_session')||'null');const token=s?.access_token;if(!token){msg('Your password-reset session has expired. Please request a new reset link.','error');return}try{await window.cmAuthBridge.updatePassword(p,token);msg('Your password has been reset successfully. You can now log in.','success');setTimeout(()=>showAuth('login'),900)}catch(e){msg(e.message||String(e),'error')}};
+  bind();
+  // Rebind after DOM parsing/rendering as a safety measure.
+  setTimeout(bind,0);
+})();
+</script>
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-
-/*
-  CampusMate uses Supabase's HTTP APIs directly here.
-  This intentionally removes the dependency on loading supabase-js from a CDN.
-  Authentication, database queries and Edge Function calls are exposed through
-  a small compatibility layer with the same sb.auth / sb.from / sb.functions
-  methods already used by the rest of CampusMate.
-*/
-const CM_AUTH_URL = SUPABASE_URL + '/auth/v1';
-const CM_REST_URL = SUPABASE_URL + '/rest/v1';
-const CM_FUNCTIONS_URL = SUPABASE_URL + '/functions/v1';
-const CM_STORAGE_KEY = 'campusmate_auth_session_v40';
-
-let cmSession = null;
-let cmAuthListeners = [];
-
-function cmHeaders(accessToken=null, extra={}){
-  const h = {
-    'apikey': SUPABASE_PUBLISHABLE_KEY,
-    'Content-Type': 'application/json',
-    ...extra
-  };
-  if(accessToken) h.Authorization = 'Bearer ' + accessToken;
-  return h;
-}
-
-async function cmFetch(url, options={}){
-  const response = await fetch(url, options);
-  let body = null;
-  const text = await response.text();
-  if(text){try{body=JSON.parse(text)}catch{body=text}}
-  if(!response.ok){
-    const message = body?.msg || body?.message || body?.error_description || body?.error || ('Request failed ('+response.status+')');
-    const err = new Error(String(message));
-    err.status=response.status;
-    err.code=body?.code;
-    err.details=body;
-    throw err;
-  }
-  return body;
-}
-
-function cmAuthError(error){
-  return {data:null,error:error instanceof Error?error:new Error(String(error))};
-}
-
-function cmSaveSession(s){
-  cmSession=s||null;
-  if(s) localStorage.setItem(CM_STORAGE_KEY,JSON.stringify(s));
-  else localStorage.removeItem(CM_STORAGE_KEY);
-}
-
-function cmLoadSession(){
-  try{
-    const raw=localStorage.getItem(CM_STORAGE_KEY);
-    return raw?JSON.parse(raw):null;
-  }catch{return null}
-}
-
-function cmEmit(event, session){
-  for(const fn of [...cmAuthListeners]){
-    try{fn(event,session)}catch(e){console.error('CampusMate auth listener:',e)}
-  }
-}
-
-function cmAuthClient(){
-  return {
-    async signInWithPassword({email,password}){
-      try{
-        const data=await cmFetch(CM_AUTH_URL+'/token?grant_type=password',{
-          method:'POST',headers:cmHeaders(),body:JSON.stringify({email,password})
-        });
-        cmSaveSession(data);
-        cmEmit('SIGNED_IN',data);
-        return {data:{user:data.user,session:data},error:null};
-      }catch(e){return cmAuthError(e)}
-    },
-    async signUp({email,password,options={}}){
-      try{
-        const payload={email,password};
-        if(options.data) payload.data=options.data;
-        if(options.emailRedirectTo) payload.email_redirect_to=options.emailRedirectTo;
-        const data=await cmFetch(CM_AUTH_URL+'/signup',{
-          method:'POST',headers:cmHeaders(),body:JSON.stringify(payload)
-        });
-        if(data?.access_token){cmSaveSession(data);cmEmit('SIGNED_IN',data)}
-        return {data:{user:data?.user||null,session:data?.access_token?data:null},error:null};
-      }catch(e){return cmAuthError(e)}
-    },
-    async resend({type,email}){
-      try{
-        const data=await cmFetch(CM_AUTH_URL+'/resend',{
-          method:'POST',headers:cmHeaders(),body:JSON.stringify({type,email})
-        });
-        return {data,error:null};
-      }catch(e){return cmAuthError(e)}
-    },
-    async resetPasswordForEmail(email,{redirectTo}={}){
-      try{
-        const payload={email};
-        if(redirectTo) payload.redirect_to=redirectTo;
-        const data=await cmFetch(CM_AUTH_URL+'/recover',{
-          method:'POST',headers:cmHeaders(),body:JSON.stringify(payload)
-        });
-        return {data,error:null};
-      }catch(e){return cmAuthError(e)}
-    },
-    async updateUser(attributes){
-      try{
-        if(!cmSession?.access_token) throw new Error('Your password-reset session has expired. Please request a new reset link.');
-        const data=await cmFetch(CM_AUTH_URL+'/user',{
-          method:'PUT',headers:cmHeaders(cmSession.access_token),body:JSON.stringify(attributes)
-        });
-        cmSession={...cmSession,user:data};
-        cmSaveSession(cmSession);
-        return {data:{user:data},error:null};
-      }catch(e){return cmAuthError(e)}
-    },
-    async getSession(){
-      // Normal CampusMate startup intentionally does not auto-login. This method
-      // is used by the password-recovery flow, where the access token is supplied
-      // in the Supabase redirect hash.
-      const stored=cmSession||cmLoadSession();
-      if(stored?.access_token){
-        cmSession=stored;
-        return {data:{session:stored},error:null};
-      }
-      const hash=new URLSearchParams((location.hash||'').replace(/^#/,'').replace(/^\?/,'').replace(/^[^#?]*#/,''));
-      const access=hash.get('access_token');
-      const refresh=hash.get('refresh_token');
-      if(access){
-        let user=null;
-        try{user=await cmFetch(CM_AUTH_URL+'/user',{headers:cmHeaders(access)})}catch(e){return {data:{session:{access_token:access,refresh_token:refresh||null}},error:null}}
-        const recovered={access_token:access,refresh_token:refresh||null,user};
-        cmSaveSession(recovered);
-        cmEmit('PASSWORD_RECOVERY',recovered);
-        return {data:{session:recovered},error:null};
-      }
-      return {data:{session:null},error:null};
-    },
-    onAuthStateChange(callback){
-      cmAuthListeners.push(callback);
-      return {data:{subscription:{unsubscribe(){cmAuthListeners=cmAuthListeners.filter(x=>x!==callback)}}}};
-    },
-    async signOut(){
-      try{
-        if(cmSession?.access_token){
-          try{await cmFetch(CM_AUTH_URL+'/logout',{method:'POST',headers:cmHeaders(cmSession.access_token)})}catch{}
-        }
-      }finally{
-        cmSaveSession(null);cmEmit('SIGNED_OUT',null);
-      }
-      return {error:null};
-    }
-  };
-}
-
-function cmQueryBuilder(table, initialSelect='*'){
-  let method='GET', body=null, filters=[], ordering=[], rowLimit=null, singleMode=false, maybeSingleMode=false, selectFields=initialSelect||'*';
-  const builder={
-    select(fields='*'){
-      selectFields=fields||'*';
-      if(method==='POST'||method==='PATCH'||method==='DELETE') builder._returning=true;
-      return builder;
-    },
-    eq(column,value){filters.push([column,'eq',value]);return builder},
-    order(column,opts={}){ordering.push([column,opts?.ascending!==false]);return builder},
-    limit(n){rowLimit=n;return builder},
-    single(){singleMode=true;maybeSingleMode=false;return builder},
-    maybeSingle(){maybeSingleMode=true;singleMode=false;return builder},
-    insert(values){method='POST';body=Array.isArray(values)?values:[values];return builder},
-    update(values){method='PATCH';body=values;return builder},
-    delete(){method='DELETE';return builder},
-    async _run(){
-      const params=[];
-      if(method==='GET') params.push('select='+encodeURIComponent(selectFields));
-      else if(builder._returning) params.push('select='+encodeURIComponent(selectFields));
-      for(const [c,op,v] of filters){
-        let value=v;
-        if(value===null) value='null';
-        params.push(encodeURIComponent(c)+'='+op+'.'+encodeURIComponent(String(value)));
-      }
-      for(const [c,asc] of ordering) params.push('order='+encodeURIComponent(c)+'.'+(asc?'asc':'desc'));
-      if(rowLimit!=null) params.push('limit='+encodeURIComponent(String(rowLimit)));
-      let url=CM_REST_URL+'/'+encodeURIComponent(table)+(params.length?'?'+params.join('&'):'');
-      const access=cmSession?.access_token;
-      const headers=cmHeaders(access);
-      if(singleMode||maybeSingleMode) headers.Accept='application/vnd.pgrst.object+json';
-      if(method==='POST') headers.Prefer=builder._returning===false?'return=minimal':'return=representation';
-      if(method==='PATCH') headers.Prefer='return=representation';
-      const options={method,headers};
-      if(body!==null) options.body=JSON.stringify(body);
-      try{
-        const data=await cmFetch(url,options);
-        return {data,error:null};
-      }catch(e){
-        if((singleMode||maybeSingleMode) && e.status===406 && maybeSingleMode) return {data:null,error:null};
-        return {data:null,error:e};
-      }
-    },
-    then(resolve,reject){return builder._run().then(resolve,reject)},
-    catch(reject){return builder._run().catch(reject)}
-  };
-  return builder;
-}
-
-const sb={
-  auth:cmAuthClient(),
-  from(table){return cmQueryBuilder(table)},
-  functions:{
-    async invoke(name,{body=null,headers={}}={}){
-      try{
-        const data=await cmFetch(CM_FUNCTIONS_URL+'/'+encodeURIComponent(name),{
-          method:'POST',headers:cmHeaders(cmSession?.access_token,{...headers}),body:JSON.stringify(body||{})
-        });
-        return {data,error:null};
-      }catch(e){return {data:null,error:e}}
-    }
-  }
-};
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
@@ -1139,5 +983,21 @@ function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.innerHTML=qui
 function jumpQuizQuestion(i){if(!currentQuiz)return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
 function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
 function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
-function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.tim
+function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
+function submitQuiz(timeUp=false){
+  if(!currentQuiz||!quizQuestions.length)return;
+  clearInterval(currentQuiz.timer);let correct=0;
+  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
+  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
+  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
+  $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
+  $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
+  $('quizBox').innerHTML='';go('result');renderPerformance();
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+}
+
+/* ===================== PROFESSIONAL COUNCIL PRACTICE ===================== */
+const COUNCIL_TRACKS = [
+  {key:'nursing', names:['nursing','nursing science'], profession:'Nursing Science', body:'Nursing and Midwifery Council of Nigeria (NMCN)', short:'NMCN'},
+  {key:'medicine', names:['medicine and surgery','medicine & surgery','medicine'], profession
 Preview truncated for large file
