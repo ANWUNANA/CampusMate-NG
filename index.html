@@ -29,44 +29,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .portal-bottom-resources .resource-card{margin:0;}
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
-<script>
-/* CampusMate NG - self-initializing Supabase loader */
-window.__campusMateSupabaseReady = (async function(){
-  if(window.supabase && typeof window.supabase.createClient === 'function') return window.supabase;
-  const sources = [
-    'https://unpkg.com/@supabase/supabase-js@2',
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
-  ];
-  let lastError = null;
-  for(const src of sources){
-    try{
-      await new Promise((resolve,reject)=>{
-        const existing = document.querySelector('script[data-campusmate-supabase]');
-        if(existing){
-          if(window.supabase?.createClient) return resolve();
-          existing.addEventListener('load', resolve, {once:true});
-          existing.addEventListener('error', reject, {once:true});
-          return;
-        }
-        const el=document.createElement('script');
-        el.src=src;
-        el.async=false;
-        el.defer=false;
-        el.dataset.campusmateSupabase='1';
-        el.onload=()=>resolve();
-        el.onerror=()=>reject(new Error('Failed to load '+src));
-        document.head.appendChild(el);
-      });
-      if(window.supabase?.createClient) return window.supabase;
-    }catch(e){
-      lastError=e;
-      const bad=document.querySelector('script[data-campusmate-supabase]');
-      if(bad) bad.remove();
-    }
-  }
-  throw lastError || new Error('Supabase library unavailable');
-})();
-</script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;color:var(--n);display:grid;place-items:center;padding:0}.pw button svg{width:21px;height:21px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
@@ -235,24 +197,226 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-let sb = null;
-let supabaseInitializationError = null;
 
-async function ensureSupabase(){
-  if(sb) return sb;
-  try{
-    const api = (window.supabase?.createClient)
-      ? window.supabase
-      : await window.__campusMateSupabaseReady;
-    if(!api || typeof api.createClient !== 'function') throw new Error('Supabase library unavailable.');
-    sb = api.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-    return sb;
-  }catch(err){
-    supabaseInitializationError = err;
-    console.error('CampusMate Supabase initialization failed:', err);
+/*
+  CampusMate uses Supabase's HTTP APIs directly here.
+  This intentionally removes the dependency on loading supabase-js from a CDN.
+  Authentication, database queries and Edge Function calls are exposed through
+  a small compatibility layer with the same sb.auth / sb.from / sb.functions
+  methods already used by the rest of CampusMate.
+*/
+const CM_AUTH_URL = SUPABASE_URL + '/auth/v1';
+const CM_REST_URL = SUPABASE_URL + '/rest/v1';
+const CM_FUNCTIONS_URL = SUPABASE_URL + '/functions/v1';
+const CM_STORAGE_KEY = 'campusmate_auth_session_v40';
+
+let cmSession = null;
+let cmAuthListeners = [];
+
+function cmHeaders(accessToken=null, extra={}){
+  const h = {
+    'apikey': SUPABASE_PUBLISHABLE_KEY,
+    'Content-Type': 'application/json',
+    ...extra
+  };
+  if(accessToken) h.Authorization = 'Bearer ' + accessToken;
+  return h;
+}
+
+async function cmFetch(url, options={}){
+  const response = await fetch(url, options);
+  let body = null;
+  const text = await response.text();
+  if(text){try{body=JSON.parse(text)}catch{body=text}}
+  if(!response.ok){
+    const message = body?.msg || body?.message || body?.error_description || body?.error || ('Request failed ('+response.status+')');
+    const err = new Error(String(message));
+    err.status=response.status;
+    err.code=body?.code;
+    err.details=body;
     throw err;
   }
+  return body;
 }
+
+function cmAuthError(error){
+  return {data:null,error:error instanceof Error?error:new Error(String(error))};
+}
+
+function cmSaveSession(s){
+  cmSession=s||null;
+  if(s) localStorage.setItem(CM_STORAGE_KEY,JSON.stringify(s));
+  else localStorage.removeItem(CM_STORAGE_KEY);
+}
+
+function cmLoadSession(){
+  try{
+    const raw=localStorage.getItem(CM_STORAGE_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch{return null}
+}
+
+function cmEmit(event, session){
+  for(const fn of [...cmAuthListeners]){
+    try{fn(event,session)}catch(e){console.error('CampusMate auth listener:',e)}
+  }
+}
+
+function cmAuthClient(){
+  return {
+    async signInWithPassword({email,password}){
+      try{
+        const data=await cmFetch(CM_AUTH_URL+'/token?grant_type=password',{
+          method:'POST',headers:cmHeaders(),body:JSON.stringify({email,password})
+        });
+        cmSaveSession(data);
+        cmEmit('SIGNED_IN',data);
+        return {data:{user:data.user,session:data},error:null};
+      }catch(e){return cmAuthError(e)}
+    },
+    async signUp({email,password,options={}}){
+      try{
+        const payload={email,password};
+        if(options.data) payload.data=options.data;
+        if(options.emailRedirectTo) payload.email_redirect_to=options.emailRedirectTo;
+        const data=await cmFetch(CM_AUTH_URL+'/signup',{
+          method:'POST',headers:cmHeaders(),body:JSON.stringify(payload)
+        });
+        if(data?.access_token){cmSaveSession(data);cmEmit('SIGNED_IN',data)}
+        return {data:{user:data?.user||null,session:data?.access_token?data:null},error:null};
+      }catch(e){return cmAuthError(e)}
+    },
+    async resend({type,email}){
+      try{
+        const data=await cmFetch(CM_AUTH_URL+'/resend',{
+          method:'POST',headers:cmHeaders(),body:JSON.stringify({type,email})
+        });
+        return {data,error:null};
+      }catch(e){return cmAuthError(e)}
+    },
+    async resetPasswordForEmail(email,{redirectTo}={}){
+      try{
+        const payload={email};
+        if(redirectTo) payload.redirect_to=redirectTo;
+        const data=await cmFetch(CM_AUTH_URL+'/recover',{
+          method:'POST',headers:cmHeaders(),body:JSON.stringify(payload)
+        });
+        return {data,error:null};
+      }catch(e){return cmAuthError(e)}
+    },
+    async updateUser(attributes){
+      try{
+        if(!cmSession?.access_token) throw new Error('Your password-reset session has expired. Please request a new reset link.');
+        const data=await cmFetch(CM_AUTH_URL+'/user',{
+          method:'PUT',headers:cmHeaders(cmSession.access_token),body:JSON.stringify(attributes)
+        });
+        cmSession={...cmSession,user:data};
+        cmSaveSession(cmSession);
+        return {data:{user:data},error:null};
+      }catch(e){return cmAuthError(e)}
+    },
+    async getSession(){
+      // Normal CampusMate startup intentionally does not auto-login. This method
+      // is used by the password-recovery flow, where the access token is supplied
+      // in the Supabase redirect hash.
+      const stored=cmSession||cmLoadSession();
+      if(stored?.access_token){
+        cmSession=stored;
+        return {data:{session:stored},error:null};
+      }
+      const hash=new URLSearchParams((location.hash||'').replace(/^#/,'').replace(/^\?/,'').replace(/^[^#?]*#/,''));
+      const access=hash.get('access_token');
+      const refresh=hash.get('refresh_token');
+      if(access){
+        let user=null;
+        try{user=await cmFetch(CM_AUTH_URL+'/user',{headers:cmHeaders(access)})}catch(e){return {data:{session:{access_token:access,refresh_token:refresh||null}},error:null}}
+        const recovered={access_token:access,refresh_token:refresh||null,user};
+        cmSaveSession(recovered);
+        cmEmit('PASSWORD_RECOVERY',recovered);
+        return {data:{session:recovered},error:null};
+      }
+      return {data:{session:null},error:null};
+    },
+    onAuthStateChange(callback){
+      cmAuthListeners.push(callback);
+      return {data:{subscription:{unsubscribe(){cmAuthListeners=cmAuthListeners.filter(x=>x!==callback)}}}};
+    },
+    async signOut(){
+      try{
+        if(cmSession?.access_token){
+          try{await cmFetch(CM_AUTH_URL+'/logout',{method:'POST',headers:cmHeaders(cmSession.access_token)})}catch{}
+        }
+      }finally{
+        cmSaveSession(null);cmEmit('SIGNED_OUT',null);
+      }
+      return {error:null};
+    }
+  };
+}
+
+function cmQueryBuilder(table, initialSelect='*'){
+  let method='GET', body=null, filters=[], ordering=[], rowLimit=null, singleMode=false, maybeSingleMode=false, selectFields=initialSelect||'*';
+  const builder={
+    select(fields='*'){
+      selectFields=fields||'*';
+      if(method==='POST'||method==='PATCH'||method==='DELETE') builder._returning=true;
+      return builder;
+    },
+    eq(column,value){filters.push([column,'eq',value]);return builder},
+    order(column,opts={}){ordering.push([column,opts?.ascending!==false]);return builder},
+    limit(n){rowLimit=n;return builder},
+    single(){singleMode=true;maybeSingleMode=false;return builder},
+    maybeSingle(){maybeSingleMode=true;singleMode=false;return builder},
+    insert(values){method='POST';body=Array.isArray(values)?values:[values];return builder},
+    update(values){method='PATCH';body=values;return builder},
+    delete(){method='DELETE';return builder},
+    async _run(){
+      const params=[];
+      if(method==='GET') params.push('select='+encodeURIComponent(selectFields));
+      else if(builder._returning) params.push('select='+encodeURIComponent(selectFields));
+      for(const [c,op,v] of filters){
+        let value=v;
+        if(value===null) value='null';
+        params.push(encodeURIComponent(c)+'='+op+'.'+encodeURIComponent(String(value)));
+      }
+      for(const [c,asc] of ordering) params.push('order='+encodeURIComponent(c)+'.'+(asc?'asc':'desc'));
+      if(rowLimit!=null) params.push('limit='+encodeURIComponent(String(rowLimit)));
+      let url=CM_REST_URL+'/'+encodeURIComponent(table)+(params.length?'?'+params.join('&'):'');
+      const access=cmSession?.access_token;
+      const headers=cmHeaders(access);
+      if(singleMode||maybeSingleMode) headers.Accept='application/vnd.pgrst.object+json';
+      if(method==='POST') headers.Prefer=builder._returning===false?'return=minimal':'return=representation';
+      if(method==='PATCH') headers.Prefer='return=representation';
+      const options={method,headers};
+      if(body!==null) options.body=JSON.stringify(body);
+      try{
+        const data=await cmFetch(url,options);
+        return {data,error:null};
+      }catch(e){
+        if((singleMode||maybeSingleMode) && e.status===406 && maybeSingleMode) return {data:null,error:null};
+        return {data:null,error:e};
+      }
+    },
+    then(resolve,reject){return builder._run().then(resolve,reject)},
+    catch(reject){return builder._run().catch(reject)}
+  };
+  return builder;
+}
+
+const sb={
+  auth:cmAuthClient(),
+  from(table){return cmQueryBuilder(table)},
+  functions:{
+    async invoke(name,{body=null,headers={}}={}){
+      try{
+        const data=await cmFetch(CM_FUNCTIONS_URL+'/'+encodeURIComponent(name),{
+          method:'POST',headers:cmHeaders(cmSession?.access_token,{...headers}),body:JSON.stringify(body||{})
+        });
+        return {data,error:null};
+      }catch(e){return {data:null,error:e}}
+    }
+  }
+};
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
@@ -336,22 +500,20 @@ async function resendConfirmation(emailOverride){
 }
 
 async function sendPasswordReset(){
-  const client = await ensureSupabase();
   clearMsg();
   const e=$('loginEmail').value.trim();
   if(!e){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}
-  const {error}=await client.auth.resetPasswordForEmail(e,{redirectTo:authRedirectUrl()});
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:authRedirectUrl()});
   if(error){msg(error.message,'error');return}
   msg('Password reset link sent. Check your email and follow the link to create a new password.','success');
 }
 
 async function saveNewPassword(){
-  const client = await ensureSupabase();
   clearMsg();
   const pw=$('resetPassword').value,cpw=$('resetConfirm').value;
   if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
-  const {error}=await client.auth.updateUser({password:pw});
+  const {error}=await sb.auth.updateUser({password:pw});
   if(error){msg(error.message,'error');return}
   $('resetPassword').value=''; $('resetConfirm').value='';
   msg('Your password has been reset successfully. You can now log in with your new password.','success');
@@ -359,23 +521,21 @@ async function saveNewPassword(){
 }
 
 async function signUp(){
-  const client = await ensureSupabase();
   clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
   if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
-  const {data,error}=await client.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
+  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
   if(error){msg(error.message,'error');return}
   if(data.session){await finishLogin(data.session);}
   else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
 }
 async function login(){
-  const client = await ensureSupabase();
   clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
   try{
-    const {data,error}=await client.auth.signInWithPassword({email:e,password:pw});
+    const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
     if(error){
       const em=String(error.message||'').toLowerCase();
       if(em.includes('email not confirmed')||em.includes('email_not_confirmed')){
@@ -979,93 +1139,5 @@ function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.innerHTML=qui
 function jumpQuizQuestion(i){if(!currentQuiz)return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
 function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
 function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
-function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
-function submitQuiz(timeUp=false){
-  if(!currentQuiz||!quizQuestions.length)return;
-  clearInterval(currentQuiz.timer);let correct=0;
-  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
-  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
-  $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
-  $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
-  $('quizBox').innerHTML='';go('result');renderPerformance();
-  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
-}
-
-/* ===================== PROFESSIONAL COUNCIL PRACTICE ===================== */
-const COUNCIL_TRACKS = [
-  {key:'nursing', names:['nursing','nursing science'], profession:'Nursing Science', body:'Nursing and Midwifery Council of Nigeria (NMCN)', short:'NMCN'},
-  {key:'medicine', names:['medicine and surgery','medicine & surgery','medicine'], profession:'Medicine and Surgery', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
-  {key:'dentistry', names:['dentistry','dental surgery'], profession:'Dentistry', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
-  {key:'pharmacy', names:['pharmacy'], profession:'Pharmacy', body:'Pharmacy Council of Nigeria (PCN)', short:'PCN'},
-  {key:'medical-lab', names:['medical laboratory science','medical laboratory sciences'], profession:'Medical Laboratory Science', body:'Medical Laboratory Science Council of Nigeria (MLSCN)', short:'MLSCN'},
-  {key:'radiography', names:['radiography','radiography and radiation science'], profession:'Radiography', body:'Radiographers Registration Board of Nigeria (RRBN)', short:'RRBN'},
-  {key:'physiotherapy', names:['physiotherapy'], profession:'Physiotherapy', body:'Medical Rehabilitation Therapists Board of Nigeria (MRTB)', short:'MRTB'},
-  {key:'optometry', names:['optometry'], profession:'Optometry', body:'Optometrists and Dispensing Opticians Registration Board of Nigeria (ODORBN)', short:'ODORBN'},
-  {key:'veterinary-medicine', names:['veterinary medicine','veterinary medicine and surgery'], profession:'Veterinary Medicine', body:'Veterinary Council of Nigeria (VCN)', short:'VCN'},
-  {key:'law', names:['law','llb','bachelor of laws'], profession:'Law', body:'Council of Legal Education (CLE)', short:'CLE'},
-  {key:'accounting', names:['accounting'], profession:'Accounting', body:'Institute of Chartered Accountants of Nigeria (ICAN)', short:'ICAN'}
-];
-
-let councilTracksCache=[];
-let currentCouncilTrack=null;
-let councilQuestions=[];
-let currentCouncilCbt=null;
-
-function programmeText(){
-  return String(profile?.programmes?.name||profile?.programme_name||'').trim().toLowerCase();
-}
-function getEligibleCouncilTracks(){
-  const p=programmeText();
-  return COUNCIL_TRACKS.filter(t=>t.names.some(n=>p===n||p.includes(n)||n.includes(p)));
-}
-function councilQuestionUsable(q){
-  return q && questionText(q)!=='Question' && questionOptions(q).length>=2 && correctKey(q)!=='';
-}
-function councilQuestionApproved(q){
-  const status=String(q?.verification_status||q?.status||q?.verificationStatus||'').toLowerCase();
-  const origin=String(q?.content_origin||q?.origin||q?.source_type||'').toLowerCase();
-  const active=q?.active===undefined ? q?.is_active!==false : q.active!==false;
-  const approved=['officially_verified','licensed_partner','reviewed_reference','official_verified','official_authorized'].includes(status) ||
-                 ['licensed_partner','reviewed_reference','official_authorized'].includes(origin);
-  return active && (approved || !status && !origin);
-}
-async function fetchCouncilQuestions(track){
-  const attempts=[
-    {table:'council_questions',fields:'*'},
-    {table:'professional_council_questions',fields:'*'}
-  ];
-  for(const a of attempts){
-    try{
-      let q=sb.from(a.table).select(a.fields);
-      const {data,error}=await q;
-      if(error)continue;
-      const rows=(data||[]).filter(row=>{
-        const key=String(row.track_key||row.track_id||row.exam_track||row.council_track||row.council||'').toLowerCase();
-        const body=String(row.council_body||row.exam_body||'').toLowerCase();
-        return !key || key===track.key || key===track.short.toLowerCase() || body.includes(track.short.toLowerCase()) || body.includes(track.body.toLowerCase());
-      }).filter(councilQuestionApproved).filter(councilQuestionUsable);
-      if(rows.length)return rows;
-    }catch(e){console.warn('Council question source unavailable:',a.table,e)}
-  }
-  return [];
-}
-function renderCouncilTracks(){
-  const box=$('councilTracks'); if(!box)return;
-  const eligible=getEligibleCouncilTracks();
-  councilTracksCache=eligible;
-  const q=($('councilSearch')?.value||'').trim().toLowerCase();
-  const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
-  if(!eligible.length){
-    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
-    return;
-  }
-  if(!shown.length){
-    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
-    return;
-  }
-  box.innerHTML=shown.map(t=>`
-    <div class="card">
-      <div class="row" style="justify-content:space-between;gap:10px">
-        <div><span class="pill">${escap
+function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.tim
 Preview truncated for large file
