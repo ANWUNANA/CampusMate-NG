@@ -198,8 +198,24 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-const { createClient } = window.supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let sb = null;
+let supabaseReady = false;
+
+function initSupabaseClient(){
+  try{
+    if(window.supabase && typeof window.supabase.createClient === 'function'){
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      supabaseReady = !!sb;
+      return supabaseReady;
+    }
+  }catch(e){
+    console.error('CampusMate Supabase initialization failed:',e);
+  }
+  supabaseReady = false;
+  return false;
+}
+
+initSupabaseClient();
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
@@ -283,6 +299,7 @@ async function resendConfirmation(emailOverride){
 }
 
 async function sendPasswordReset(){
+  if(!supabaseReady||!sb){msg('CampusMate is still connecting to the authentication service. Please wait a moment and try again.','error');return}
   clearMsg();
   const e=$('loginEmail').value.trim();
   if(!e){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}
@@ -292,6 +309,7 @@ async function sendPasswordReset(){
 }
 
 async function saveNewPassword(){
+  if(!supabaseReady||!sb){msg('CampusMate is still connecting to the authentication service. Please wait a moment and try again.','error');return}
   clearMsg();
   const pw=$('resetPassword').value,cpw=$('resetConfirm').value;
   if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
@@ -304,7 +322,8 @@ async function saveNewPassword(){
 }
 
 async function signUp(){
-  clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
+  clearMsg();
+  if(!supabaseReady||!sb){msg('CampusMate is still connecting to the authentication service. Please wait a moment and try again.','error');return} const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
   if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
   const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:authRedirectUrl()}});
@@ -313,7 +332,8 @@ async function signUp(){
   else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
 }
 async function login(){
-  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  clearMsg();
+  if(!supabaseReady||!sb){msg('CampusMate is still connecting to the authentication service. Please wait a moment and try again.','error');return} $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
@@ -1029,19 +1049,5 @@ async function openCouncilSetup(key){
   $('councilSetupTitle').textContent=track.profession+' — '+track.short;
   $('councilSetupSub').textContent=track.body;
   $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
-  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
-  $('councilTopic').innerHTML='<option value="">All available topics</option>';
-  councilQuestions=await fetchCouncilQuestions(track);
-  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-  if(councilQuestions.length){
-    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
-  }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async function beginCouncilCbt(){
-  if(!currentCouncilTrack)return;
-  if(!getEligibleCounci
+  $('councilSetupInfo').textContent='This practice track is dedicated
 Preview truncated for large file
