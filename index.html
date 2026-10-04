@@ -220,26 +220,9 @@ function loadScript(src){
 }
 
 async function ensureSupabase(){
-  if(supabaseReady&&sb)return true;
-  if(supabaseLoading)return supabaseLoading;
-  supabaseLoading=(async()=>{
-    const sources=[
-      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-      'https://unpkg.com/@supabase/supabase-js@2'
-    ];
-    for(const src of sources){
-      try{
-        if(!window.supabase)await loadScript(src);
-        if(window.supabase&&typeof window.supabase.createClient==='function'){
-          sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-          supabaseReady=!!sb;
-          if(supabaseReady)return true;
-        }
-      }catch(e){console.warn('CampusMate auth library load failed:',src,e)}
-    }
-    supabaseReady=false; sb=null; return false;
-  })();
-  return supabaseLoading;
+  if(supabaseReady&&sb)return true;if(supabaseLoading)return supabaseLoading;
+  supabaseLoading=(async()=>{const sources=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('Authentication library timed out')),ms))]);for(const src of sources){try{if(!window.supabase)await withTimeout(loadScript(src),8000);if(window.supabase&&typeof window.supabase.createClient==='function'){sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);supabaseReady=!!sb;if(supabaseReady)return true}}catch(e){console.warn('CampusMate auth library load failed:',src,e)}}supabaseReady=false;sb=null;return false})();
+  try{return await supabaseLoading}finally{supabaseLoading=null}
 }
 
 
@@ -309,7 +292,7 @@ async function loadLevels(){
 function authRedirectUrl(){return window.location.origin+window.location.pathname;}
 
 async function resendConfirmation(emailOverride){
-  if(!(await ensureSupabase())){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
+  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
   clearMsg();
   const e=(emailOverride||$('loginEmail').value.trim()||$('signupEmail').value.trim());
   if(!e){msg('Enter the email address you used to create your CampusMate account.','error');return}
@@ -386,90 +369,19 @@ async function login(){
   }
 }
 async function finishLogin(s){
-  session=s;
-  let profileState='unknown';
-  window.scrollTo(0,0);
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-
-  // Hide authentication immediately and never flash the academic setup screen.
-  $('auth').classList.add('hidden');
-  $('student').classList.remove('hidden');
-  $('portal').classList.remove('hidden');
-  $('onboarding').classList.add('hidden');
-
-  // Build a dashboard shell immediately from the authenticated user so returning
-  // students do not wait for secondary data before seeing the dashboard.
-  profile=profile||{};
-  profile.id=session.user.id;
-  profile.full_name=profile.full_name||session.user.user_metadata?.full_name||session.user.email;
-  profile.role=profile.role||'student';
-  // IMPORTANT: do not call startStudent() here. Until the real profile has
-  // loaded, the temporary profile object has no academic IDs and startStudent()
-  // would incorrectly interpret that as an incomplete profile and reveal setup.
-  // The dashboard shell is already visible above; startStudent() is called only
-  // after the actual profile has been read successfully.
-
-  const profileLoad=loadProfile().then(state=>{profileState=state;return state});
-
-  // Give the profile lookup a short foreground window. If it is fast, we can
-  // immediately decide whether this is a returning or new/incomplete student.
-  let loaded=false;
+  if(!s?.user){msg('CampusMate could not complete the login session. Please try again.','error');return}
+  session=s;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
+  $('auth').classList.add('hidden');$('student').classList.remove('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
   try{
-    await Promise.race([
-      profileLoad.then(()=>{loaded=true}),
-      new Promise(resolve=>setTimeout(resolve,1200))
-    ]);
-  }catch(e){console.warn('Profile initialization:',e)}
-
-  if(loaded){
-    if(profileState==='error'){
-      // A database/network/profile-read failure must NEVER send an existing
-      // student to the setup screen. Keep the dashboard visible and retry.
-      console.warn('Profile could not be read; keeping returning user on dashboard.');
-      history.replaceState({cmPage:'home'},'',location.href);
-      return;
-    }
+    profile=null;await loadProfile();await refreshProStatus();
     if(hasCompletedAcademicProfile()){
-      $('onboarding').classList.add('hidden');
-      $('portal').classList.remove('hidden');
-      startStudent();
-      history.replaceState({cmPage:'home'},'',location.href);
-
-      // Non-critical work continues after the dashboard is already visible.
-      Promise.allSettled([refreshProStatus(),loadStudentData()]).then(()=>{
-        startStudent();
-      });
+      $('onboarding').classList.add('hidden');$('portal').classList.remove('hidden');await loadStudentData();startStudent();
     }else{
-      // Only an incomplete/new academic profile is sent to setup.
-      $('portal').classList.add('hidden');
-      $('onboarding').classList.remove('hidden');
-      await loadAcademicOptions();
+      $('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');await loadAcademicOptions();
     }
-  }else{
-    // Keep the dashboard visible while the profile request finishes in the
-    // background. A completed returning profile will remain on the dashboard;
-    // an incomplete/new profile will be moved to setup when the lookup resolves.
-    profileLoad.then(async(state)=>{
-      if(state==='error'){
-        // Do not redirect a returning student to setup just because a profile
-        // request was temporarily unavailable.
-        console.warn('Background profile lookup failed; dashboard remains open.');
-        return;
-      }
-      if(hasCompletedAcademicProfile()){
-        $('onboarding').classList.add('hidden');
-        $('portal').classList.remove('hidden');
-        startStudent();
-        history.replaceState({cmPage:'home'},'',location.href);
-        await Promise.allSettled([refreshProStatus(),loadStudentData()]);
-        startStudent();
-      }else{
-        $('portal').classList.add('hidden');
-        $('onboarding').classList.remove('hidden');
-        await loadAcademicOptions();
-      }
-    }).catch(err=>console.warn('Background profile loading:',err));
+  }catch(err){
+    console.error('CampusMate finishLogin error:',err);$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');$('auth').classList.remove('hidden');showAuth('login');
+    msg('Login succeeded, but CampusMate could not finish loading your profile. Please try again.','error');
   }
 }
 async function loadProfile(){
@@ -926,6 +838,7 @@ async function startSelectedQuiz(){
   try{courseId=await resolveCurrentCourseId();}catch(err){console.error('Course resolution error:',err);alert('CampusMate could not connect this course to its question bank. Please try again.');return;}
   if(!courseId){alert('This course is selected, but it is not connected to a CampusMate course record.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
+  if(count>100){alert('CampusMate limits each quiz attempt to a maximum of 100 questions.');if($('quizCount'))$('quizCount').value='100';return;}
   if(count>10&&!quizIsPro()){openProGate(count);return;}
   const mode=$('quizMode')?.value||'practice',topicId=$('quizTopic')?.value||'';
   $('quizBoxCard')?.classList.remove('hidden');$('quizBox').innerHTML='<p class="mut">Connecting to the CampusMate question bank…</p>';
@@ -1052,5 +965,46 @@ function renderCouncilTracks(){
   const q=($('councilSearch')?.value||'').trim().toLowerCase();
   const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
   if(!eligible.length){
-    box.innerHTML='<di
+    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
+    return;
+  }
+  if(!shown.length){
+    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
+    return;
+  }
+  box.innerHTML=shown.map(t=>`
+    <div class="card">
+      <div class="row" style="justify-content:space-between;gap:10px">
+        <div><span class="pill">${escapeHtml(t.short)}</span><h3 style="margin:8px 0 4px">${escapeHtml(t.profession)}</h3><p class="mut" style="margin:0">${escapeHtml(t.body)}</p></div>
+      </div>
+      <button class="primary" style="margin-top:12px" onclick="openCouncilSetup('${t.key}')">Open ${escapeHtml(t.short)} practice</button>
+    </div>`).join('');
+}
+async function loadCouncilPractice(){
+  renderCouncilTracks();
+}
+async function openCouncilSetup(key){
+  const track=COUNCIL_TRACKS.find(x=>x.key===key);
+  if(!track)return;
+  if(!getEligibleCouncilTracks().some(x=>x.key===key)){
+    alert('Council exam practice is available only to students in the matching professional programme.');
+    return;
+  }
+  currentCouncilTrack=track;
+  $('councilSetupTitle').textContent=track.profession+' — '+track.short;
+  $('councilSetupSub').textContent=track.body;
+  $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
+  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
+  $('councilTopic').innerHTML='<option value="">All available topics</option>';
+  councilQuestions=await fetchCouncilQuestions(track);
+  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
+  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+  if(councilQuestions.length){
+    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
+  }else{
+    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
+  }
+  go('councilSetup');
+}
+async functi
 Preview truncated for large file
