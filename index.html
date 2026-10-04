@@ -203,7 +203,23 @@ const msg=(t,type='info')=>{const e=$('authMsg');if(e){e.textContent=t;e.classNa
 function show(m){$('loginForm')?.classList.toggle('hidden',m!=='login');$('signupForm')?.classList.toggle('hidden',m!=='signup');$('resetForm')?.classList.toggle('hidden',m!=='reset');$('loginTab')?.classList.toggle('active',m==='login');$('signupTab')?.classList.toggle('active',m==='signup');$('resendConfirmationWrap')?.classList.add('hidden');clear()}
 function load(){if(client)return Promise.resolve(client);if(loading)return loading;loading=new Promise((resolve,reject)=>{if(window.supabase?.createClient){try{client=window.supabase.createClient(URL,KEY);resolve(client)}catch(e){reject(e)}return}const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.async=true;const timer=setTimeout(()=>{sc.remove();reject(new Error('Authentication library timed out'))},10000);sc.onload=()=>{clearTimeout(timer);try{if(!window.supabase?.createClient)throw new Error('Authentication library unavailable');client=window.supabase.createClient(URL,KEY);resolve(client)}catch(e){reject(e)}};sc.onerror=()=>{clearTimeout(timer);reject(new Error('Could not load authentication library'))};document.head.appendChild(sc)}).finally(()=>{loading=null});return loading}
 async function get(){try{return await load()}catch(e){console.error(e);msg('CampusMate could not connect to the authentication service. Check your internet connection and try again.','error');return null}}
-async function login(){clear();const sb=await get();if(!sb)return;const e=($('loginEmail')?.value||'').trim(),pw=$('loginPassword')?.value||'';if(!e||!pw){msg('Enter your email and password.','error');return}const b=$('loginBtn');if(b){b.disabled=true;b.textContent='Logging in…'}try{const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});if(error){const x=String(error.message||'').toLowerCase();if(x.includes('email not confirmed')||x.includes('email_not_confirmed')){$('resendConfirmationWrap')?.classList.remove('hidden');$('signupEmail').value=e;msg('Please confirm your email before logging in. A new confirmation link is ready to be sent below.','error')}else msg(error.message||'Login failed.','error');return}msg('Login successful! Opening your dashboard…','success');await new Promise(r=>setTimeout(r,450));if(typeof window.finishLogin==='function')await window.finishLogin(data.session);else window.__CM_PENDING_SESSION=data.session}catch(err){console.error(err);msg('Login could not be completed. Please try again.','error')}finally{if(b){b.disabled=false;b.textContent='Log in'}}}
+async function login(){clear();const sb=await get();if(!sb)return;const e=($('loginEmail')?.value||'').trim(),pw=$('loginPassword')?.value||'';if(!e||!pw){msg('Enter your email and password.','error');return}const b=$('loginBtn');if(b){b.disabled=true;b.textContent='Logging in…'}try{const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});if(error){const x=String(error.message||'').toLowerCase();if(x.includes('email not confirmed')||x.includes('email_not_confirmed')){$('resendConfirmationWrap')?.classList.remove('hidden');$('signupEmail').value=e;msg('Your email is not confirmed yet. A confirmation link is ready below. Tap “Resend confirmation email” to send a new link to your inbox.','error')}else msg(error.message||'Login failed.','error');return}msg('Login successful! Opening your dashboard…','success');
+// Reveal the dashboard shell immediately. Do not wait for profile/course data.
+try{
+  $('auth')?.classList.add('hidden');
+  $('student')?.classList.remove('hidden');
+  $('portal')?.classList.remove('hidden');
+  $('onboarding')?.classList.add('hidden');
+  document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
+  $('home')?.classList.remove('hidden');
+  window.scrollTo(0,0);
+}catch(e){console.error('Immediate dashboard reveal failed:',e)}
+if(typeof window.finishLogin==='function'){
+  // Continue profile initialization in the background; it must not block the dashboard.
+  Promise.resolve(window.finishLogin(data.session)).catch(e=>console.error('Dashboard initialization:',e));
+}else{
+  window.__CM_PENDING_SESSION=data.session;
+}}catch(err){console.error(err);msg('Login could not be completed. Please try again.','error')}finally{if(b){b.disabled=false;b.textContent='Log in'}}}
 async function signUp(){clear();const sb=await get();if(!sb)return;const n=($('signupName')?.value||'').trim(),e=($('signupEmail')?.value||'').trim(),pw=$('signupPassword')?.value||'',cpw=$('signupConfirm')?.value||'';if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}if(pw!==cpw){msg('Passwords do not match.','error');return}const b=$('signupBtn');if(b){b.disabled=true;b.textContent='Creating account…'}try{const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:location.origin+location.pathname}});if(error){msg(error.message||'Account creation failed.','error');return}if(data.session){msg('Account created! Opening your dashboard…','success');if(typeof window.finishLogin==='function')await window.finishLogin(data.session);else window.__CM_PENDING_SESSION=data.session}else{$('resendConfirmationWrap')?.classList.remove('hidden');$('loginEmail').value=e;msg('Account created. A confirmation link has been sent to your email.','success')}}catch(err){console.error(err);msg('Account creation could not be completed. Please try again.','error')}finally{if(b){b.disabled=false;b.textContent='Create student account'}}}
 async function forgot(){clear();const sb=await get();if(!sb)return;const e=($('loginEmail')?.value||'').trim();if(!e){msg('Enter your email address first.','error');return}const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(error)msg(error.message||'Password reset could not be requested.','error');else msg('Password reset link sent. Check your email.','success')}
 function togglePw(id,btn){
@@ -324,7 +340,7 @@ async function resendConfirmation(emailOverride){
   try{
     const {error}=await sb.auth.resend({type:'signup',email:e,options:{emailRedirectTo:authRedirectUrl()}});
     if(error){msg(error.message,'error');return}
-    msg('Confirmation link sent. Check your inbox and spam folder, then click the link to confirm your account.','success');
+    msg('Confirmation email sent successfully. Check your inbox and spam folder, then click the confirmation link to verify your email.','success');
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Resend confirmation email'}
   }
@@ -991,11 +1007,5 @@ async function startSelectedQuiz(){
 function renderQuizQuestion(){
   if(!quizQuestions.length)return;
   const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
-  $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.length;
-  $('quizProgress').style.width=((i+1)/quizQuestions.length*100)+'%';
-  $('quizBox').innerHTML='<div class="card"><div style="font-weight:800;line-height:1.6">'+escapeHtml(questionText(q))+'</div><div style="margin-top:14px">'+opts.map(o=>'<button type="button" class="quizOption '+(chosen===o.key?'selected':'')+'" onclick="chooseQuizAnswer(\''+o.key+'\')"><b>'+o.key+'.</b> '+escapeHtml(o.text)+'</button>').join('')+'</div></div>';
-  renderQuizNavigator();
-}
-function chooseQuizAnswer(key){const q=quizQuestions[currentQuiz.index];quizAnswers[String(q.id)]=key;renderQuizQuestion();}
-function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.inn
+  $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.lengt
 Preview truncated for large file
