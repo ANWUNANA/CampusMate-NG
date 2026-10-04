@@ -46,11 +46,11 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   </div>
 </div>
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
-<div class="tabs"><button type="button" id="loginTab" class="tab active" onclick="showAuth('login')">Log in</button><button type="button" id="signupTab" class="tab" onclick="showAuth('signup')">Create account</button></div>
+<div class="tabs"><button type="button" id="loginTab" class="tab active" onclick="CMAuth.showLogin()">Log in</button><button type="button" id="signupTab" class="tab" onclick="CMAuth.showSignup()">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary" onclick="login()">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" onclick="sendPasswordReset()" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary" onclick="CMAuth.login()">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" onclick="CMAuth.forgot()" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
 <div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="signupBtn" class="primary" onclick="signUp()">Create student account</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="signupBtn" class="primary" onclick="CMAuth.signUp()">Create student account</button></div>
 </div></main>
 </div>
 
@@ -196,6 +196,19 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 </div>
 
+<script>
+(function(){
+const URL='https://ygocrlnijeijzejucnvu.supabase.co',KEY='sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';let client=null,loading=null;const $=id=>document.getElementById(id);
+const msg=(t,type='info')=>{const e=$('authMsg');if(e){e.textContent=t;e.className='msg '+type;e.classList.remove('hidden')}};const clear=()=>{$('authMsg')?.classList.add('hidden')};
+function show(m){$('loginForm')?.classList.toggle('hidden',m!=='login');$('signupForm')?.classList.toggle('hidden',m!=='signup');$('resetForm')?.classList.toggle('hidden',m!=='reset');$('loginTab')?.classList.toggle('active',m==='login');$('signupTab')?.classList.toggle('active',m==='signup');$('resendConfirmationWrap')?.classList.add('hidden');clear()}
+function load(){if(client)return Promise.resolve(client);if(loading)return loading;loading=new Promise((resolve,reject)=>{if(window.supabase?.createClient){try{client=window.supabase.createClient(URL,KEY);resolve(client)}catch(e){reject(e)}return}const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.async=true;const timer=setTimeout(()=>{sc.remove();reject(new Error('Authentication library timed out'))},10000);sc.onload=()=>{clearTimeout(timer);try{if(!window.supabase?.createClient)throw new Error('Authentication library unavailable');client=window.supabase.createClient(URL,KEY);resolve(client)}catch(e){reject(e)}};sc.onerror=()=>{clearTimeout(timer);reject(new Error('Could not load authentication library'))};document.head.appendChild(sc)}).finally(()=>{loading=null});return loading}
+async function get(){try{return await load()}catch(e){console.error(e);msg('CampusMate could not connect to the authentication service. Check your internet connection and try again.','error');return null}}
+async function login(){clear();const sb=await get();if(!sb)return;const e=($('loginEmail')?.value||'').trim(),pw=$('loginPassword')?.value||'';if(!e||!pw){msg('Enter your email and password.','error');return}const b=$('loginBtn');if(b){b.disabled=true;b.textContent='Logging in…'}try{const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});if(error){const x=String(error.message||'').toLowerCase();if(x.includes('email not confirmed')||x.includes('email_not_confirmed')){$('resendConfirmationWrap')?.classList.remove('hidden');$('signupEmail').value=e;msg('Please confirm your email before logging in. A new confirmation link is ready to be sent below.','error')}else msg(error.message||'Login failed.','error');return}msg('Login successful! Opening your dashboard…','success');await new Promise(r=>setTimeout(r,450));if(typeof window.finishLogin==='function')await window.finishLogin(data.session);else window.__CM_PENDING_SESSION=data.session}catch(err){console.error(err);msg('Login could not be completed. Please try again.','error')}finally{if(b){b.disabled=false;b.textContent='Log in'}}}
+async function signUp(){clear();const sb=await get();if(!sb)return;const n=($('signupName')?.value||'').trim(),e=($('signupEmail')?.value||'').trim(),pw=$('signupPassword')?.value||'',cpw=$('signupConfirm')?.value||'';if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}if(pw!==cpw){msg('Passwords do not match.','error');return}const b=$('signupBtn');if(b){b.disabled=true;b.textContent='Creating account…'}try{const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:location.origin+location.pathname}});if(error){msg(error.message||'Account creation failed.','error');return}if(data.session){msg('Account created! Opening your dashboard…','success');if(typeof window.finishLogin==='function')await window.finishLogin(data.session);else window.__CM_PENDING_SESSION=data.session}else{$('resendConfirmationWrap')?.classList.remove('hidden');$('loginEmail').value=e;msg('Account created. A confirmation link has been sent to your email.','success')}}catch(err){console.error(err);msg('Account creation could not be completed. Please try again.','error')}finally{if(b){b.disabled=false;b.textContent='Create student account'}}}
+async function forgot(){clear();const sb=await get();if(!sb)return;const e=($('loginEmail')?.value||'').trim();if(!e){msg('Enter your email address first.','error');return}const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(error)msg(error.message||'Password reset could not be requested.','error');else msg('Password reset link sent. Check your email.','success')}
+window.CMAuth={showLogin:()=>show('login'),showSignup:()=>show('signup'),login,signUp,forgot};
+})();
+</script>
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
 let sb=null;
@@ -919,92 +932,4 @@ let councilTracksCache=[];
 let currentCouncilTrack=null;
 let councilQuestions=[];
 let currentCouncilCbt=null;
-
-function programmeText(){
-  return String(profile?.programmes?.name||profile?.programme_name||'').trim().toLowerCase();
-}
-function getEligibleCouncilTracks(){
-  const p=programmeText();
-  return COUNCIL_TRACKS.filter(t=>t.names.some(n=>p===n||p.includes(n)||n.includes(p)));
-}
-function councilQuestionUsable(q){
-  return q && questionText(q)!=='Question' && questionOptions(q).length>=2 && correctKey(q)!=='';
-}
-function councilQuestionApproved(q){
-  const status=String(q?.verification_status||q?.status||q?.verificationStatus||'').toLowerCase();
-  const origin=String(q?.content_origin||q?.origin||q?.source_type||'').toLowerCase();
-  const active=q?.active===undefined ? q?.is_active!==false : q.active!==false;
-  const approved=['officially_verified','licensed_partner','reviewed_reference','official_verified','official_authorized'].includes(status) ||
-                 ['licensed_partner','reviewed_reference','official_authorized'].includes(origin);
-  return active && (approved || !status && !origin);
-}
-async function fetchCouncilQuestions(track){
-  const attempts=[
-    {table:'council_questions',fields:'*'},
-    {table:'professional_council_questions',fields:'*'}
-  ];
-  for(const a of attempts){
-    try{
-      let q=sb.from(a.table).select(a.fields);
-      const {data,error}=await q;
-      if(error)continue;
-      const rows=(data||[]).filter(row=>{
-        const key=String(row.track_key||row.track_id||row.exam_track||row.council_track||row.council||'').toLowerCase();
-        const body=String(row.council_body||row.exam_body||'').toLowerCase();
-        return !key || key===track.key || key===track.short.toLowerCase() || body.includes(track.short.toLowerCase()) || body.includes(track.body.toLowerCase());
-      }).filter(councilQuestionApproved).filter(councilQuestionUsable);
-      if(rows.length)return rows;
-    }catch(e){console.warn('Council question source unavailable:',a.table,e)}
-  }
-  return [];
-}
-function renderCouncilTracks(){
-  const box=$('councilTracks'); if(!box)return;
-  const eligible=getEligibleCouncilTracks();
-  councilTracksCache=eligible;
-  const q=($('councilSearch')?.value||'').trim().toLowerCase();
-  const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
-  if(!eligible.length){
-    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
-    return;
-  }
-  if(!shown.length){
-    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
-    return;
-  }
-  box.innerHTML=shown.map(t=>`
-    <div class="card">
-      <div class="row" style="justify-content:space-between;gap:10px">
-        <div><span class="pill">${escapeHtml(t.short)}</span><h3 style="margin:8px 0 4px">${escapeHtml(t.profession)}</h3><p class="mut" style="margin:0">${escapeHtml(t.body)}</p></div>
-      </div>
-      <button class="primary" style="margin-top:12px" onclick="openCouncilSetup('${t.key}')">Open ${escapeHtml(t.short)} practice</button>
-    </div>`).join('');
-}
-async function loadCouncilPractice(){
-  renderCouncilTracks();
-}
-async function openCouncilSetup(key){
-  const track=COUNCIL_TRACKS.find(x=>x.key===key);
-  if(!track)return;
-  if(!getEligibleCouncilTracks().some(x=>x.key===key)){
-    alert('Council exam practice is available only to students in the matching professional programme.');
-    return;
-  }
-  currentCouncilTrack=track;
-  $('councilSetupTitle').textContent=track.profession+' — '+track.short;
-  $('councilSetupSub').textContent=track.body;
-  $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
-  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
-  $('councilTopic').innerHTML='<option value="">All available topics</option>';
-  councilQuestions=await fetchCouncilQuestions(track);
-  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-  if(councilQuestions.length){
-    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
-  }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async functi
 Preview truncated for large file
