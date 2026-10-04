@@ -174,7 +174,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <section id="council" class="page hidden">
 <div class="head"><h2>🧾 Professional Council Exam Practice</h2><div class="sub">Governed CBT preparation for professional pathways</div></div>
 <div class="card"><b>⚠️ CampusMate readiness ≠ official council result</b><p class="mut">Scores are for preparation only. Questions are shown only when their provenance is approved as officially verified, licensed partner, or reviewed reference content.</p></div>
-<div class="card"><h3>🎯 Choose a professional pathway</h3><p class="mut">Select an exam track to configure a CBT. Question count, timing and any verified pass-mark metadata come from the track configuration.</p></div>
+<div class="card" id="studentCouncilCard"><h3>🎓 Your professional council</h3><p id="studentCouncilBody" class="mut">Your professional council will appear here based on the programme selected in your student profile.</p></div>
+<div class="card"><h3>🎯 Choose a professional pathway</h3><p class="mut">Only the professional pathway that belongs to your selected programme will be shown.</p></div>
 <input id="councilSearch" placeholder="🔎 Search council, profession or exam…" oninput="renderCouncilTracks()"><div id="councilTracks"></div>
 <div class="card"><button class="secondary" onclick="go('councilAnalytics');loadCouncilAnalytics()">📊 My professional exam analytics</button></div>
 <div class="card"><b>🇳🇬 Official reference</b><p class="mut">For NMCN learners, use the official NMCN digital learning platform for regulator-provided learning resources.</p><a class="secondary" href="https://educator.elearn.nmcn.gov.ng/" target="_blank" rel="noopener">Open NMCN Digital Learning Platform</a></div>
@@ -243,6 +244,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
+let appNavStack=['home'], appNavReady=false, backExitArmedUntil=0, backToastTimer=null;
 
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
@@ -553,16 +555,104 @@ function startStudent(){
   $('rolePill').textContent=profile?.role||'student';$('adminCouncilNav').classList.toggle('hidden',profile?.role!=='admin');
   $('onboarding').classList.toggle('hidden',!!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
   $('portal').classList.toggle('hidden',!(profile?.university_id&&profile?.programme_id&&profile?.level_id));
-  renderCourses();renderTasks();renderGpa();renderPerformance();refreshProStatus();go('home');
+  renderCourses();renderTasks();renderGpa();renderPerformance();
+  appNavStack=['home'];appNavReady=true;backExitArmedUntil=0;
+  try{history.replaceState({cm:true,page:'home',sentinel:true},'',location.href);history.pushState({cm:true,page:'home',sentinel:true},'',location.href)}catch(e){}
+  go('home',null,true);
 }
-function go(id,btn){
+function go(id,btn,fromBack=false){
   if(id==='gpa'&&!quizIsPro()){openProGate(0);if($('proGateMessage'))$('proGateMessage').textContent='GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.';return;}
+  const current=appNavStack.length?appNavStack[appNavStack.length-1]:null;
+  if(appNavReady&&!fromBack&&current!==id){appNavStack.push(id);try{history.pushState({cm:true,page:id},'',location.href)}catch(e){}}
   document.querySelectorAll('#student .page').forEach(x=>x.classList.add('hidden'));
   const target=$(id);if(!target)return;target.classList.remove('hidden');
   document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));if(btn)btn.classList.add('on');
   try{if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='catalogue')renderCatalogue();if(id==='council')loadCouncilPractice();if(id==='councilAdmin')loadCouncilAdmin();if(id==='councilAnalytics')loadCouncilAnalytics();}catch(e){console.error('CampusMate page error:',id,e)}
   window.scrollTo(0,0);
 }
+function showBackToast(text){
+  let t=$('cmBackToast');
+  if(!t){t=document.createElement('div');t.id='cmBackToast';t.style.cssText='position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#062b49;color:#fff;padding:11px 16px;border-radius:12px;font-size:12px;font-weight:800;z-index:2000;box-shadow:0 8px 25px rgba(0,0,0,.22);text-align:center;max-width:calc(100% - 30px)';document.body.appendChild(t)}
+  t.textContent=text;t.classList.remove('hidden');clearTimeout(backToastTimer);backToastTimer=setTimeout(()=>t.classList.add('hidden'),1800);
+}
+function handlePortalBack(){
+  if(!appNavReady||!$('student')||$('student').classList.contains('hidden'))return;
+  if(appNavStack.length>1){
+    appNavStack.pop();
+    const previous=appNavStack[appNavStack.length-1]||'home';
+    go(previous,null,true);
+    return;
+  }
+  const now=Date.now();
+  if(now<backExitArmedUntil){
+    backExitArmedUntil=0;
+    try{history.go(-1)}catch(e){}
+    return;
+  }
+  backExitArmedUntil=now+2200;
+  showBackToast('Press the back button again to exit CampusMate NG.');
+  try{history.pushState({cm:true,page:'home',sentinel:true},'',location.href)}catch(e){}
+}
+window.addEventListener('popstate',function(){
+  if(!appNavReady)return;
+  if(appNavStack.length>1){
+    appNavStack.pop();
+    const previous=appNavStack[appNavStack.length-1]||'home';
+    go(previous,null,true);
+    return;
+  }
+  const now=Date.now();
+  if(now<backExitArmedUntil){backExitArmedUntil=0;try{history.back()}catch(e){}}
+  else{backExitArmedUntil=now+2200;showBackToast('Press the back button again to exit CampusMate NG.');try{history.pushState({cm:true,page:'home',sentinel:true},'',location.href)}catch(e){}}
+});
+function professionalCouncilForProfile(){
+  const raw=String(profile?.programmes?.name||'').trim().toLowerCase();
+  if(!raw)return null;
+  const p=raw.replace(/[^a-z0-9]+/g,' ').trim();
+  const tracks=[
+    {keys:['nursing science','nursing'],profession:'Nursing',council:'Nursing and Midwifery Council of Nigeria (NMCN)',short:'NMCN'},
+    {keys:['medical laboratory science','medical laboratory'],profession:'Medical Laboratory Science',council:'Medical Laboratory Science Council of Nigeria (MLSCN)',short:'MLSCN'},
+    {keys:['medicine and surgery','medicine','medical doctor'],profession:'Medicine',council:'Medical and Dental Council of Nigeria (MDCN)',short:'MDCN'},
+    {keys:['pharmacy'],profession:'Pharmacy',council:'Pharmacists Council of Nigeria (PCN)',short:'PCN'},
+    {keys:['radiography','radiography and radiation science'],profession:'Radiography',council:'Radiographers Registration Board of Nigeria (RRBN)',short:'RRBN'},
+    {keys:['physiotherapy'],profession:'Physiotherapy',council:'Medical Rehabilitation Therapists (Registration) Board of Nigeria (MRTB)',short:'MRTB'},
+    {keys:['environmental health'],profession:'Environmental Health',council:'Environmental Health Officers Registration Council of Nigeria (EHORECON)',short:'EHORECON'},
+    {keys:['optometry'],profession:'Optometry',council:'Optometrists and Dispensing Opticians Registration Board of Nigeria (ODORBN)',short:'ODORBN'},
+    {keys:['dental therapy','dental technology','dental'],profession:'Dental Profession',council:'Relevant Nigerian dental regulatory council',short:'Dental regulator'}
+  ];
+  return tracks.find(t=>t.keys.some(k=>p===k||p.includes(k)))||null;
+}
+function renderCouncilTracks(){
+  const wrap=$('councilTracks');if(!wrap)return;
+  const council=professionalCouncilForProfile();
+  const q=String($('councilSearch')?.value||'').trim().toLowerCase();
+  if($('studentCouncilBody')){
+    $('studentCouncilBody').textContent=council
+      ? `Your programme is ${profile?.programmes?.name||council.profession}. The professional body for this pathway is ${council.council}. Other professions' council bodies are not shown.`
+      : `No professional council track is configured for ${profile?.programmes?.name||'your selected programme'}. Professional council pathways will only appear when a matching programme is configured.`;
+  }
+  if(!council){wrap.innerHTML='<div class="card"><p class="mut">No professional council exam track is available for your selected programme.</p></div>';return;}
+  const hay=(council.profession+' '+council.council+' '+council.short).toLowerCase();
+  if(q&&!hay.includes(q)){wrap.innerHTML='<div class="card"><p class="mut">No matching professional pathway found.</p></div>';return;}
+  wrap.innerHTML=`<div class="card"><span class="pill">${escapeHtml(council.short)}</span><h3 style="margin:9px 0 5px">${escapeHtml(council.profession)}</h3><p class="mut" style="margin-bottom:12px"><b>Professional body:</b> ${escapeHtml(council.council)}</p><button class="primary" type="button" onclick="openProgrammeCouncilSetup()">Practice ${escapeHtml(council.short)} exam</button></div>`;
+}
+function openProgrammeCouncilSetup(){
+  const council=professionalCouncilForProfile();
+  if(!council){alert('No professional council track is configured for your selected programme.');return;}
+  $('councilSetupTitle').textContent=council.profession+' — '+council.short;
+  $('councilSetupSub').textContent=council.council;
+  $('councilSetupEligibility').textContent='This professional pathway is available because it matches the programme selected in your CampusMate profile.';
+  $('councilSetupInfo').textContent='Only questions assigned to this professional pathway should be used for this CBT.';
+  go('councilSetup');
+}
+function loadCouncilPractice(){renderCouncilTracks();}
+function loadCouncilAnalytics(){
+  if($('caAttempts'))$('caAttempts').textContent='0';
+  if($('caAverage'))$('caAverage').textContent='0%';
+  if($('caBest'))$('caBest').textContent='0%';
+  if($('caAccuracy'))$('caAccuracy').textContent='0%';
+}
+function loadCouncilAdmin(){return;}
 function renderCatalogue(){const q=($('catSearch').value||'').toLowerCase();const list=universities.filter(x=>(x.name+' '+(x.state||'')+' '+(x.ownership||'')).toLowerCase().includes(q));$('catalogueList').innerHTML=list.map(x=>`<div class="card"><b>${escapeHtml(x.name)}</b><div class="uniMeta" style="margin-top:7px"><span>${escapeHtml(x.state||'Nigeria')}</span><span>${escapeHtml(x.ownership||'University')}</span>${x.nuc_verified?'<span>NUC catalogue</span>':''}</div></div>`).join('')||'<p class="mut">No university found.</p>';}
 function filterCatalogue(){renderCatalogue()}
 function renderCourses(){
@@ -835,133 +925,5 @@ let gpaRowCounter = 0;
 function selectGradingSystem(scale){
   selectedGradingSystem = Number(scale);
   $('gpaCalculator').classList.remove('hidden');
-  $('cgpaCalculator').classList.remove('hidden');
-  $('gradingChoice').textContent = scale===4
-    ? 'Selected: 4 grading system'
-    : 'Selected: 5 grading system';
-  $('gpaScaleInfo').textContent = scale===4
-    ? '4-point scale: A=4 • B=3 • C=2 • D=1 • F=0'
-    : '5-point scale: A=5 • B=4 • C=3 • D=2 • E=1 • F=0';
-  $('cgpaScaleInfo').textContent = scale===4
-    ? 'CGPA will be calculated on the 4-point scale.'
-    : 'CGPA will be calculated on the 5-point scale.';
-  $('gradeScaleText').textContent = scale===4
-    ? '4-point scale: A=4 • B=3 • C=2 • D=1 • F=0'
-    : '5-point scale: A=5 • B=4 • C=3 • D=2 • E=1 • F=0';
-  $('grade4Btn').classList.toggle('primary',scale===4);
-  $('grade4Btn').classList.toggle('secondary',scale!==4);
-  $('grade5Btn').classList.toggle('primary',scale===5);
-  $('grade5Btn').classList.toggle('secondary',scale!==5);
-  if(!document.querySelector('.gpaRow')) {
-    $('gpaRows').innerHTML='';
-    addGpaRow();
-    addGpaRow();
-  } else {
-    refreshGpaGradeOptions();
-  }
-}
-
-function gradeOptions(){
-  if(selectedGradingSystem===4){
-    return '<option value="4">A — 4</option><option value="3">B — 3</option><option value="2">C — 2</option><option value="1">D — 1</option><option value="0">F — 0</option>';
-  }
-  return '<option value="5">A — 5</option><option value="4">B — 4</option><option value="3">C — 3</option><option value="2">D — 2</option><option value="1">E — 1</option><option value="0">F — 0</option>';
-}
-
-function addGpaRow(){
-  if(!selectedGradingSystem){
-    alert('Choose 4 grading system or 5 grading system first.');
-    return;
-  }
-  gpaRowCounter++;
-  const row=document.createElement('div');
-  row.className='gpaRow card';
-  row.style.margin='10px 0';
-  row.dataset.row=String(gpaRowCounter);
-  row.innerHTML=
-    '<label>Course name</label>'+
-    '<input class="gpaCourseName" placeholder="e.g. NSC201 — Fundamentals of Nursing">'+
-    '<label>Credit unit (CU)</label>'+
-    '<input class="gpaCU" type="number" min="0.5" step="0.5" placeholder="e.g. 3">'+
-    '<label>Grade</label>'+
-    '<select class="gpaGrade">'+gradeOptions()+'</select>'+
-    '<button class="secondary" type="button" onclick="removeGpaRow(this)">Remove course</button>';
-  $('gpaRows').appendChild(row);
-}
-
-function removeGpaRow(btn){
-  const row=btn.closest('.gpaRow');
-  if(row)row.remove();
-}
-
-function refreshGpaGradeOptions(){
-  document.querySelectorAll('.gpaGrade').forEach(select=>{
-    const old=select.value;
-    select.innerHTML=gradeOptions();
-    if([...select.options].some(o=>o.value===old))select.value=old;
-  });
-}
-
-function calcGpa(){
-  if(!selectedGradingSystem){
-    alert('Choose a grading system first.');
-    return;
-  }
-  const rows=[...document.querySelectorAll('.gpaRow')];
-  let points=0, units=0, valid=0;
-  for(const row of rows){
-    const name=row.querySelector('.gpaCourseName').value.trim();
-    const cu=Number(row.querySelector('.gpaCU').value);
-    const grade=Number(row.querySelector('.gpaGrade').value);
-    if(!name && !cu) continue;
-    if(!name || !Number.isFinite(cu) || cu<=0){
-      alert('Complete the course name and credit unit for every course you started.');
-      return;
-    }
-    points += grade*cu;
-    units += cu;
-    valid++;
-  }
-  $('gpaOut').textContent=valid&&units ? (points/units).toFixed(2) : '—';
-}
-
-function calcCgpa(){
-  if(!selectedGradingSystem){
-    alert('Choose a grading system first.');
-    return;
-  }
-  const pc=Number($('prevCgpa').value);
-  const pu=Number($('prevUnits').value);
-  const cg=Number($('currGpa').value);
-  const cu=Number($('currUnits').value);
-  const max=selectedGradingSystem;
-  if(!Number.isFinite(pc)||!Number.isFinite(pu)||!Number.isFinite(cg)||!Number.isFinite(cu)||pu<0||cu<=0||pc<0||cg<0||pc>max||cg>max){
-    $('cgpaOut').textContent='—';
-    alert('Enter valid GPA/CGPA values and credit units for the selected grading system.');
-    return;
-  }
-  const totalUnits=pu+cu;
-  if(totalUnits<=0){$('cgpaOut').textContent='—';return}
-  const value=((pc*pu)+(cg*cu))/totalUnits;
-  $('cgpaOut').textContent=value.toFixed(2);
-}
-
-function renderGpa(){
-  // GPA rows are intentionally entered by the student rather than taken from the portal course list.
-  if(selectedGradingSystem) refreshGpaGradeOptions();
-}
-async function addTask(){const t=$('newTask').value.trim();if(!t)return;const {data,error}=await sb.from('study_tasks').insert({student_id:session.user.id,title:t,completed:false}).select().single();if(error){alert(error.message);return}tasks.unshift(data);$('newTask').value='';renderTasks()}
-async function toggleTask(id,checked){const {error}=await sb.from('study_tasks').update({completed:checked}).eq('id',id).eq('student_id',session.user.id);if(!error){const t=tasks.find(x=>x.id===id);if(t)t.completed=checked;renderTasks()}}
-async function deleteTask(id){const {error}=await sb.from('study_tasks').delete().eq('id',id).eq('student_id',session.user.id);if(!error){tasks=tasks.filter(x=>x.id!==id);renderTasks()}}
-function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.length===1?'':'s');$('tasks').innerHTML=tasks.length?tasks.map(t=>`<p><input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.id}',this.checked)"> ${escapeHtml(t.title)} <button class="danger" style="float:right;border:0;background:none" onclick="deleteTask('${t.id}')">×</button></p>`).join(''):'<p class="mut">No tasks yet.</p>'}
-async function logout(){await sb.auth.signOut();location.reload()}
-function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
-
-$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
-$('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
-
-window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()}});
-// Explicit-login mode: do not restore an existing session automatically.
-$('auth').classList.remove('hidden');$('student').classList.add('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
-</script></div></body></html>
+ 
+Preview truncated for large file
