@@ -402,10 +402,26 @@ async function finishLogin(s){
   $('portal').classList.remove('hidden');
   $('onboarding').classList.add('hidden');
 
+  // Open the dashboard UI immediately. Do NOT wait for the profile/database
+  // request before rendering it. This guarantees that a successful login is
+  // not held on the loading message while Supabase finishes a slow query.
+  profile={
+    ...(profile||{}),
+    id:session.user.id,
+    full_name:profile?.full_name||session.user.user_metadata?.full_name||session.user.email,
+    role:profile?.role||'student'
+  };
   try{
-    // Read the basic profile first. The dashboard decision must not depend on
-    // nested relationship joins or secondary features such as Pro status.
-    const {data:basic,error:basicError}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
+    history.replaceState({cmPage:'home'},'',location.href);
+    startStudent();
+  }catch(e){console.error('Immediate dashboard shell error:',e)}
+
+  try{
+    // Read only the basic profile. This runs in the background and must never
+    // block the dashboard from appearing after authentication succeeds.
+    const profilePromise=sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('PROFILE_TIMEOUT')),4500));
+    const {data:basic,error:basicError}=await Promise.race([profilePromise,timeout]);
     if(basicError)throw basicError;
 
     if(!basic){
@@ -452,15 +468,18 @@ async function finishLogin(s){
     await loadAcademicOptions();
   }catch(err){
     console.error('CampusMate finishLogin error:',err);
-    // Never hide a successfully authenticated student's dashboard because a
-    // secondary profile query failed. Keep the authenticated shell visible.
+    // The dashboard is already open. Never send the user back to login because
+    // the profile request was slow or temporarily unavailable.
     $('auth').classList.add('hidden');
     $('student').classList.remove('hidden');
     $('portal').classList.remove('hidden');
     $('onboarding').classList.add('hidden');
     try{history.replaceState({cmPage:'home'},'',location.href);}catch(e){}
     try{startStudent();}catch(e){console.error('Fallback dashboard error:',e)}
-    msg('Login successful. Your dashboard is opening; some profile details may load shortly.','success');
+    if(err?.message==='PROFILE_TIMEOUT')
+      msg('Login successful. Dashboard opened; profile details are still loading.','success');
+    else
+      msg('Login successful. Dashboard opened; some profile details may load shortly.','success');
   }
 }
 async function loadProfile(){
@@ -978,9 +997,5 @@ function renderQuizQuestion(){
   renderQuizNavigator();
 }
 function chooseQuizAnswer(key){const q=quizQuestions[currentQuiz.index];quizAnswers[String(q.id)]=key;renderQuizQuestion();}
-function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.innerHTML=quizQuestions.map((q,i)=>'<button type="button" class="qnavBtn '+(i===currentQuiz.index?'active ':'')+(quizAnswers[String(q.id)]?'answered':'')+'" onclick="jumpQuizQuestion('+i+')">'+(i+1)+'</button>').join('');}
-function jumpQuizQuestion(i){if(!currentQuiz)return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
-function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
-function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
-function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQu
+function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.inn
 Preview truncated for large file
