@@ -46,11 +46,11 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   </div>
 </div>
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
-<div class="tabs"><button type="button" id="loginTab" class="tab active">Log in</button><button type="button" id="signupTab" class="tab">Create account</button></div>
+<div class="tabs"><button type="button" id="loginTab" class="tab active" onclick="showAuth('login')">Log in</button><button type="button" id="signupTab" class="tab" onclick="showAuth('signup')">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button id="loginPwToggle" type="button" aria-label="Show password" title="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
-<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button id="resetPwToggle" type="button" aria-label="Show password" title="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button id="resetConfirmToggle" type="button" aria-label="Show password" title="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button id="signupPwToggle" type="button" aria-label="Show password" title="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button id="signupConfirmToggle" type="button" aria-label="Show password" title="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="signupBtn" class="primary">Create student account</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary" onclick="login()">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" onclick="sendPasswordReset()" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
+<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="signupBtn" class="primary" onclick="signUp()">Create student account</button></div>
 </div></main>
 </div>
 
@@ -196,7 +196,7 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
+<script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
 let sb=null;
 let supabaseReady=false;
@@ -344,13 +344,34 @@ async function signUp(){
   else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
 }
 async function login(){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
-
-  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
-  if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
-  if(btn){btn.disabled=true;btn.textContent='Logging in…';}
+  const setButton=(busy)=>{
+    if(!btn)return;
+    btn.disabled=busy;
+    btn.textContent=busy?'Logging in…':'Log in';
+  };
+
   try{
+    // Give immediate visual feedback BEFORE loading/checking Supabase.
+    setButton(true);
+    clearMsg();
+    $('resendConfirmationWrap')?.classList.add('hidden');
+
+    const e=$('loginEmail')?.value.trim()||'';
+    const pw=$('loginPassword')?.value||'';
+    if(!e||!pw){
+      msg('Enter your email and password.','error');
+      return;
+    }
+
+    msg('Connecting securely…','info');
+
+    const ready=await ensureSupabase();
+    if(!ready){
+      msg('CampusMate could not connect to the authentication service. Check your internet connection and try again.','error');
+      return;
+    }
+
     const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
     if(error){
       const em=String(error.message||'').toLowerCase();
@@ -358,14 +379,20 @@ async function login(){
         $('resendConfirmationWrap')?.classList.remove('hidden');
         $('signupEmail').value=e;
         msg('Please confirm your email before logging in. A new confirmation link is ready to be sent below.','error');
-      }else msg(error.message,'error');
+      }else{
+        msg(error.message||'Login failed. Please check your details and try again.','error');
+      }
       return;
     }
+
     msg('Login successful! Opening your dashboard…','success');
     await new Promise(r=>setTimeout(r,450));
-    await finishLogin(data.session);
+    await finishLogin(data?.session);
+  }catch(err){
+    console.error('CampusMate login error:',err);
+    msg('Login could not start. Please check your internet connection and try again.','error');
   }finally{
-    if(btn){btn.disabled=false;btn.textContent='Log in';}
+    setButton(false);
   }
 }
 async function finishLogin(s){
@@ -373,26 +400,17 @@ async function finishLogin(s){
   session=s;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
   $('auth').classList.add('hidden');$('student').classList.remove('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
   try{
-    profile=null;
-    const profileStatus=await loadProfile();
-    if(profileStatus==='error'){
-      $('auth').classList.remove('hidden');$('student').classList.add('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
-      showAuth('login');
-      msg('Login succeeded, but CampusMate could not read your student profile. Please try again.','error');
-      return;
-    }
-    await refreshProStatus();
+    profile=null;await loadProfile();await refreshProStatus();
     if(hasCompletedAcademicProfile()){
       $('onboarding').classList.add('hidden');$('portal').classList.remove('hidden');await loadStudentData();startStudent();
     }else{
       $('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');await loadAcademicOptions();
     }
   }catch(err){
-    console.error('CampusMate finishLogin error:',err);$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');$('student').classList.add('hidden');$('auth').classList.remove('hidden');showAuth('login');
-    msg('Login succeeded, but CampusMate could not finish loading your account. Please try again.','error');
+    console.error('CampusMate finishLogin error:',err);$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');$('auth').classList.remove('hidden');showAuth('login');
+    msg('Login succeeded, but CampusMate could not finish loading your profile. Please try again.','error');
   }
 }
-
 async function loadProfile(){
   let result=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
   if(result.error){
@@ -424,7 +442,7 @@ async function refreshProStatus(){
   if(!session?.user?.id)return false;
   let active=false, sub=null;
   try{
-    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).in('plan',['pro','campusmate_pro_monthly']).eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
+    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
     sub=data||null;
     active=!!sub && (!sub.expires_at || new Date(sub.expires_at)>new Date());
@@ -1007,7 +1025,5 @@ async function openCouncilSetup(key){
   $('councilTopic').innerHTML='<option value="">All available topics</option>';
   councilQuestions=await fetchCouncilQuestions(track);
   const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-  if(councilQuestions.length){
-    $('councilSetup
+  $('councilT
 Preview truncated for large file
