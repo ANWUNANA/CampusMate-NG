@@ -29,7 +29,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .portal-bottom-resources .resource-card{margin:0;}
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;color:var(--n);display:grid;place-items:center;padding:0}.pw button svg{width:21px;height:21px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
@@ -46,11 +46,11 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   </div>
 </div>
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
-<div class="tabs"><button type="button" id="loginTab" class="tab active" onclick="showAuth('login')">Log in</button><button type="button" id="signupTab" class="tab" onclick="showAuth('signup')">Create account</button></div>
+<div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="loginBtn" class="primary" onclick="login(event)">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" onclick="sendPasswordReset()" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="loginBtn" class="primary">Log in</button><div style="display:flex;justify-content:flex-end;margin-top:7px"><button type="button" id="forgotPasswordBtn" style="border:0;background:none;color:var(--n);font-weight:800;font-size:12px;padding:4px 0">Forgot password?</button></div><div id="resendConfirmationWrap" class="hidden" style="margin-top:9px"><button type="button" id="resendConfirmationBtn" class="secondary">Resend confirmation email</button></div></div>
 <div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter and confirm your new password.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="saveNewPasswordBtn" class="primary">Save new password</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button type="button" id="signupBtn" class="primary" onclick="signUp()">Create student account</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
 
@@ -196,86 +196,10 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 </div>
 
-<script>
-(function(){
-  const SUPABASE_URL='https://ygocrlnijeijzejucnvu.supabase.co';
-  const SUPABASE_KEY='sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-  let authClient=null, authLoading=null;
-  const el=id=>document.getElementById(id);
-  const show=(text,type='info')=>{const x=el('authMsg');if(x){x.textContent=text;x.className='msg '+type;x.classList.remove('hidden')}};
-  const clear=()=>{const x=el('authMsg');if(x)x.classList.add('hidden')};
-  function toggle(id,btn){const x=el(id);if(!x||!btn)return;const on=x.type==='password';x.type=on?'text':'password';btn.innerHTML=on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.8"></path><path d="M6.2 6.8C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6"></path></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg>';btn.setAttribute('aria-label',on?'Hide password':'Show password');btn.setAttribute('title',on?'Hide password':'Show password')}
-  window.togglePw=toggle;
-  window.showAuth=function(mode){
-    ['loginForm','signupForm','resetForm'].forEach(id=>{const x=el(id);if(x)x.classList.toggle('hidden',id!==({login:'loginForm',signup:'signupForm',reset:'resetForm'}[mode]||'loginForm'))});
-    const lt=el('loginTab'),st=el('signupTab');if(lt)lt.classList.toggle('active',mode==='login');if(st)st.classList.toggle('active',mode==='signup');
-    clear();
-  };
-  window.showForgotPassword=function(){const email=el('loginEmail');const f=el('forgotEmail');if(f&&email)f.value=email.value.trim();['loginForm','signupForm','resetForm'].forEach(id=>el(id)?.classList.add('hidden'));el('forgotForm')?.classList.remove('hidden');el('loginTab')?.classList.remove('active');el('signupTab')?.classList.remove('active');clear()};
-  async function client(){
-    if(authClient)return authClient;if(authLoading)return authLoading;
-    authLoading=(async()=>{if(!window.supabase){await new Promise((resolve,reject)=>{const q=document.createElement('script');q.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';q.onload=resolve;q.onerror=()=>reject(new Error('Supabase authentication library could not be loaded.'));document.head.appendChild(q)})}if(!window.supabase?.createClient)throw new Error('Supabase authentication library is unavailable.');authClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);return authClient})();
-    try{return await authLoading}finally{authLoading=null}
-  }
-  function redirect(){return window.location.origin+window.location.pathname}
-  window.login=async function(){
-    const b=el('loginBtn');const email=(el('loginEmail')?.value||'').trim();const pw=el('loginPassword')?.value||'';
-    if(b){b.disabled=true;b.textContent='Logging in…'}clear();
-    if(!email||!pw){show('Enter your email and password.','error');if(b){b.disabled=false;b.textContent='Log in'}return}
-    try{show('Connecting to CampusMate authentication…','info');const c=await client();const r=await c.auth.signInWithPassword({email,password:pw});if(r.error){if(/email not confirmed/i.test(r.error.message||'')){el('resendConfirmationWrap')?.classList.remove('hidden');show('Please confirm your email before logging in.','error')}else show(r.error.message,'error');return}show('Login successful! Opening your dashboard…','success');if(typeof window.finishLogin==='function'){await window.finishLogin(r.data.session)}else{show('Login succeeded, but the CampusMate dashboard code did not load. Please use the latest CampusMate file.','error')}}catch(e){console.error(e);show('Login could not be completed: '+(e.message||e),'error')}finally{if(b){b.disabled=false;b.textContent='Log in'}}
-  };
-  window.sendPasswordReset=async function(){const email=(el('loginEmail')?.value||el('forgotEmail')?.value||'').trim();if(!email){show('Enter your account email address first.','error');return}try{show('Sending password reset link…','info');const c=await client();const r=await c.auth.resetPasswordForEmail(email,{redirectTo:redirect()});if(r.error)throw r.error;show('Password reset link sent. Check your email.','success')}catch(e){show(e.message||String(e),'error')}};
-  window.signUp=async function(){const b=el('signupBtn'),name=(el('signupName')?.value||'').trim(),email=(el('signupEmail')?.value||'').trim(),pw=el('signupPassword')?.value||'',cpw=el('signupConfirm')?.value||'';if(b){b.disabled=true;b.textContent='Creating account…'}clear();try{if(!name||!email||pw.length<6)throw new Error('Enter your full name, a valid email, and a password of at least 6 characters.');if(pw!==cpw)throw new Error('Passwords do not match.');const c=await client();const r=await c.auth.signUp({email,password:pw,options:{data:{full_name:name},emailRedirectTo:redirect()}});if(r.error)throw r.error;if(r.data.session&&typeof window.finishLogin==='function'){await window.finishLogin(r.data.session)}else{el('loginEmail').value=email;show('Account created. Check your email to confirm your account, then log in.','success');window.showAuth('login');el('resendConfirmationWrap')?.classList.remove('hidden')}}catch(e){show(e.message||String(e),'error')}finally{if(b){b.disabled=false;b.textContent='Create student account'}}};
-  window.resendConfirmation=async function(){const email=(el('loginEmail')?.value||el('signupEmail')?.value||'').trim();if(!email){show('Enter your account email address.','error');return}try{const c=await client();const r=await c.auth.resend({type:'signup',email,options:{emailRedirectTo:redirect()}});if(r.error)throw r.error;show('Confirmation link sent. Check your inbox and spam folder.','success')}catch(e){show(e.message||String(e),'error')}};
-  window.saveNewPassword=async function(){const pw=el('resetPassword')?.value||'',cpw=el('resetConfirm')?.value||'';if(pw.length<6){show('Your new password must be at least 6 characters.','error');return}if(pw!==cpw){show('Passwords do not match.','error');return}try{const c=await client();const r=await c.auth.updateUser({password:pw});if(r.error)throw r.error;show('Password updated successfully. You can now log in.','success');setTimeout(()=>window.showAuth('login'),800)}catch(e){show(e.message||String(e),'error')}};
-  
-  window.CampusMateAuthBoot=function(){
-    el('loginTab')?.addEventListener('click',()=>window.showAuth('login'));
-    el('signupTab')?.addEventListener('click',()=>window.showAuth('signup'));
-    el('loginBtn')?.addEventListener('click',e=>{e.preventDefault();window.login()});
-    el('forgotPasswordBtn')?.addEventListener('click',e=>{e.preventDefault();window.sendPasswordReset()});
-    el('signupBtn')?.addEventListener('click',e=>{e.preventDefault();window.signUp()});
-    el('forgotBtn')?.addEventListener('click',e=>{e.preventDefault();window.sendPasswordReset()});
-    el('resetBtn')?.addEventListener('click',e=>{e.preventDefault();window.saveNewPassword()});
-    document.querySelectorAll('.pw button[onclick*="togglePw"]').forEach(btn=>{const m=(btn.getAttribute('onclick')||'').match(/togglePw\('([^']+)'/);if(m){btn.onclick=null;btn.addEventListener('click',()=>toggle(m[1],btn))}});
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',window.CampusMateAuthBoot,{once:true});else window.CampusMateAuthBoot();
-})();
-</script>
-
-<script>
-// Bind the dashboard handoff before any later dashboard initialization runs.
-// Function declarations are hoisted, so the authenticated login controller can
-// reach finishLogin even if a later boot step throws an error.
-window.finishLogin = finishLogin;
-const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
+<script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
-let sb=null;
-let supabaseReady=false;
-let supabaseLoading=null;
-
-function loadScript(src){
-  return new Promise((resolve,reject)=>{
-    const existing=[...document.scripts].find(x=>x.src===src);
-    if(existing){
-      if(window.supabase)return resolve(true);
-      existing.addEventListener('load',()=>resolve(true),{once:true});
-      existing.addEventListener('error',()=>reject(new Error('Failed to load '+src)),{once:true});
-      return;
-    }
-    const script=document.createElement('script');
-    script.src=src; script.async=true;
-    script.onload=()=>resolve(true);
-    script.onerror=()=>reject(new Error('Failed to load '+src));
-    document.head.appendChild(script);
-  });
-}
-
-async function ensureSupabase(){
-  if(supabaseReady&&sb)return true;if(supabaseLoading)return supabaseLoading;
-  supabaseLoading=(async()=>{const sources=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('Authentication library timed out')),ms))]);for(const src of sources){try{if(!window.supabase)await withTimeout(loadScript(src),8000);if(window.supabase&&typeof window.supabase.createClient==='function'){sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);supabaseReady=!!sb;if(supabaseReady)return true}}catch(e){console.warn('CampusMate auth library load failed:',src,e)}}supabaseReady=false;sb=null;return false})();
-  try{return await supabaseLoading}finally{supabaseLoading=null}
-}
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 
 let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null, quizQuestions=[], quizAnswers={}, tasks=[];
@@ -344,7 +268,6 @@ async function loadLevels(){
 function authRedirectUrl(){return window.location.origin+window.location.pathname;}
 
 async function resendConfirmation(emailOverride){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
   clearMsg();
   const e=(emailOverride||$('loginEmail').value.trim()||$('signupEmail').value.trim());
   if(!e){msg('Enter the email address you used to create your CampusMate account.','error');return}
@@ -360,8 +283,6 @@ async function resendConfirmation(emailOverride){
 }
 
 async function sendPasswordReset(){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
-
   clearMsg();
   const e=$('loginEmail').value.trim();
   if(!e){msg('Enter your account email address first, then tap “Forgot password?”.','error');return}
@@ -371,8 +292,6 @@ async function sendPasswordReset(){
 }
 
 async function saveNewPassword(){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
-
   clearMsg();
   const pw=$('resetPassword').value,cpw=$('resetConfirm').value;
   if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
@@ -385,8 +304,6 @@ async function saveNewPassword(){
 }
 
 async function signUp(){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
-
   clearMsg(); const n=$('signupName').value.trim(),e=$('signupEmail').value.trim(),pw=$('signupPassword').value,cpw=$('signupConfirm').value;
   if(!n||!e||pw.length<6){msg('Enter your full name, a valid email, and a password of at least 6 characters.','error');return}
   if(pw!==cpw){msg('Passwords do not match.','error');return}
@@ -396,12 +313,10 @@ async function signUp(){
   else { $('resendConfirmationWrap')?.classList.remove('hidden'); $('loginEmail').value=e; msg('Account created. A confirmation link has been sent to your email. You can also resend it using the button below.','success'); }
 }
 async function login(){
+  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
-  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
-  if(!e||!pw){msg('Enter your email and password.','error');if(btn){btn.disabled=false;btn.textContent='Log in'};return}
-  msg('Connecting to CampusMate authentication…','info');
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
   try{
     const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
     if(error){
@@ -416,48 +331,88 @@ async function login(){
     msg('Login successful! Opening your dashboard…','success');
     await new Promise(r=>setTimeout(r,450));
     await finishLogin(data.session);
-  }catch(err){
-    console.error('CampusMate login error:',err);
-    msg('Login could not be completed: '+(err?.message||String(err)),'error');
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Log in';}
   }
 }
 async function finishLogin(s){
-  if(!s?.user){msg('CampusMate could not complete the login session. Please try again.','error');return}
-  // Make this function self-sufficient: it must not depend on bootCampusMate()
-  // having completed before a successful login.
-  if(!await ensureSupabase()){throw new Error('CampusMate authentication client could not be initialized.')}
-  session=s;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
-  $('auth').classList.add('hidden');$('student').classList.remove('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
+  session=s;
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+
+  // Hide authentication immediately and never flash the academic setup screen.
+  $('auth').classList.add('hidden');
+  $('student').classList.remove('hidden');
+  $('portal').classList.remove('hidden');
+  $('onboarding').classList.add('hidden');
+
+  // Build a dashboard shell immediately from the authenticated user so returning
+  // students do not wait for secondary data before seeing the dashboard.
+  profile=profile||{};
+  profile.id=session.user.id;
+  profile.full_name=profile.full_name||session.user.user_metadata?.full_name||session.user.email;
+  profile.role=profile.role||'student';
+  startStudent();
+
+  const profileLoad=loadProfile();
+
+  // Give the profile lookup a short foreground window. If it is fast, we can
+  // immediately decide whether this is a returning or new/incomplete student.
+  let loaded=false;
   try{
-    profile=null;await loadProfile();await refreshProStatus();
+    await Promise.race([
+      profileLoad.then(()=>{loaded=true}),
+      new Promise(resolve=>setTimeout(resolve,1200))
+    ]);
+  }catch(e){console.warn('Profile initialization:',e)}
+
+  if(loaded){
     if(hasCompletedAcademicProfile()){
-      $('onboarding').classList.add('hidden');$('portal').classList.remove('hidden');await loadStudentData();startStudent();
+      $('onboarding').classList.add('hidden');
+      $('portal').classList.remove('hidden');
+      startStudent();
+      history.replaceState({cmPage:'home'},'',location.href);
+
+      // Non-critical work continues after the dashboard is already visible.
+      Promise.allSettled([refreshProStatus(),loadStudentData()]).then(()=>{
+        startStudent();
+      });
     }else{
-      $('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');await loadAcademicOptions();
+      // Only an incomplete/new academic profile is sent to setup.
+      $('portal').classList.add('hidden');
+      $('onboarding').classList.remove('hidden');
+      await loadAcademicOptions();
     }
-  }catch(err){
-    console.error('CampusMate finishLogin error:',err);$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');$('auth').classList.remove('hidden');showAuth('login');
-    msg('Login succeeded, but CampusMate could not finish loading your profile. Please try again.','error');
+  }else{
+    // Keep the dashboard visible while the profile request finishes in the
+    // background. A completed returning profile will remain on the dashboard;
+    // an incomplete/new profile will be moved to setup when the lookup resolves.
+    profileLoad.then(async()=>{
+      if(hasCompletedAcademicProfile()){
+        $('onboarding').classList.add('hidden');
+        $('portal').classList.remove('hidden');
+        startStudent();
+        history.replaceState({cmPage:'home'},'',location.href);
+        await Promise.allSettled([refreshProStatus(),loadStudentData()]);
+        startStudent();
+      }else{
+        $('portal').classList.add('hidden');
+        $('onboarding').classList.remove('hidden');
+        await loadAcademicOptions();
+      }
+    }).catch(err=>console.warn('Background profile loading:',err));
   }
 }
-// finishLogin was bound at the very beginning of this script so authentication
-// can hand off to the dashboard even if a later boot step encounters an error.
 async function loadProfile(){
   let result=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
   if(result.error){
     console.warn('Detailed profile lookup failed; retrying basic profile lookup:',result.error.message);
     const fallback=await sb.from('profiles').select('*').eq('id',session.user.id).single();
     if(fallback.error){
-      // PGRST116 means there is genuinely no profile row yet. Other errors
-      // mean the existing profile could not be read; those must not trigger setup.
-      if(fallback.error.code==='PGRST116'){
-        profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
-        return 'missing';
-      }
       console.error('Profile lookup failed:',fallback.error);
-      return 'error';
+      profile={id:session.user.id,full_name:session.user.user_metadata?.full_name||session.user.email,role:'student'};
+      return;
     }
     profile=fallback.data||{};
   }else{
@@ -468,7 +423,6 @@ async function loadProfile(){
   profile.role=profile.role||'student';
   profile.department_id=profile.department_id||profile.programmes?.department_id||null;
   profile.faculty_id=profile.faculty_id||profile.programmes?.departments?.faculty_id||null;
-  return 'ok';
 }
 
 async function refreshProStatus(){
@@ -566,8 +520,6 @@ async function startProPayment(source='profile'){
 }
 
 async function saveOnboarding(){
-  if(!await ensureSupabase()){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
-
   const university_id=$('uni').value,faculty_id=$('facultySelect').value,department_id=$('deptSelect').value,programme_id=$('progSelect').value,level_id=$('levelSelect').value;
   if(!university_id||!faculty_id||!department_id||!programme_id||!level_id){msg('Select your university, faculty, department, programme and level first.','error');return}
   const {error}=await sb.from('profiles').update({full_name:profile.full_name||session.user.user_metadata?.full_name,university_id,programme_id,level_id,updated_at:new Date().toISOString()}).eq('id',session.user.id);
@@ -898,7 +850,6 @@ async function startSelectedQuiz(){
   try{courseId=await resolveCurrentCourseId();}catch(err){console.error('Course resolution error:',err);alert('CampusMate could not connect this course to its question bank. Please try again.');return;}
   if(!courseId){alert('This course is selected, but it is not connected to a CampusMate course record.');return;}
   const count=Math.max(5,Number($('quizCount')?.value||10));
-  if(count>100){alert('CampusMate limits each quiz attempt to a maximum of 100 questions.');if($('quizCount'))$('quizCount').value='100';return;}
   if(count>10&&!quizIsPro()){openProGate(count);return;}
   const mode=$('quizMode')?.value||'practice',topicId=$('quizTopic')?.value||'';
   $('quizBoxCard')?.classList.remove('hidden');$('quizBox').innerHTML='<p class="mut">Connecting to the CampusMate question bank…</p>';
@@ -949,5 +900,145 @@ function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz
 function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
 function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
 function submitQuiz(timeUp=false){
-  if(!currentQuiz||!q
+  if(!currentQuiz||!quizQuestions.length)return;
+  clearInterval(currentQuiz.timer);let correct=0;
+  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
+  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
+  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
+  $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
+  $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
+  $('quizBox').innerHTML='';go('result');renderPerformance();
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+}
+
+/* ===================== PROFESSIONAL COUNCIL PRACTICE ===================== */
+const COUNCIL_TRACKS = [
+  {key:'nursing', names:['nursing','nursing science'], profession:'Nursing Science', body:'Nursing and Midwifery Council of Nigeria (NMCN)', short:'NMCN'},
+  {key:'medicine', names:['medicine and surgery','medicine & surgery','medicine'], profession:'Medicine and Surgery', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
+  {key:'dentistry', names:['dentistry','dental surgery'], profession:'Dentistry', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
+  {key:'pharmacy', names:['pharmacy'], profession:'Pharmacy', body:'Pharmacy Council of Nigeria (PCN)', short:'PCN'},
+  {key:'medical-lab', names:['medical laboratory science','medical laboratory sciences'], profession:'Medical Laboratory Science', body:'Medical Laboratory Science Council of Nigeria (MLSCN)', short:'MLSCN'},
+  {key:'radiography', names:['radiography','radiography and radiation science'], profession:'Radiography', body:'Radiographers Registration Board of Nigeria (RRBN)', short:'RRBN'},
+  {key:'physiotherapy', names:['physiotherapy'], profession:'Physiotherapy', body:'Medical Rehabilitation Therapists Board of Nigeria (MRTB)', short:'MRTB'},
+  {key:'optometry', names:['optometry'], profession:'Optometry', body:'Optometrists and Dispensing Opticians Registration Board of Nigeria (ODORBN)', short:'ODORBN'},
+  {key:'veterinary-medicine', names:['veterinary medicine','veterinary medicine and surgery'], profession:'Veterinary Medicine', body:'Veterinary Council of Nigeria (VCN)', short:'VCN'},
+  {key:'law', names:['law','llb','bachelor of laws'], profession:'Law', body:'Council of Legal Education (CLE)', short:'CLE'},
+  {key:'accounting', names:['accounting'], profession:'Accounting', body:'Institute of Chartered Accountants of Nigeria (ICAN)', short:'ICAN'}
+];
+
+let councilTracksCache=[];
+let currentCouncilTrack=null;
+let councilQuestions=[];
+let currentCouncilCbt=null;
+
+function programmeText(){
+  return String(profile?.programmes?.name||profile?.programme_name||'').trim().toLowerCase();
+}
+function getEligibleCouncilTracks(){
+  const p=programmeText();
+  return COUNCIL_TRACKS.filter(t=>t.names.some(n=>p===n||p.includes(n)||n.includes(p)));
+}
+function councilQuestionUsable(q){
+  return q && questionText(q)!=='Question' && questionOptions(q).length>=2 && correctKey(q)!=='';
+}
+function councilQuestionApproved(q){
+  const status=String(q?.verification_status||q?.status||q?.verificationStatus||'').toLowerCase();
+  const origin=String(q?.content_origin||q?.origin||q?.source_type||'').toLowerCase();
+  const active=q?.active===undefined ? q?.is_active!==false : q.active!==false;
+  const approved=['officially_verified','licensed_partner','reviewed_reference','official_verified','official_authorized'].includes(status) ||
+                 ['licensed_partner','reviewed_reference','official_authorized'].includes(origin);
+  return active && (approved || !status && !origin);
+}
+async function fetchCouncilQuestions(track){
+  const attempts=[
+    {table:'council_questions',fields:'*'},
+    {table:'professional_council_questions',fields:'*'}
+  ];
+  for(const a of attempts){
+    try{
+      let q=sb.from(a.table).select(a.fields);
+      const {data,error}=await q;
+      if(error)continue;
+      const rows=(data||[]).filter(row=>{
+        const key=String(row.track_key||row.track_id||row.exam_track||row.council_track||row.council||'').toLowerCase();
+        const body=String(row.council_body||row.exam_body||'').toLowerCase();
+        return !key || key===track.key || key===track.short.toLowerCase() || body.includes(track.short.toLowerCase()) || body.includes(track.body.toLowerCase());
+      }).filter(councilQuestionApproved).filter(councilQuestionUsable);
+      if(rows.length)return rows;
+    }catch(e){console.warn('Council question source unavailable:',a.table,e)}
+  }
+  return [];
+}
+function renderCouncilTracks(){
+  const box=$('councilTracks'); if(!box)return;
+  const eligible=getEligibleCouncilTracks();
+  councilTracksCache=eligible;
+  const q=($('councilSearch')?.value||'').trim().toLowerCase();
+  const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
+  if(!eligible.length){
+    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
+    return;
+  }
+  if(!shown.length){
+    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
+    return;
+  }
+  box.innerHTML=shown.map(t=>`
+    <div class="card">
+      <div class="row" style="justify-content:space-between;gap:10px">
+        <div><span class="pill">${escapeHtml(t.short)}</span><h3 style="margin:8px 0 4px">${escapeHtml(t.profession)}</h3><p class="mut" style="margin:0">${escapeHtml(t.body)}</p></div>
+      </div>
+      <button class="primary" style="margin-top:12px" onclick="openCouncilSetup('${t.key}')">Open ${escapeHtml(t.short)} practice</button>
+    </div>`).join('');
+}
+async function loadCouncilPractice(){
+  renderCouncilTracks();
+}
+async function openCouncilSetup(key){
+  const track=COUNCIL_TRACKS.find(x=>x.key===key);
+  if(!track)return;
+  if(!getEligibleCouncilTracks().some(x=>x.key===key)){
+    alert('Council exam practice is available only to students in the matching professional programme.');
+    return;
+  }
+  currentCouncilTrack=track;
+  $('councilSetupTitle').textContent=track.profession+' — '+track.short;
+  $('councilSetupSub').textContent=track.body;
+  $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
+  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
+  $('councilTopic').innerHTML='<option value="">All available topics</option>';
+  councilQuestions=await fetchCouncilQuestions(track);
+  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
+  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+  if(councilQuestions.length){
+    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
+  }else{
+    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
+  }
+  go('councilSetup');
+}
+async function beginCouncilCbt(){
+  if(!currentCouncilTrack)return;
+  if(!getEligibleCouncilTracks().some(x=>x.key===currentCouncilTrack.key)){
+    alert('This council track is not available for your selected professional programme.');
+    return;
+  }
+  const topic=$('councilTopic').value;
+  let rows=councilQuestions.filter(q=>!topic||String(q.topic||q.topic_name||q.subject||'')===topic);
+  if(!rows.length){alert('No approved questions are available for this council track and topic yet.');return;}
+  const mode=$('councilMode').value;
+  const count=mode==='quick'?10:mode==='practice'?20:Math.min(100,rows.length);
+  if(rows.length<count){alert(`This ${currentCouncilTrack.short} track currently has only ${rows.length} approved usable questions. Choose a smaller practice mode or add more approved questions.`);return;}
+  rows=shuffled(rows).slice(0,count);
+  const timed=$('councilTiming').value==='timed';
+  currentCouncilCbt={track:currentCouncilTrack,questions:rows,answers:{},index:0,startedAt:Date.now(),timed,seconds:timed?count*20:0,timer:null};
+  $('cbtTitle').textContent=currentCouncilTrack.profession+' — '+currentCouncilTrack.short;
+  $('cbtSub').textContent=currentCouncilTrack.body;
+  go('councilCbt');
+  renderCouncilCbtQuestion();
+  if(timed)startCouncilTimer();
+}
+function renderCouncilCbtQuestion(){
+  const c=currentCouncilCbt;if(!c)return;
+  const q=c.questions[c.index],opts=questio
 Preview truncated for large file
