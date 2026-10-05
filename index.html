@@ -231,7 +231,16 @@ let session=null, profile=null, courses=[], currentCourse=null, currentQuiz=null
 const $=id=>document.getElementById(id);
 function msg(text,type='info'){const el=$('authMsg'); if(el){el.textContent=text;el.className='msg '+type;el.classList.remove('hidden')}}
 function clearMsg(){if($('authMsg')) $('authMsg').classList.add('hidden')}
-function showAuth(mode='login'){ $('loginForm').classList.toggle('hidden',mode!=='login'); $('signupForm').classList.toggle('hidden',mode!=='signup'); $('resetForm').classList.toggle('hidden',mode!=='reset'); $('loginTab').classList.toggle('active',mode==='login'); $('signupTab').classList.toggle('active',mode==='signup'); $('resendConfirmationWrap')?.classList.add('hidden'); clearMsg(); }
+function showAuth(mode='login'){
+  const lf=$('loginForm'),sf=$('signupForm'),rf=$('resetForm'),lt=$('loginTab'),st=$('signupTab');
+  if(lf)lf.classList.toggle('hidden',mode!=='login');
+  if(sf)sf.classList.toggle('hidden',mode!=='signup');
+  if(rf)rf.classList.toggle('hidden',mode!=='reset');
+  if(lt)lt.classList.toggle('active',mode==='login');
+  if(st)st.classList.toggle('active',mode==='signup');
+  $('resendConfirmationWrap')?.classList.add('hidden');
+  clearMsg();
+}
 
 async function loadAcademicOptions(){
   let res=await sb.from('universities').select('id,name,short_name,state,ownership,nuc_verified').order('name');
@@ -1002,9 +1011,5 @@ async function openCouncilSetup(key){
   if(councilQuestions.length){
     $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
   }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async functi
+    $('councilSetupInfo').textContent+=' No approved question ban
 Preview truncated for large file
