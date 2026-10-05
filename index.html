@@ -243,7 +243,12 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 })();
 </script>
 
-<script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
+<script>
+// Bind the dashboard handoff before any later dashboard initialization runs.
+// Function declarations are hoisted, so the authenticated login controller can
+// reach finishLogin even if a later boot step throws an error.
+window.finishLogin = finishLogin;
+const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
 let sb=null;
 let supabaseReady=false;
@@ -420,6 +425,9 @@ async function login(){
 }
 async function finishLogin(s){
   if(!s?.user){msg('CampusMate could not complete the login session. Please try again.','error');return}
+  // Make this function self-sufficient: it must not depend on bootCampusMate()
+  // having completed before a successful login.
+  if(!await ensureSupabase()){throw new Error('CampusMate authentication client could not be initialized.')}
   session=s;window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
   $('auth').classList.add('hidden');$('student').classList.remove('hidden');$('portal').classList.add('hidden');$('onboarding').classList.add('hidden');
   try{
@@ -434,10 +442,8 @@ async function finishLogin(s){
     msg('Login succeeded, but CampusMate could not finish loading your profile. Please try again.','error');
   }
 }
-// Expose the dashboard handoff immediately after the function is defined.
-// The authentication controller can therefore hand the authenticated session
-// to CampusMate even if a later dashboard initialization step encounters an error.
-window.finishLogin=finishLogin;
+// finishLogin was bound at the very beginning of this script so authentication
+// can hand off to the dashboard even if a later boot step encounters an error.
 async function loadProfile(){
   let result=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
   if(result.error){
@@ -943,9 +949,5 @@ function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz
 function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
 function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
 function submitQuiz(timeUp=false){
-  if(!currentQuiz||!quizQuestions.length)return;
-  clearInterval(currentQuiz.timer);let correct=0;
-  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
-  const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.atte
+  if(!currentQuiz||!q
 Preview truncated for large file
