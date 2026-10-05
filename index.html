@@ -345,33 +345,19 @@ async function signUp(){
 }
 async function login(){
   const btn=$('loginBtn');
-  const setButton=(busy)=>{
-    if(!btn)return;
-    btn.disabled=busy;
-    btn.textContent=busy?'Logging in…':'Log in';
-  };
-
+  if(btn){btn.disabled=true;btn.textContent='Logging in…';}
+  clearMsg();
   try{
-    // Give immediate visual feedback BEFORE loading/checking Supabase.
-    setButton(true);
-    clearMsg();
+    const e=$('loginEmail')?.value.trim()||'', pw=$('loginPassword')?.value||'';
+    if(!e||!pw){msg('Enter your email and password.','error');return}
     $('resendConfirmationWrap')?.classList.add('hidden');
-
-    const e=$('loginEmail')?.value.trim()||'';
-    const pw=$('loginPassword')?.value||'';
-    if(!e||!pw){
-      msg('Enter your email and password.','error');
-      return;
-    }
-
-    msg('Connecting securely…','info');
-
-    const ready=await ensureSupabase();
-    if(!ready){
-      msg('CampusMate could not connect to the authentication service. Check your internet connection and try again.','error');
-      return;
-    }
-
+    msg('Connecting to CampusMate…','info');
+    const ready=await Promise.race([
+      ensureSupabase(),
+      new Promise(resolve=>setTimeout(()=>resolve(false),10000))
+    ]);
+    if(!ready||!sb){msg('CampusMate could not connect to the authentication service. Please check your internet connection and try again.','error');return}
+    msg('Checking your login details…','info');
     const {data,error}=await sb.auth.signInWithPassword({email:e,password:pw});
     if(error){
       const em=String(error.message||'').toLowerCase();
@@ -379,20 +365,17 @@ async function login(){
         $('resendConfirmationWrap')?.classList.remove('hidden');
         $('signupEmail').value=e;
         msg('Please confirm your email before logging in. A new confirmation link is ready to be sent below.','error');
-      }else{
-        msg(error.message||'Login failed. Please check your details and try again.','error');
-      }
+      }else msg(error.message||'Unable to log in.','error');
       return;
     }
-
     msg('Login successful! Opening your dashboard…','success');
     await new Promise(r=>setTimeout(r,450));
     await finishLogin(data?.session);
   }catch(err){
     console.error('CampusMate login error:',err);
-    msg('Login could not start. Please check your internet connection and try again.','error');
+    msg(err?.message||'Login could not be completed. Please try again.','error');
   }finally{
-    setButton(false);
+    if(btn){btn.disabled=false;btn.textContent='Log in';}
   }
 }
 async function finishLogin(s){
@@ -1025,5 +1008,5 @@ async function openCouncilSetup(key){
   $('councilTopic').innerHTML='<option value="">All available topics</option>';
   councilQuestions=await fetchCouncilQuestions(track);
   const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilT
+  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option 
 Preview truncated for large file
