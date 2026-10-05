@@ -434,6 +434,10 @@ async function finishLogin(s){
     msg('Login succeeded, but CampusMate could not finish loading your profile. Please try again.','error');
   }
 }
+// Expose the dashboard handoff immediately after the function is defined.
+// The authentication controller can therefore hand the authenticated session
+// to CampusMate even if a later dashboard initialization step encounters an error.
+window.finishLogin=finishLogin;
 async function loadProfile(){
   let result=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
   if(result.error){
@@ -943,5 +947,5 @@ function submitQuiz(timeUp=false){
   clearInterval(currentQuiz.timer);let correct=0;
   quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
   const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
-  d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+sess
+  d.attempts=(d.atte
 Preview truncated for large file
