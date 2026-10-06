@@ -49,7 +49,8 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
 <div id="resendConfirmationWrap" class="hidden" style="margin:8px 0 12px;text-align:right"><button id="resendConfirmationBtn" type="button" class="secondary" style="width:auto;padding:9px 12px">Resend confirmation email</button></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button><button id="forgotPasswordBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px 2px">Forgot password?</button></div>
+<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter your new password below.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('resetPassword',this)">Show</button></div><label>Confirm new password</label><div class="pw"><input id="resetPasswordConfirm" type="password" placeholder="Re-enter your new password"><button type="button" onclick="togglePw('resetPasswordConfirm',this)">Show</button></div><button id="saveNewPasswordBtn" type="button" class="primary">Save new password</button><button id="backToLoginBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px">Back to login</button></div>
 <div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
@@ -286,6 +287,52 @@ async function resendConfirmation(){
   }catch(err){msg(err?.message||'Unable to resend the confirmation email right now.','error');}
   finally{if(btn){btn.disabled=false;btn.textContent='Resend confirmation email'}}
 }
+async function sendPasswordReset(){
+  clearMsg();
+  const e=($('loginEmail')?.value||'').trim();
+  if(!e){msg('Enter your email address first, then tap “Forgot password?”.','error');return}
+  const btn=$('forgotPasswordBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending reset link…'}
+  try{
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo});
+    if(error){msg(error.message,'error');return}
+    msg('Password reset link sent. Check your inbox and follow the link to create a new password.','success');
+  }catch(err){msg(err?.message||'Unable to send the password reset email right now.','error');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Forgot password?'}}
+}
+function showResetForm(){
+  $('loginForm')?.classList.add('hidden');
+  $('signupForm')?.classList.add('hidden');
+  $('resetForm')?.classList.remove('hidden');
+  $('resendConfirmationWrap')?.classList.add('hidden');
+  $('loginTab')?.classList.remove('active');
+  $('signupTab')?.classList.remove('active');
+}
+function showLoginForm(){
+  $('resetForm')?.classList.add('hidden');
+  $('signupForm')?.classList.add('hidden');
+  $('loginForm')?.classList.remove('hidden');
+  $('loginTab')?.classList.add('active');
+  $('signupTab')?.classList.remove('active');
+  clearMsg();
+}
+async function saveNewPassword(){
+  clearMsg();
+  const pw=$('resetPassword')?.value||'',cpw=$('resetPasswordConfirm')?.value||'';
+  if(pw.length<6){msg('Your new password must be at least 6 characters.','error');return}
+  if(pw!==cpw){msg('The new passwords do not match.','error');return}
+  const btn=$('saveNewPasswordBtn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…'}
+  try{
+    const {error}=await sb.auth.updateUser({password:pw});
+    if(error){msg(error.message,'error');return}
+    $('resetPassword').value='';$('resetPasswordConfirm').value='';
+    msg('Password changed successfully. You can now log in with your new password.','success');
+    setTimeout(()=>showLoginForm(),900);
+  }catch(err){msg(err?.message||'Unable to change your password right now.','error');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Save new password'}}
+}
 async function login(){
   clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
@@ -296,14 +343,13 @@ async function login(){
     if(error){
       const em=String(error.message||'').toLowerCase();
       if(em.includes('email not confirmed')||em.includes('email_not_confirmed')){
-        $('resendConfirmationBtn')?.classList.remove('hidden');
+        $('resendConfirmationWrap')?.classList.remove('hidden');
         $('signupEmail').value=e;
         msg('Your email has not been confirmed yet. Use “Resend confirmation email” to receive a new confirmation link.','error');
       }else msg(error.message,'error');
       return;
     }
     msg('Login successful! Opening your dashboard…','success');
-    await new Promise(r=>setTimeout(r,450));
     await finishLogin(data.session);
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Log in';}
@@ -462,95 +508,23 @@ async function saveOnboarding(){
   await loadProfile(); await refreshProStatus(); $('onboarding').classList.add('hidden'); $('portal').classList.remove('hidden'); await loadStudentData(); startStudent(); history.replaceState({cmPage:'home'},'',location.href);
 }
 
-const BUILTIN_NURSING_CATALOG={
-  100:[
-    ['CHM101','GENERAL CHEMISTRY I',['Matter and Measurement','Atomic Structure and Periodic Table','Chemical Bonding','Chemical Reactions and Stoichiometry','Solutions and Concentrations']],
-    ['CHM102','GENERAL CHEMISTRY II',['Thermochemistry','Chemical Equilibrium','Acids Bases and Buffers','Electrochemistry','Organic Chemistry Basics']],
-    ['BIO101','GENERAL BIOLOGY I',['Introduction to Biology','Cell Structure and Function','Biological Molecules','Cell Division','Genetics and Heredity']],
-    ['BIO102','GENERAL BIOLOGY II',['Plant Biology','Animal Biology','Evolution and Classification','Ecology and Ecosystems','Microorganisms and Disease']],
-    ['PHY101','GENERAL PHYSICS I',['Units and Measurement','Motion and Forces','Work Energy and Power','Heat and Temperature','Waves and Sound']],
-    ['PHY102','GENERAL PHYSICS II',['Electricity and Circuits','Magnetism','Light and Optics','Radiation and Nuclear Physics','Physics in Healthcare']],
-    ['GST111','COMMUNICATION IN ENGLISH',['Parts of Speech','Sentence Structure','Reading and Comprehension','Academic Writing','Oral Communication']],
-    ['CMP101','COMPUTER FUNDAMENTALS',['Computer Hardware','Operating Systems','Word Processing','Internet and Networking','Cybersecurity and Digital Safety']],
-    ['PSY101','STRESS MANAGEMENT',['Concept of Stress','Sources and Types of Stress','Stress Response','Coping Strategies','Stress Management for Students']],
-    ['PSY102','SUBSTANCE ABUSE AND MISUSE',['Drugs and Psychoactive Substances','Causes and Risk Factors','Patterns of Misuse','Effects on the Body','Prevention and Rehabilitation']],
-    ['NSC101','INTRODUCTION TO NURSING SCIENCE',['Nursing as a Profession','History of Nursing','Nursing Theories','Roles and Functions of the Nurse','Professional Values and Ethics']]
-  ],
-  200:[
-    ['NUR201','Fundamentals of Nursing',['Nursing Process','Vital Signs','Patient Hygiene','Comfort and Positioning','Documentation and Reporting','Pain Management','Stress and Adaptation','Stress Management','Professionalism in Nursing','Nursing Ethics','Nursing Etiquette and Professional Conduct','Infection Prevention and Control','Patient Safety','Communication in Nursing','Health Assessment','Admission Transfer and Discharge of Patients','Mobility and Immobility','Body Mechanics and Safe Patient Handling','Sleep and Rest','Nutrition and Hydration','Elimination','Skin Integrity and Pressure Injury Prevention','Patient-Centred Care','Confidentiality and Patients Rights','Nursing Care Plans','Clinical Decision-Making and Critical Thinking','Delegation and Teamwork in Nursing','End-of-Life Care','Cultural and Spiritual Considerations in Nursing','Health Education and Patient Teaching']],
-    ['ANA201','Human Anatomy I',['Introduction to Human Anatomy','Anatomical Position and Directional Terms','Planes Axes and Body Movements','Body Cavities and Serous Membranes','Cells Tissues and Membranes','Bones and the Skeletal System','Joints and Articulations','Muscular System','Muscle Attachments and Actions','Thorax','Heart Anatomy','Respiratory System Anatomy','Abdominal Cavity','Digestive System Anatomy','Urinary System Anatomy','Pelvic Anatomy','Male Reproductive System Anatomy','Female Reproductive System Anatomy','Endocrine Glands','Surface Anatomy and Clinical Landmarks']],
-    ['ANA202','Human Anatomy II',['Introduction to Regional Anatomy','Back and Vertebral Column','Spinal Cord and Meninges','Head and Scalp','Face and Scalp Muscles','Cranial Nerves','Brain and Ventricular System','Neck and Cervical Fascia','Pharynx and Larynx','Eye and Orbit','Ear and Hearing Anatomy','Oral Cavity and Tongue','Blood Vessels of Head and Neck','Lymphatic System Anatomy','Autonomic Nervous System Anatomy','Upper Limb','Lower Limb','Major Peripheral Nerves','Major Arteries and Veins','Integrated Clinical Anatomy']],
-    ['PHS201','Human Physiology I',['Homeostasis','Cell Physiology','Blood Physiology','Cardiovascular Physiology','Respiratory Physiology']],
-    ['PHS202','Human Physiology II',['Renal Physiology','Gastrointestinal Physiology','Endocrine Physiology','Reproductive Physiology','Nervous System Physiology']],
-    ['BCH201','Biochemistry I',['Biomolecules','Amino Acids and Proteins','Enzymes','Carbohydrate Metabolism','Lipid Metabolism']],
-    ['BCH202','Biochemistry II',['Protein Metabolism','Nucleic Acids','Vitamins and Minerals','Clinical Biochemistry','Integration of Metabolism']],
-    ['MIC201','Medical Microbiology',['Bacteria','Viruses','Fungi','Parasites','Specimen Collection and Infection Control']],
-    ['IMM201','Immunology',['Innate Immunity','Adaptive Immunity','Antigens and Antibodies','Hypersensitivity','Autoimmunity and Immunodeficiency']],
-    ['PHM201','Pharmacology I',['Pharmacokinetics','Pharmacodynamics','Routes of Administration','Autonomic Drugs','Adverse Drug Reactions']],
-    ['PHM202','Pharmacology II',['Antimicrobial Drugs','Cardiovascular Drugs','CNS Drugs','Endocrine Drugs','Drug Safety and Interactions']],
-    ['NUR202','Health Assessment',['Health History','Physical Examination','General Survey','System-by-System Assessment','Health Assessment Documentation']],
-    ['NUR203','Medical-Surgical Nursing I',['Perioperative Nursing','Fluid and Electrolyte Balance','Respiratory Disorders','Cardiovascular Disorders','Gastrointestinal Disorders']],
-    ['NUR204','Medical-Surgical Nursing II',['Renal Disorders','Neurological Disorders','Endocrine Disorders','Musculoskeletal Disorders','Skin Disorders']],
-    ['NUR205','Medical-Surgical Nursing III',['Hematological Disorders','Oncology Nursing','Immunological Disorders','Critical Care Principles','Rehabilitation Nursing']],
-    ['NUR206','Maternal and Child Health Nursing',['Maternal Health','Antenatal Care','Normal Pregnancy','Complications of Pregnancy','Postnatal Care']],
-    ['NUR207','Paediatric Nursing',['Growth and Development','Paediatric Assessment','Common Childhood Illnesses','Nutrition in Children','Paediatric Emergencies']],
-    ['NUR208','Mental Health Nursing',['Mental Health Concepts','Therapeutic Communication','Common Mental Disorders','Psychiatric Assessment','Mental Health Nursing Interventions']],
-    ['NUR209','Community Health Nursing',['Community Assessment','Primary Health Care','Family Health','Health Promotion','Community-Based Nursing']],
-    ['NUR210','Nursing Research',['Research Concepts','Research Problems and Questions','Research Designs','Data Collection','Research Ethics']],
-    ['NUR211','Nursing Ethics and Law',['Ethical Principles','Codes of Professional Conduct','Patient Rights','Consent and Confidentiality','Professional Liability']],
-    ['NUR212','Nutrition and Diet Therapy',['Nutrients','Balanced Diet','Nutrition Assessment','Therapeutic Diets','Nutrition in Disease']],
-    ['NUR213','Pathophysiology',['Cell Injury','Inflammation','Fluid Imbalance','Hemodynamic Disorders','Neoplasia']],
-    ['NUR214','Health Education and Promotion',['Health Education Principles','Learning in Health','Communication Methods','Behaviour Change','Health Promotion Strategies']],
-    ['NUR215','First Aid and Emergency Care',['Emergency Assessment','Basic Life Support','Bleeding and Shock','Fractures and Soft Tissue Injuries','Poisoning and Emergencies']],
-    ['NUR216','Aseptic Technique and Infection Prevention',['Chain of Infection','Hand Hygiene','Aseptic Technique','Sterilization and Disinfection','Healthcare-Associated Infections']],
-    ['NUR217','Maternal-Newborn Nursing',['Labour and Delivery','Fetal Monitoring','Immediate Newborn Care','Neonatal Assessment','Postpartum Complications']],
-    ['NUR218','Geriatric Nursing',['Ageing Process','Geriatric Assessment','Falls and Safety','Chronic Illness in Older Adults','End-of-Life Care']],
-    ['NUR219','Public Health',['Public Health Concepts','Disease Prevention','Screening','Environmental Health','Health Systems']],
-    ['NUR220','Epidemiology and Biostatistics',['Measures of Disease Frequency','Study Designs','Data Presentation','Descriptive Statistics','Interpretation of Health Data']],
-    ['NUR221','Clinical Skills and Procedures',['Medication Administration','Wound Care','Catheterization','Intravenous Therapy','Clinical Documentation']],
-    ['NUR222','Nursing Leadership and Management',['Leadership Theories','Delegation','Teamwork','Conflict Management','Quality Improvement']],
-    ['NUR223','Health Informatics',['Health Information Systems','Electronic Health Records','Clinical Documentation','Data Security','Digital Health']],
-    ['NUR224','Psychology for Health Sciences',['Human Development','Learning','Personality','Motivation','Psychology of Health and Illness']],
-    ['NUR225','Sociology of Health and Illness',['Culture and Health','Family and Society','Social Determinants of Health','Health Inequality','Patient Social Support']],
-    ['NUR226','Professional Nursing Practice',['Professional Identity','Scope of Practice','Standards of Care','Continuing Professional Development','Accountability']],
-    ['NUR227','Clinical Pharmacotherapy',['Medication Selection','Dose Calculations','Drug Monitoring','Polypharmacy','Safe Medication Practice']],
-    ['NUR228','Anatomy and Physiology of Special Senses',['Vision','Hearing and Balance','Taste','Smell','Sensory Disorders']],
-    ['NUR229','Environmental and Occupational Health',['Environmental Hazards','Occupational Hazards','Workplace Safety','Ergonomics','Occupational Disease Prevention']],
-    ['NUR230','Health Policy and Primary Health Care',['Health Policy','Primary Health Care Principles','Healthcare Financing','Universal Health Coverage','Health Policy Implementation']]
-  ]
-};
-function builtinCoursesForProfile(){
-  const prog=(profile?.programmes?.name||'').trim().toLowerCase();
-  const level=Number((profile?.levels?.name||'').match(/\d+/)?.[0]||0);
-  if(prog!=='nursing science'||!BUILTIN_NURSING_CATALOG[level])return [];
-  return BUILTIN_NURSING_CATALOG[level].map(([code,name,topics])=>({
-    id:null,code,name,description:`${name} for Nursing Science students.`,credit_units:0,
-    topics:topics.map(title=>({title,description:'Study this topic through CampusMate learning materials.'}))
-  }));
-}
-function mergeCourses(dbCourses){
-  const merged=[...(dbCourses||[])];
-  const seen=new Set(merged.map(c=>String(c.code||'').replace(/\s/g,'').toUpperCase()));
-  for(const c of builtinCoursesForProfile()){
-    const key=String(c.code||'').replace(/\s/g,'').toUpperCase();
-    if(!seen.has(key)){merged.push(c);seen.add(key);}
-  }
-  return merged;
-}
-
 async function loadStudentData(){
-  tasks=(await sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id')).data||[];
   courses=[];
+  const taskPromise=sb.from('study_tasks').select('*').eq('student_id',session.user.id).order('id');
+  let coursePromise=null;
   if(profile?.programme_id&&profile?.level_id){
-    const {data:pcs,error}=await sb.from('programme_courses')
+    coursePromise=sb.from('programme_courses')
       .select('course_id,courses(id,code,name,description,credit_units)')
       .eq('programme_id',profile.programme_id)
       .eq('level_id',profile.level_id);
-    if(error){console.error('Programme course loading error:',error);courses=[];return}
-    courses=mergeCourses((pcs||[]).map(x=>x.courses).filter(c=>c&&c.id));
   }
-  // IMPORTANT: never fall back to demo courses. A student's dashboard must contain
-  // only courses explicitly assigned to that student's programme + level.
+  const [taskResult,courseResult]=await Promise.all([taskPromise,coursePromise]);
+  tasks=taskResult.data||[];
+  if(courseResult){
+    if(courseResult.error){console.error('Programme course loading error:',courseResult.error);courses=[];return}
+    courses=(courseResult.data||[]).map(x=>x.courses).filter(c=>c&&c.id);
+  }
+  // Courses come ONLY from Supabase programme_courses. No embedded/demo course catalogue.
 }
 function hasCompletedAcademicProfile(){
   return !!(profile?.university_id&&profile?.programme_id&&profile?.level_id);
@@ -976,7 +950,7 @@ function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.l
 async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
-$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('resendConfirmationBtn').onclick=resendConfirmation;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
+$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('resendConfirmationBtn').onclick=resendConfirmation;$('forgotPasswordBtn').onclick=sendPasswordReset;$('saveNewPasswordBtn').onclick=saveNewPassword;$('backToLoginBtn').onclick=showLoginForm;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
@@ -988,7 +962,7 @@ window.addEventListener('popstate',e=>{
   handlingPopState=false;
 });
 
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()} });
+sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
 (async()=>{
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
