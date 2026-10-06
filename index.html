@@ -48,6 +48,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><h2>Welcome to CampusMate NG</h2><p class="mut">Create your student account or sign in to continue.</p>
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
+<div id="resendConfirmationWrap" class="hidden" style="margin:8px 0 12px;text-align:right"><button id="resendConfirmationBtn" type="button" class="secondary" style="width:auto;padding:9px 12px">Resend confirmation email</button></div>
 <div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button></div>
 <div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
@@ -273,8 +274,20 @@ async function signUp(){
   if(data.session){await finishLogin(data.session);}
   else msg('Account created. Check your email to confirm your account, then return here and log in.','success');
 }
+async function resendConfirmation(){
+  const e=(($('loginEmail')?.value||$('signupEmail')?.value||'').trim());
+  if(!e){msg('Enter your email address first so we can resend the confirmation link.','error');return}
+  const btn=$('resendConfirmationBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending…'}
+  try{
+    const {error}=await sb.auth.resend({type:'signup',email:e});
+    if(error)msg(error.message,'error');
+    else{msg('A new confirmation email has been sent. Please check your inbox and spam folder.','success');$('resendConfirmationWrap')?.classList.add('hidden');}
+  }catch(err){msg(err?.message||'Unable to resend the confirmation email right now.','error');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Resend confirmation email'}}
+}
 async function login(){
-  clearMsg(); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
+  clearMsg(); $('resendConfirmationWrap')?.classList.add('hidden'); const e=$('loginEmail').value.trim(),pw=$('loginPassword').value;
   if(!e||!pw){msg('Enter your email and password.','error');return}
   const btn=$('loginBtn');
   if(btn){btn.disabled=true;btn.textContent='Logging in…';}
@@ -301,9 +314,6 @@ async function finishLogin(s){
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  // Keep the student area completely hidden while we determine whether this is
-  // a returning student or a new/incomplete student. This prevents the setup
-  // screen from flashing on every login.
   $('auth').classList.add('hidden');
   $('student').classList.remove('hidden');
   $('portal').classList.add('hidden');
@@ -313,15 +323,17 @@ async function finishLogin(s){
   const profileComplete=hasCompletedAcademicProfile();
 
   if(profileComplete){
-    // RETURNING USER: go straight to the dashboard. Do not load or show setup.
-    await refreshProStatus();
-    await loadStudentData();
-    startStudent();
-    $('onboarding').classList.add('hidden');
+    // Show the homepage immediately. Data and Pro status continue loading in the background,
+    // so a successful login never leaves a blank screen while those requests finish.
     $('portal').classList.remove('hidden');
+    startStudent();
     history.replaceState({cmPage:'home'},'',location.href);
+
+    await Promise.all([refreshProStatus(),loadStudentData()]);
+    renderCourses();
+    renderTasks();
+    renderPerformance();
   }else{
-    // NEW/INCOMPLETE USER: setup is shown only when required.
     $('portal').classList.add('hidden');
     $('onboarding').classList.remove('hidden');
     await loadAcademicOptions();
@@ -964,7 +976,7 @@ function renderTasks(){ $('taskCount').textContent=tasks.length+' task'+(tasks.l
 async function logout(){await sb.auth.signOut();location.reload()}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
-$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
+$('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('resendConfirmationBtn').onclick=resendConfirmation;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
@@ -978,14 +990,18 @@ window.addEventListener('popstate',e=>{
 
 sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()} });
 (async()=>{
-  // Always show the login page first. Existing Supabase sessions are not used to auto-open the portal.
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-  showAuth('login');
+  const {data}=await sb.auth.getSession();
+  if(data.session){
+    await finishLogin(data.session);
+  }else{
+    $('auth').classList.remove('hidden');
+    $('student').classList.add('hidden');
+    $('portal').classList.add('hidden');
+    $('onboarding').classList.add('hidden');
+    showAuth('login');
+  }
 })();
 </script></div></body></html>
