@@ -30,7 +30,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:34px;border:0;background:none;color:var(--n);font-weight:800;font-size:12px}</style><style>
+<style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:34px;height:30px;border:0;background:none;color:var(--n);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}.pw button svg{width:20px;height:20px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
 </style></head>
@@ -49,9 +49,9 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="tabs"><button id="loginTab" class="tab active">Log in</button><button id="signupTab" class="tab">Create account</button></div>
 <div id="authMsg" class="msg hidden"></div>
 <div id="resendConfirmationWrap" class="hidden" style="margin:8px 0 12px;text-align:right"><button id="resendConfirmationBtn" type="button" class="secondary" style="width:auto;padding:9px 12px">Resend confirmation email</button></div>
-<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" onclick="togglePw('loginPassword',this)">Show</button></div><button id="loginBtn" class="primary">Log in</button><button id="forgotPasswordBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px 2px">Forgot password?</button></div>
-<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter your new password below.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('resetPassword',this)">Show</button></div><label>Confirm new password</label><div class="pw"><input id="resetPasswordConfirm" type="password" placeholder="Re-enter your new password"><button type="button" onclick="togglePw('resetPasswordConfirm',this)">Show</button></div><button id="saveNewPasswordBtn" type="button" class="primary">Save new password</button><button id="backToLoginBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px">Back to login</button></div>
-<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" onclick="togglePw('signupPassword',this)">Show</button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" onclick="togglePw('signupConfirm',this)">Show</button></div><button id="signupBtn" class="primary">Create student account</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="loginPassword" type="password" placeholder="Your password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('loginPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="loginBtn" class="primary">Log in</button><button id="forgotPasswordBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px 2px">Forgot password?</button></div>
+<div id="resetForm" class="hidden"><h3 style="margin-top:0">Reset your password</h3><p class="mut">Enter your new password below.</p><label>New password</label><div class="pw"><input id="resetPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm new password</label><div class="pw"><input id="resetPasswordConfirm" type="password" placeholder="Re-enter your new password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('resetPasswordConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="saveNewPasswordBtn" type="button" class="primary">Save new password</button><button id="backToLoginBtn" type="button" style="width:100%;border:0;background:none;color:var(--n);font-weight:800;padding:11px 4px">Back to login</button></div>
+<div id="signupForm" class="hidden"><label>Full name</label><input id="signupName" placeholder="e.g. Joshua Nana Agyo"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com"><label>Password</label><div class="pw"><input id="signupPassword" type="password" placeholder="At least 6 characters"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupPassword',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><label>Confirm password</label><div class="pw"><input id="signupConfirm" type="password" placeholder="Re-enter password"><button type="button" aria-label="Show password" title="Show password" onclick="togglePw('signupConfirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><button id="signupBtn" class="primary">Create student account</button></div>
 </div></main>
 </div>
 
@@ -154,7 +154,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div class="card"><h3>🎯 Choose a professional pathway</h3><p class="mut">Select an exam track to configure a CBT. Question count, timing and any verified pass-mark metadata come from the track configuration.</p></div>
 <input id="councilSearch" placeholder="🔎 Search council, profession or exam…" oninput="renderCouncilTracks()"><div id="councilTracks"></div>
 <div class="card"><button class="secondary" onclick="go('councilAnalytics');loadCouncilAnalytics()">📊 My professional exam analytics</button></div>
-<div class="card"><b>🇳🇬 Official reference</b><p class="mut">For NMCN learners, use the official NMCN digital learning platform for regulator-provided learning resources.</p><a class="secondary" href="https://educator.elearn.nmcn.gov.ng/" target="_blank" rel="noopener">Open NMCN Digital Learning Platform</a></div>
+
 </section>
 <section id="councilSetup" class="page hidden">
 <div class="head"><div class="row"><button class="back" onclick="go('council')">‹</button><div><h2>CBT Setup</h2><div class="sub" id="councilSetupSub">Configure your practice</div></div></div></div>
@@ -355,7 +355,7 @@ async function login(){
     if(btn){btn.disabled=false;btn.textContent='Log in';}
   }
 }
-async function finishLogin(s){
+async function finishLogin(s,restorePage='home'){
   session=s;
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
@@ -365,28 +365,41 @@ async function finishLogin(s){
   $('portal').classList.add('hidden');
   $('onboarding').classList.add('hidden');
 
-  await loadProfile();
+  const profilePromise=loadProfile();
+  const proPromise=refreshProStatus();
+  await profilePromise;
   const profileComplete=hasCompletedAcademicProfile();
 
   if(profileComplete){
-    // Show the homepage immediately. Data and Pro status continue loading in the background,
-    // so a successful login never leaves a blank screen while those requests finish.
     $('portal').classList.remove('hidden');
-    startStudent();
-    history.replaceState({cmPage:'home'},'',location.href);
-
-    await Promise.all([refreshProStatus(),loadStudentData()]);
-    renderCourses();
-    renderTasks();
-    renderPerformance();
+    await loadStudentData();
+    startStudent(restorePage||'home');
+    history.replaceState({cmPage:restorePage||'home'},'',location.href);
+    history.pushState({cmPage:restorePage||'home'},'',location.href);
+    try{sessionStorage.setItem('cm_page',restorePage||'home')}catch(e){}
+    if(restorePage==='course' || restorePage==='study'){
+      const savedId=sessionStorage.getItem('cm_current_course_id');
+      const idx=courses.findIndex(c=>c.id===savedId);
+      if(idx>=0){
+        if(restorePage==='course') await openCourse(idx,'none');
+        else {
+          await openCourse(idx,'none');
+          const topicId=sessionStorage.getItem('cm_current_topic_id')||'';
+          const topicTitle=sessionStorage.getItem('cm_current_topic_title')||'';
+          if(topicId||topicTitle) await openStudy(topicId,topicTitle,'none');
+        }
+      }else go('courses',null,'none');
+    }
+    proPromise.catch(err=>console.warn('Pro status loading error:',err));
   }else{
     $('portal').classList.add('hidden');
     $('onboarding').classList.remove('hidden');
     await loadAcademicOptions();
   }
 }
+
 async function loadProfile(){
-  let result=await sb.from('profiles').select('*, universities(name), programmes(name, department_id, departments(name, faculty_id, faculties(name))), levels(name)').eq('id',session.user.id).single();
+  let result=await sb.from('profiles').select('*, universities(name), programmes(name), levels(name)').eq('id',session.user.id).single();
   if(result.error){
     console.warn('Detailed profile lookup failed; retrying basic profile lookup:',result.error.message);
     const fallback=await sb.from('profiles').select('*').eq('id',session.user.id).single();
@@ -402,8 +415,8 @@ async function loadProfile(){
   profile.id=profile.id||session.user.id;
   profile.full_name=profile.full_name||session.user.user_metadata?.full_name||session.user.email;
   profile.role=profile.role||'student';
-  profile.department_id=profile.department_id||profile.programmes?.department_id||null;
-  profile.faculty_id=profile.faculty_id||profile.programmes?.departments?.faculty_id||null;
+  profile.department_id=profile.department_id||null;
+  profile.faculty_id=profile.faculty_id||null;
 }
 
 async function refreshProStatus(){
@@ -529,7 +542,7 @@ async function loadStudentData(){
 function hasCompletedAcademicProfile(){
   return !!(profile?.university_id&&profile?.programme_id&&profile?.level_id);
 }
-function startStudent(){
+function startStudent(page='home'){
   const first=(profile?.full_name||session?.user?.email||'Student').split(' ')[0];
   $('hello').textContent='Welcome, '+first+' 👋';
   const prog=profile?.programmes?.name||'Programme not set',level=profile?.levels?.name||'Level not set',uni=profile?.universities?.name||'University not set';
@@ -539,9 +552,13 @@ function startStudent(){
   const completed=hasCompletedAcademicProfile();
   $('onboarding').classList.toggle('hidden',completed);
   $('portal').classList.toggle('hidden',!completed);
-  renderCourses();renderTasks();renderGpa();renderPerformance();refreshProStatus();go('home');
+  renderCourses();renderTasks();renderGpa();renderPerformance();refreshProStatus();
+  go(page||'home',null,'none');
 }
 let handlingPopState=false;
+let currentPortalPage='home';
+let allowPortalExit=false;
+let lastHomeBackAt=0;
 function go(id,btn,historyMode='push'){
   if(id==='gpa'&&!quizIsPro()){
     openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.', 'gpa');
@@ -552,6 +569,8 @@ function go(id,btn,historyMode='push'){
   document.querySelectorAll('#student .nav button').forEach(x=>x.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(id==='courses')renderCourses();if(id==='planner')renderTasks();if(id==='quiz')renderQuizCenter();if(id==='catalogue'){renderCatalogue()}if(id==='council'){loadCouncilPractice()}if(id==='councilAdmin'){loadCouncilAdmin()}if(id==='councilAnalytics'){loadCouncilAnalytics()}
+  currentPortalPage=id;
+  if(session?.user?.id){try{sessionStorage.setItem('cm_page',id)}catch(e){}}
   if(historyMode==='push'&&!handlingPopState){history.pushState({cmPage:id},'',location.href)}
   window.scrollTo(0,0);
 }
@@ -567,7 +586,7 @@ function renderCourses(){
     :'<div class="card"><p class="mut">No courses have been assigned to this programme and level yet. Courses from other programmes or faculties will not be displayed.</p></div>';
 }
 function filterCourses(){let q=($('search').value||'').toLowerCase();document.querySelectorAll('#courseList .course').forEach(x=>x.style.display=x.dataset.name.includes(q)?'flex':'none')}
-async function openCourse(i){
+async function openCourse(i,historyMode='push'){
   currentCourse=courses[i];
   $('courseTitle').textContent=currentCourse.name;
   $('courseMeta').textContent=currentCourse.code+' • '+(currentCourse.credit_units??currentCourse.units??0)+' Credit Units';
@@ -577,24 +596,11 @@ async function openCourse(i){
     const {data}=await sb.from('topics').select('id,title,description').eq('course_id',currentCourse.id).eq('status','published').order('sort_order');
     ts=data||[];
   }
-  if(!ts.length && currentCourse.topics?.length) ts=currentCourse.topics;
-  if((currentCourse.code==='ANA201'||currentCourse.code==='ANA202') && currentCourse.topics?.length){
-    const dbByTitle=new Map(ts.map(t=>[String(t.title||'').trim().toLowerCase(),t]));
-    const merged=[];
-    for(const bt of currentCourse.topics){
-      const key=String(bt?.title||bt||'').trim().toLowerCase();
-      merged.push(dbByTitle.get(key)||{id:'',title:bt?.title||String(bt||''),description:'Comprehensive study material'});
-    }
-    for(const t of ts){
-      const key=String(t.title||'').trim().toLowerCase();
-      if(!currentCourse.topics.some(bt=>String(bt?.title||bt||'').trim().toLowerCase()===key)) merged.push(t);
-    }
-    ts=merged;
-  }
   if(ts.length){
     $('topics').innerHTML=ts.map((t,j)=>`<div class="card course" onclick="openStudy('${t.id||''}','${escapeHtml(t.title)}')"><div class="badge">${t.id?'TOP':String(j+1).padStart(2,'0')}</div><div><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.description||'Study material')}</p></div><b>›</b></div>`).join('');
   }else $('topics').innerHTML='<p class="mut">No study topics are available for this course yet.</p>';
-  go('course');
+  try{sessionStorage.setItem('cm_current_course_id',currentCourse.id||'')}catch(e){}
+  go('course',null,historyMode);
 }
 function anatomyMaterial(title,course){
   const t=String(title||'').trim(), k=t.toLowerCase();
@@ -659,7 +665,7 @@ function builtinMaterial(course,title){
   return `# ${t}\n\nCourse: ${c}\n\n${body}\n\nKey terms\n• Definition — the precise meaning and scope of the topic.\n• Principle — a rule or concept that guides understanding or practice.\n• Application — how the knowledge is used in a real situation.\n• Complication — an additional problem that may arise from a disease, process or intervention.\n\nSummary\n${t} should be studied for understanding, application and examination readiness, not memorisation alone. Review the topic alongside related topics in ${c}.`;
 }
 
-async function openStudy(topicId,title){
+async function openStudy(topicId,title,historyMode='push'){
   $('studyTitle').textContent=title;
   const list=['Understand the core definition and concepts.','Identify the major components or processes.','Relate the topic to the course and professional practice.','Apply the concept to examination questions.'];
   $('studyPoints').innerHTML=list.map(x=>`<li>${x}</li>`).join('');
@@ -675,7 +681,8 @@ async function openStudy(topicId,title){
   }else{
     $('studyBody').innerHTML=`<article><h3>${escapeHtml(title)} — Study Material</h3><div class="mut" style="white-space:pre-wrap;line-height:1.75">${escapeHtml(builtinMaterial(currentCourse,title))}</div></article>`;
   }
-  go('study');
+  try{sessionStorage.setItem('cm_current_topic_id',topicId||'');sessionStorage.setItem('cm_current_topic_title',title||'')}catch(e){}
+  go('study',null,historyMode);
 }
 
 function renderPerformance(){
@@ -820,186 +827,13 @@ function submitQuiz(timeUp=false){
   const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
 }
 
-function togglePw(id,btn){const el=$(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'Show':'Hide'}
-/* ===================== PROFESSIONAL COUNCIL PRACTICE ===================== */
-const COUNCIL_TRACKS = [
-  {key:'nursing', names:['nursing','nursing science'], profession:'Nursing Science', body:'Nursing and Midwifery Council of Nigeria (NMCN)', short:'NMCN'},
-  {key:'medicine', names:['medicine and surgery','medicine & surgery','medicine'], profession:'Medicine and Surgery', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
-  {key:'dentistry', names:['dentistry','dental surgery'], profession:'Dentistry', body:'Medical and Dental Council of Nigeria (MDCN)', short:'MDCN'},
-  {key:'pharmacy', names:['pharmacy'], profession:'Pharmacy', body:'Pharmacy Council of Nigeria (PCN)', short:'PCN'},
-  {key:'medical-lab', names:['medical laboratory science','medical laboratory sciences'], profession:'Medical Laboratory Science', body:'Medical Laboratory Science Council of Nigeria (MLSCN)', short:'MLSCN'},
-  {key:'radiography', names:['radiography','radiography and radiation science'], profession:'Radiography', body:'Radiographers Registration Board of Nigeria (RRBN)', short:'RRBN'},
-  {key:'physiotherapy', names:['physiotherapy'], profession:'Physiotherapy', body:'Medical Rehabilitation Therapists Board of Nigeria (MRTB)', short:'MRTB'},
-  {key:'optometry', names:['optometry'], profession:'Optometry', body:'Optometrists and Dispensing Opticians Registration Board of Nigeria (ODORBN)', short:'ODORBN'},
-  {key:'veterinary-medicine', names:['veterinary medicine','veterinary medicine and surgery'], profession:'Veterinary Medicine', body:'Veterinary Council of Nigeria (VCN)', short:'VCN'},
-  {key:'law', names:['law','llb','bachelor of laws'], profession:'Law', body:'Council of Legal Education (CLE)', short:'CLE'},
-  {key:'accounting', names:['accounting'], profession:'Accounting', body:'Institute of Chartered Accountants of Nigeria (ICAN)', short:'ICAN'}
-];
-
-let councilTracksCache=[];
-let currentCouncilTrack=null;
-let councilQuestions=[];
-let currentCouncilCbt=null;
-
-function programmeText(){
-  return String(profile?.programmes?.name||profile?.programme_name||'').trim().toLowerCase();
-}
-function getEligibleCouncilTracks(){
-  const p=programmeText();
-  return COUNCIL_TRACKS.filter(t=>t.names.some(n=>p===n||p.includes(n)||n.includes(p)));
-}
-function councilQuestionUsable(q){
-  return q && questionText(q)!=='Question' && questionOptions(q).length>=2 && correctKey(q)!=='';
-}
-function councilQuestionApproved(q){
-  const status=String(q?.verification_status||q?.status||q?.verificationStatus||'').toLowerCase();
-  const origin=String(q?.content_origin||q?.origin||q?.source_type||'').toLowerCase();
-  const active=q?.active===undefined ? q?.is_active!==false : q.active!==false;
-  const approved=['officially_verified','licensed_partner','reviewed_reference','official_verified','official_authorized'].includes(status) ||
-                 ['licensed_partner','reviewed_reference','official_authorized'].includes(origin);
-  return active && (approved || !status && !origin);
-}
-async function fetchCouncilQuestions(track){
-  const attempts=[
-    {table:'council_questions',fields:'*'},
-    {table:'professional_council_questions',fields:'*'}
-  ];
-  for(const a of attempts){
-    try{
-      let q=sb.from(a.table).select(a.fields);
-      const {data,error}=await q;
-      if(error)continue;
-      const rows=(data||[]).filter(row=>{
-        const key=String(row.track_key||row.track_id||row.exam_track||row.council_track||row.council||'').toLowerCase();
-        const body=String(row.council_body||row.exam_body||'').toLowerCase();
-        return !key || key===track.key || key===track.short.toLowerCase() || body.includes(track.short.toLowerCase()) || body.includes(track.body.toLowerCase());
-      }).filter(councilQuestionApproved).filter(councilQuestionUsable);
-      if(rows.length)return rows;
-    }catch(e){console.warn('Council question source unavailable:',a.table,e)}
-  }
-  return [];
-}
-function renderCouncilTracks(){
-  const box=$('councilTracks'); if(!box)return;
-  const eligible=getEligibleCouncilTracks();
-  councilTracksCache=eligible;
-  const q=($('councilSearch')?.value||'').trim().toLowerCase();
-  const shown=eligible.filter(t=>(t.profession+' '+t.body+' '+t.short).toLowerCase().includes(q));
-  if(!eligible.length){
-    box.innerHTML='<div class="card"><b>Council practice is for professional programmes.</b><p class="mut">Your selected programme does not currently have a professional council exam track configured in CampusMate.</p></div>';
-    return;
-  }
-  if(!shown.length){
-    box.innerHTML='<div class="card"><p class="mut">No matching council track found.</p></div>';
-    return;
-  }
-  box.innerHTML=shown.map(t=>`
-    <div class="card">
-      <div class="row" style="justify-content:space-between;gap:10px">
-        <div><span class="pill">${escapeHtml(t.short)}</span><h3 style="margin:8px 0 4px">${escapeHtml(t.profession)}</h3><p class="mut" style="margin:0">${escapeHtml(t.body)}</p></div>
-      </div>
-      <button class="primary" style="margin-top:12px" onclick="openCouncilSetup('${t.key}')">Open ${escapeHtml(t.short)} practice</button>
-    </div>`).join('');
-}
-async function loadCouncilPractice(){
-  renderCouncilTracks();
-}
-async function openCouncilSetup(key){
-  const track=COUNCIL_TRACKS.find(x=>x.key===key);
-  if(!track)return;
-  if(!getEligibleCouncilTracks().some(x=>x.key===key)){
-    alert('Council exam practice is available only to students in the matching professional programme.');
-    return;
-  }
-  currentCouncilTrack=track;
-  $('councilSetupTitle').textContent=track.profession+' — '+track.short;
-  $('councilSetupSub').textContent=track.body;
-  $('councilSetupEligibility').textContent='Eligible professional pathway: '+track.profession+'. Exam body: '+track.body+'.';
-  $('councilSetupInfo').textContent='This practice track is dedicated to '+track.short+' and does not mix questions with other professional council bodies.';
-  $('councilTopic').innerHTML='<option value="">All available topics</option>';
-  councilQuestions=await fetchCouncilQuestions(track);
-  const topics=[...new Set(councilQuestions.map(q=>q.topic||q.topic_name||q.subject).filter(Boolean).map(String))].sort();
-  $('councilTopic').innerHTML='<option value="">All available topics</option>'+topics.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-  if(councilQuestions.length){
-    $('councilSetupInfo').textContent+=` ${councilQuestions.length} approved practice question${councilQuestions.length===1?'':'s'} currently available.`;
-  }else{
-    $('councilSetupInfo').textContent+=' No approved question bank is currently available for this track.';
-  }
-  go('councilSetup');
-}
-async function beginCouncilCbt(){
-  if(!currentCouncilTrack)return;
-  if(!getEligibleCouncilTracks().some(x=>x.key===currentCouncilTrack.key)){
-    alert('This council track is not available for your selected professional programme.');
-    return;
-  }
-  const topic=$('councilTopic').value;
-  let rows=councilQuestions.filter(q=>!topic||String(q.topic||q.topic_name||q.subject||'')===topic);
-  if(!rows.length){alert('No approved questions are available for this council track and topic yet.');return;}
-  const mode=$('councilMode').value;
-  const count=mode==='quick'?10:mode==='practice'?20:Math.min(100,rows.length);
-  if(rows.length<count){alert(`This ${currentCouncilTrack.short} track currently has only ${rows.length} approved usable questions. Choose a smaller practice mode or add more approved questions.`);return;}
-  rows=shuffled(rows).slice(0,count);
-  const timed=$('councilTiming').value==='timed';
-  currentCouncilCbt={track:currentCouncilTrack,questions:rows,answers:{},index:0,startedAt:Date.now(),timed,seconds:timed?count*20:0,timer:null};
-  $('cbtTitle').textContent=currentCouncilTrack.profession+' — '+currentCouncilTrack.short;
-  $('cbtSub').textContent=currentCouncilTrack.body;
-  go('councilCbt');
-  renderCouncilCbtQuestion();
-  if(timed)startCouncilTimer();
-}
-function renderCouncilCbtQuestion(){
-  const c=currentCouncilCbt;if(!c)return;
-  const q=c.questions[c.index],opts=questionOptions(q),answer=c.answers[String(q.id)]||'';
-  $('cbtProgressText').textContent=`Question ${c.index+1} of ${c.questions.length}`;
-  $('cbtProgress').style.width=((c.index+1)/c.questions.length*100)+'%';
-  $('cbtQuestion').innerHTML='<h3>'+escapeHtml(questionText(q))+'</h3>'+opts.map(o=>`<button class="quizOption ${answer===o.key?'selected':''}" onclick="answerCouncilQuestion('${o.key}')"><b>${escapeHtml(o.key)}.</b> ${escapeHtml(o.text)}</button>`).join('');
-  $('cbtNav').innerHTML=c.questions.map((q,i)=>`<button class="qnum ${i===c.index?'current ':''}${c.answers[String(q.id)]?'answered':''}" onclick="jumpCouncilQuestion(${i})">${i+1}</button>`).join('');
-}
-function answerCouncilQuestion(key){if(!currentCouncilCbt)return;currentCouncilCbt.answers[String(currentCouncilCbt.questions[currentCouncilCbt.index].id)]=key;renderCouncilCbtQuestion()}
-function jumpCouncilQuestion(i){if(!currentCouncilCbt)return;currentCouncilCbt.index=Math.max(0,Math.min(currentCouncilCbt.questions.length-1,i));renderCouncilCbtQuestion()}
-function prevCouncilQuestion(){if(currentCouncilCbt&&currentCouncilCbt.index>0){currentCouncilCbt.index--;renderCouncilCbtQuestion()}}
-function nextCouncilQuestion(){if(!currentCouncilCbt)return;if(currentCouncilCbt.index<currentCouncilCbt.questions.length-1){currentCouncilCbt.index++;renderCouncilCbtQuestion()}else submitCouncilCbt(false)}
-function startCouncilTimer(){
-  clearInterval(currentCouncilCbt?.timer);
-  const tick=()=>{if(!currentCouncilCbt)return;currentCouncilCbt.seconds--;if($('cbtTimer'))$('cbtTimer').textContent=Math.max(0,currentCouncilCbt.seconds)+'s';if(currentCouncilCbt.seconds<=0){clearInterval(currentCouncilCbt.timer);submitCouncilCbt(true)}};
-  if($('cbtTimer'))$('cbtTimer').textContent=currentCouncilCbt.seconds+'s';
-  currentCouncilCbt.timer=setInterval(tick,1000);
-}
-function confirmExitCouncilCbt(){if(confirm('Exit this council practice? Your current answers will be lost.')){clearInterval(currentCouncilCbt?.timer);go('council')}}
-function submitCouncilCbt(timeUp=false){
-  const c=currentCouncilCbt;if(!c)return;
-  clearInterval(c.timer);
-  let correct=0;
-  c.questions.forEach(q=>{if(c.answers[String(q.id)]===correctKey(q))correct++});
-  const pct=Math.round(correct/c.questions.length*100);
-  $('councilResultScore').textContent=pct+'%';
-  $('councilResultSummary').textContent=`${correct} correct out of ${c.questions.length}. ${timeUp?'Time expired. ':''}${c.track.profession} practice — ${c.track.body}.`;
-  $('councilResultStatus').textContent=pct>=50?'Practice completed':'Keep practising';
-  $('crCorrect').textContent=correct;$('crQuestions').textContent=c.questions.length;$('crTime').textContent=Math.round((Date.now()-c.startedAt)/60000)+'m';$('crAccuracy').textContent=pct+'%';
-  $('councilReview').innerHTML=c.questions.map((q,i)=>{
-    const chosen=c.answers[String(q.id)]||'Not answered', ck=correctKey(q);
-    return `<article class="card"><b>Q${i+1}. ${escapeHtml(questionText(q))}</b><p>Your answer: <strong>${escapeHtml(chosen)}</strong></p><p>Correct answer: <strong>${escapeHtml(ck)}</strong></p><p class="mut">${escapeHtml(explanationText(q))}</p></article>`;
-  }).join('');
-  go('councilResult');
-}
-async function loadCouncilAnalytics(){
-  $('caAttempts').textContent='0';$('caAverage').textContent='0%';$('caBest').textContent='0%';$('caAccuracy').textContent='0%';
-  $('caWeakTopics').innerHTML='<p class="mut">Complete a CBT to see topic-level performance.</p>';
-  $('caAttemptsList').innerHTML='<p class="mut">Analytics history will appear here as council attempts are connected to the CampusMate analytics store.</p>';
-}
-async function loadCouncilAdmin(){
-  const tracks=COUNCIL_TRACKS;
-  $('qaTrack').innerHTML='<option value="">Select exam track</option>'+tracks.map(t=>`<option value="${t.key}">${escapeHtml(t.profession)} — ${escapeHtml(t.short)}</option>`).join('');
-  $('qaTotal').textContent='0';$('qaPublished').textContent='0';$('qaDraft').textContent='0';
-  $('qaList').innerHTML='<p class="mut">Question-bank administration is available after the council question tables are connected.</p>';
-}
-
 function togglePw(id,btn){
   const el=$(id);
   const showing=el.type==='password';
   el.type=showing?'text':'password';
-  btn.innerHTML=showing?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.8"></path><path d="M6.2 6.8C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6"></path><path d="M9.9 9.9a2.7 2.7 0 0 0 3.8 3.8"></path></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg>';
+  btn.innerHTML=showing
+    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.1 3.8"></path><path d="M6.2 6.8C3.4 8.6 2 12 2 12s3.5 6 10 6c1.3 0 2.5-.2 3.5-.6"></path><path d="M9.9 9.9a2.7 2.7 0 0 0 3.8 3.8"></path></svg>'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg>';
   btn.setAttribute('aria-label',showing?'Hide password':'Show password');
   btn.setAttribute('title',showing?'Hide password':'Show password');
 }
@@ -1138,21 +972,41 @@ $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboardi
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
 window.addEventListener('popstate',e=>{
-  const target=e.state?.cmPage||'home';
+  const target=e.state?.cmPage||null;
+  if(currentPortalPage==='home' && (target==='home'||!target)){
+    const now=Date.now();
+    if(now-lastHomeBackAt<2000){
+      allowPortalExit=true;
+      history.back();
+      return;
+    }
+    lastHomeBackAt=now;
+    try{history.pushState({cmPage:'home'},'',location.href)}catch(err){}
+    const notice=document.createElement('div');
+    notice.textContent='Press back again to exit CampusMate NG';
+    notice.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#123;color:#fff;padding:10px 15px;border-radius:22px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+    document.body.appendChild(notice);setTimeout(()=>notice.remove(),1800);
+    return;
+  }
+  if(allowPortalExit){allowPortalExit=false;return;}
+  const next=target||'home';
   handlingPopState=true;
-  if(target==='gpa'&&!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');}
-  else go(target,null,'none');
+  if(next==='gpa'&&!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');}
+  else go(next,null,'none');
   handlingPopState=false;
 });
 
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
+sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){try{sessionStorage.removeItem('cm_page');sessionStorage.removeItem('cm_current_course_id');sessionStorage.removeItem('cm_current_topic_id');sessionStorage.removeItem('cm_current_topic_title')}catch(e){}location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
 (async()=>{
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
+  const nav=performance.getEntriesByType?.('navigation')?.[0];
+  const isReload=nav?.type==='reload';
   const {data}=await sb.auth.getSession();
-  if(data.session){
-    await finishLogin(data.session);
+  if(data.session && isReload){
+    const savedPage=history.state?.cmPage||sessionStorage.getItem('cm_page')||'home';
+    await finishLogin(data.session,savedPage);
   }else{
     $('auth').classList.remove('hidden');
     $('student').classList.add('hidden');
