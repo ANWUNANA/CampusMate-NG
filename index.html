@@ -435,14 +435,22 @@ async function refreshProStatus(){
   const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
   let active=false, sub=null, querySucceeded=false;
   try{
-    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
+    // Do not hard-code only plan='pro': older live records may use
+    // 'campusmate_pro_monthly'. Read this student's active subscriptions and
+    // identify the Pro plan without allowing an expired record to unlock Pro.
+    const {data,error}=await sb.from('subscriptions').select('plan,status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('status','active').order('expires_at',{ascending:false}).limit(10);
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
     else{
       querySucceeded=true;
-      sub=data||null;
-      // A successful subscription lookup is authoritative: no active row means Free.
-      // An active row is Pro only until its recorded expiry (if an expiry is recorded).
-      active=!!(sub && (!sub.expires_at || new Date(sub.expires_at)>new Date()));
+      const now=Date.now();
+      sub=(data||[]).find(row=>{
+        const plan=String(row?.plan||'').trim().toLowerCase().replace(/[ _-]+/g,'');
+        const isProPlan=!plan || plan==='pro' || plan==='campusmatepro' || plan==='campusmatepromonthly' || plan.includes('campusmatepro');
+        const notExpired=!row?.expires_at || new Date(row.expires_at).getTime()>now;
+        return isProPlan && notExpired;
+      })||null;
+      // The database row, not a stale profile flag, decides active Pro status.
+      active=!!sub;
     }
   }catch(e){console.warn('Pro status lookup failed:',e)}
   // If Supabase is temporarily unreachable, preserve cached Pro status only when its known
@@ -464,7 +472,14 @@ async function refreshProStatus(){
   // Do not keep displaying an activation message to an active subscriber.
   if(note)note.textContent='';
   // Close any upgrade gate that may have been opened before the subscription status loaded.
-  if(active)$('proGate')?.classList.add('hidden');
+  if(active){
+    $('proGate')?.classList.add('hidden');
+    // Remove any transient upgrade/activation notice that may have been shown
+    // before the subscription lookup finished.
+    if(note)note.textContent='';
+    if(proCard)proCard.classList.add('hidden');
+    if(upgrade)upgrade.classList.add('hidden');
+  }
   return !!active;
 }
 
@@ -895,13 +910,27 @@ async function startSelectedQuiz(){
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    // Both Free (5/10) and Pro quizzes draw from the same published course bank.
-    // Rotate question selection between attempts, then shuffle each question's options.
-    let seen=new Set(getSeenQuestionIds());
-    let fresh=valid.filter(q=>!seen.has(String(q.id)));
-    if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
-    const selectedBase=shuffled(fresh).slice(0,count);
-    saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
+    // Free students always practise from the same fixed pool of ten questions
+    // per course/topic. The pool does not rotate between attempts. A 5-question
+    // attempt samples five from that same pool; a 10-question attempt uses all ten
+    // in a shuffled order. Pro students can draw from the full published bank.
+    let selectedBase;
+    if(!quizIsPro()){
+      const stableQuestions=[...valid].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}));
+      const freePool=stableQuestions.slice(0,10);
+      if(freePool.length<count){
+        $('quizBoxCard')?.classList.add('hidden');
+        alert('This course/topic currently has only '+freePool.length+' questions in the fixed free practice set. Please choose a smaller quiz or ask the course administrator to publish more questions.');
+        return;
+      }
+      selectedBase=shuffled(freePool).slice(0,count);
+    }else{
+      selectedBase=shuffled(valid).slice(0,count);
+      let seen=new Set(getSeenQuestionIds());
+      const fresh=valid.filter(q=>!seen.has(String(q.id)));
+      if(fresh.length>=count)selectedBase=shuffled(fresh).slice(0,count);
+      saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
+    }
 
     const selected=selectedBase.map(q=>{
       const originalOptions=questionOptions(q);
@@ -928,7 +957,7 @@ async function startSelectedQuiz(){
 function renderQuizQuestion(){
   if(!quizQuestions.length||!currentQuiz)return;
   const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
-  const practice=currentQuiz.mode==='practice',answered=!!chosen,ck=correctKey(q),isCorrect=answered&&chosen===ck;
+  const practice=currentQuiz.mode==='practice',answered=!!chosen,ck=(q._displayCorrectKey||correctKey(q)),isCorrect=answered&&chosen===ck;
   $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.length;
   $('quizProgress').style.width=((i+1)/quizQuestions.length*100)+'%';
   const feedback=practice&&answered
@@ -951,13 +980,13 @@ function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!c
 function submitQuiz(timeUp=false){
   if(!currentQuiz||!quizQuestions.length)return;
   clearInterval(currentQuiz.timer);let correct=0;
-  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
+  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===(q._displayCorrectKey||correctKey(q)))correct++;});
   const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
   d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
   $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
   $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
   $('quizBox').innerHTML='';go('result');renderPerformance();
-  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=(q._displayCorrectKey||correctKey(q)),correctText=opts.find(o=>o.key===ck)?.text||'';return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+(correctText?' — '+escapeHtml(correctText):'')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
 }
 
 function togglePw(id,btn){
@@ -1103,21 +1132,5 @@ function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;',
 $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('resendConfirmationBtn').onclick=resendConfirmation;$('forgotPasswordBtn').onclick=sendPasswordReset;$('saveNewPasswordBtn').onclick=saveNewPassword;$('backToLoginBtn').onclick=showLoginForm;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
-window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
-window.addEventListener('popstate',async e=>{
-  const target=e.state?.cmPage||null;
-  // A second Back on the dashboard ends the CampusMate session and returns to Login.
-  // It must not call history.back() again, which would send the user out of Chrome.
-  if(allowPortalExit){allowPortalExit=false;try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');try{history.replaceState({cmAuth:'login'},'',location.href);history.pushState({cmAuth:'login'},'',location.href)}catch(err){}return;}
-  // If no user is signed in, keep the login screen visible rather than restoring a stale portal page.
-  if(!session?.user){showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');return;}
-  // On Home, Back uses a double-tap flow, but the second tap returns to Login (not Chrome).
-  if(currentPortalPage==='home'){
-    const now=Date.now();
-    if(now-lastHomeBackAt>0&&now-lastHomeBackAt<10000){
-      allowPortalExit=true;
-      try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}
-      allowPortalExit=false;
-      showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');
-   
+window.addEventListener('error'
 Preview truncated for large file
