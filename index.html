@@ -22,7 +22,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 @keyframes campusMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.motivation-track{animation:none;transform:none;padding-left:0;display:block;text-align:center;white-space:normal;padding:0 14px}}
 
-.quizOption{display:block;width:100%;text-align:left;margin:8px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--n);cursor:pointer}.quizOption.selected{border-color:var(--g);background:#eefaf4}.qnav{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.qnavBtn{min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}.qnavBtn.active{outline:2px solid var(--g)}.qnavBtn.answered{background:#eefaf4;border-color:var(--g)}
+.quizModeGrid{margin:14px 0;align-items:stretch}.quizModeCard{min-width:0;min-height:190px;padding:17px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--n);box-shadow:0 3px 12px #062b4908;transition:border-color .15s,background .15s}.quizModeCard:focus-visible{outline:3px solid #0a9f6380;outline-offset:2px}.quizModeIcon{width:42px;height:42px;border-radius:12px;background:#e6f6ef;display:grid;place-items:center;font-size:23px}.quizModeCard strong{font-size:16px}.quizModeCard small{font-size:12px;line-height:1.5;color:var(--mut);font-weight:400}.quizModeAction{margin-top:auto;color:var(--g);font-size:12px;font-weight:800}.quizBackMode{margin:12px 0 0;width:auto;padding:10px 13px}.quizChosenMode{font-size:15px;font-weight:800;color:var(--n);margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#eaf7f1}.quizOption{display:block;width:100%;text-align:left;margin:8px 0;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--n);cursor:pointer}.quizOption.selected{border-color:var(--g);background:#eefaf4}.quizOption:disabled{cursor:default;opacity:1}.quizOption.answer-correct{border-color:#0a9f63;background:#e7f8ef;color:#146c43}.quizOption.answer-wrong{border-color:#c0392b;background:#fdecea;color:#922b21}.practiceFeedback{margin-top:12px;padding:13px;border-radius:12px;line-height:1.55}.practiceFeedback.correct{background:#e7f8ef;border:1px solid #a9dfc1;color:#146c43}.practiceFeedback.wrong{background:#fdecea;border:1px solid #f0b7b1;color:#922b21}.practiceFeedback .explain{margin-top:8px;color:var(--n)}.qnav{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.qnavBtn{min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}.qnavBtn.active{outline:2px solid var(--g)}.qnavBtn.answered{background:#eefaf4;border-color:var(--g)}
 .profileIcon{width:30px;height:30px;margin:0 auto 2px;display:grid;place-items:center;color:var(--n)}.profileIcon svg{width:27px;height:27px;display:block}.nav button.on .profileIcon{color:var(--g)}.profileAvatar{width:76px;height:76px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;margin:0 auto 10px;border:2px solid #b9e6d1}.profileAvatar svg{width:48px;height:48px;display:block}.profileCard{text-align:center}.profileCard h2{margin:4px 0 5px}.profileMeta{text-align:left;margin-top:14px}.profileMeta p{margin:11px 0}.profileMeta b{color:var(--n)}
 
 .portal-bottom-resources{display:flex;flex-direction:column;gap:10px;margin-top:18px;padding-top:6px;}
@@ -80,13 +80,17 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <section id="courses" class="page hidden"><div class="head"><h2>My Courses</h2><div class="sub">Only courses assigned to your selected programme and level appear here.</div></div><input id="search" placeholder="🔎 Search your courses..." oninput="filterCourses()"><div id="courseScope" class="card"><b>🎓 Programme-specific courses</b><p class="mut" id="courseScopeText">Loading courses assigned to your programme…</p></div><div id="courseList"></div></section>
 <section id="course" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('courses')">‹</button><div><h2 id="courseTitle" style="margin:0"></h2><div class="sub" id="courseMeta"></div></div></div></div><div class="card"><span class="pill">Course Overview</span><p id="courseDesc" class="mut"></p><b>Topics & Materials</b></div><div id="topics"></div></section>
 <section id="study" class="page hidden"><div class="head"><div class="row"><button class="back" onclick="go('course')">‹</button><div><h2 id="studyTitle" style="margin:0"></h2><div class="sub">Learning material</div></div></div></div><div class="card"><h3>Learning Objectives</h3><p>✓ Understand the core concepts</p><p>✓ Explain major processes</p><p>✓ Apply knowledge to nursing practice</p></div><div class="card"><h3>Key Points</h3><ul id="studyPoints" class="mut" style="line-height:1.8"></ul></div><div class="card" id="studyBody"><p class="mut">Learning material will appear here.</p></div></section>
-<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Each course has its own question bank — questions never mix between courses.</div></div>
+<section id="quiz" class="page hidden"><div class="head"><h2>Quiz Center</h2><div class="sub">Choose how you want to learn or test yourself. Each course has its own question bank.</div></div>
 <div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span><span>🧠 Test what you know, learn from every question, and come back stronger — progress is built one question at a time.</span></div></div>
-<div class="card"><label>Select course</label><select id="quizCourseSelect" onchange="selectQuizCourse(this.value)"><option value="">Choose one of your courses</option></select>
-<div id="quizSetup" class="hidden"><label>Quiz mode</label><select id="quizMode" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
+<div id="quizModeChooser" class="grid quizModeGrid" aria-label="Choose quiz mode">
+  <button type="button" class="quizModeCard" onclick="chooseQuizMode('practice')"><span class="quizModeIcon">📘</span><strong>Practice Mode</strong><small>Get instant feedback, correct answers and explanations as you learn.</small><span class="quizModeAction">Learn as you go →</span></button>
+  <button type="button" class="quizModeCard" onclick="chooseQuizMode('cbt')"><span class="quizModeIcon">📝</span><strong>CBT Mode</strong><small>Answer under exam conditions and see your result after submission.</small><span class="quizModeAction">Start an exam →</span></button>
+</div>
+<div id="quizCourseStage" class="hidden"><button type="button" class="secondary quizBackMode" onclick="backToQuizModes()">← Choose a different mode</button><div class="card"><div id="quizChosenModeLabel" class="quizChosenMode">📘 Practice Mode</div><label for="quizCourseSelect">Choose your course</label><select id="quizCourseSelect" onchange="selectQuizCourse(this.value)"><option value="">Choose one of your courses</option></select>
+<div id="quizSetup" class="hidden"><select id="quizMode" class="hidden" aria-hidden="true" tabindex="-1" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
 <label>Number of questions</label><select id="quizCount" onchange="quizCountChanged()"><option value="5">5 questions — Free</option><option value="10">10 questions — Free</option><option value="15">15 questions — Pro</option><option value="20">20 questions — Pro</option><option value="25">25 questions — Pro</option><option value="30">30 questions — Pro</option><option value="40">40 questions — Pro</option><option value="50">50 questions — Pro</option><option value="75">75 questions — Pro</option><option value="100">100 questions — Pro</option></select>
-<label>Topic</label><select id="quizTopic"><option value="">All topics</option></select><p class="mut" id="quizBankInfo">Questions are loaded only from the selected course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div></div>
-<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button class="secondary" onclick="previousQuizQuestion()">Previous</button><button class="primary" onclick="nextQuizQuestion()">Next</button></div><div class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<label for="quizTopic">Topic</label><select id="quizTopic"><option value="">All topics</option></select><p class="mut" id="quizBankInfo">Questions are loaded only from the selected course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div></div></div>
+<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button id="quizPreviousBtn" class="secondary" onclick="previousQuizQuestion()">Previous</button><button id="quizNextBtn" class="primary" onclick="nextQuizQuestion()">Next</button></div><div id="quizNavigatorCard" class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button id="quizSubmitBtn" class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
 <div id="proGate" class="proGateBackdrop hidden" role="dialog" aria-modal="true" aria-labelledby="proGateTitle">
 <div class="proGateModal">
   <div class="proGateIcon">🚀</div>
@@ -730,14 +734,51 @@ function renderPerformance(){
 function renderQuizCenter(){
   const sel=$('quizCourseSelect');
   if(!sel)return;
-  // Every time the student enters Quiz Center, start with a clean course selection.
-  // This makes choosing the same course again trigger its change handler without a page refresh.
+  // Entering Quiz Center always starts at the visible mode chooser.
   sel.innerHTML='<option value="">Choose one of your courses</option>'+courses.map((c,i)=>`<option value="${i}">${escapeHtml(c.code||'')} — ${escapeHtml(c.name||'')}</option>`).join('');
   sel.value='';
+  if($('quizMode'))$('quizMode').value='practice';
+  $('quizModeChooser')?.classList.remove('hidden');
+  $('quizCourseStage')?.classList.add('hidden');
   $('quizSetup')?.classList.add('hidden');
   $('quizBoxCard')?.classList.add('hidden');
+  currentCourse=null;
+  if($('quizChosenModeLabel'))$('quizChosenModeLabel').textContent='📘 Practice Mode';
   if($('quizBankInfo'))$('quizBankInfo').textContent='Choose a course to load its CampusMate question bank.';
   if($('quizTopic'))$('quizTopic').innerHTML='<option value="">All topics</option>';
+}
+
+function chooseQuizMode(mode){
+  if(mode!=='practice'&&mode!=='cbt')return;
+  if($('quizMode'))$('quizMode').value=mode;
+  $('quizModeChooser')?.classList.add('hidden');
+  $('quizCourseStage')?.classList.remove('hidden');
+  $('quizSetup')?.classList.add('hidden');
+  $('quizBoxCard')?.classList.add('hidden');
+  const label=$('quizChosenModeLabel');
+  if(label)label.textContent=mode==='practice'?'📘 Practice Mode — instant feedback':'📝 CBT Mode — exam conditions';
+  const sel=$('quizCourseSelect');
+  if(sel)sel.value='';
+  currentCourse=null;
+  if($('quizBankInfo'))$('quizBankInfo').textContent='Choose a course to load its CampusMate question bank.';
+  if(currentPortalPage==='quiz'&&!handlingPopState){
+    try{history.pushState({cmPage:'quiz',quizModeSelection:true},'',location.href)}catch(e){}
+  }
+  updateQuizMode();
+}
+
+function backToQuizModes(){
+  clearInterval(currentQuiz?.timer);
+  currentQuiz=null;quizQuestions=[];quizAnswers={};currentCourse=null;
+  $('quizBoxCard')?.classList.add('hidden');
+  $('quizSetup')?.classList.add('hidden');
+  $('quizCourseStage')?.classList.add('hidden');
+  $('quizModeChooser')?.classList.remove('hidden');
+  if($('quizCourseSelect'))$('quizCourseSelect').value='';
+  if($('quizMode'))$('quizMode').value='practice';
+  if(currentPortalPage==='quiz'&&!handlingPopState){
+    try{history.pushState({cmPage:'quiz',quizModeChooser:true},'',location.href)}catch(e){}
+  }
 }
 
 async function selectQuizCourse(v){
@@ -778,7 +819,7 @@ async function loadQuizTopics(){
   try{const courseId=await resolveCurrentCourseId();if(!courseId)return;const {data,error}=await sb.from('topics').select('id,title').eq('course_id',courseId).eq('status','published').order('sort_order');if(error)throw error;t.innerHTML='<option value="">All topics</option>'+(data||[]).map(x=>`<option value="${x.id}">${escapeHtml(x.title)}</option>`).join('');}catch(e){console.error('Quiz topic loading error:',e);}
 }
 
-function updateQuizMode(){if($('quizTimer'))$('quizTimer').textContent=$('quizMode')?.value==='cbt'?'20 seconds/question':'Untimed';}
+function updateQuizMode(){const mode=$('quizMode')?.value||'practice';if($('quizTimer'))$('quizTimer').textContent=mode==='cbt'?'20 seconds/question':'Untimed';}
 function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
 function quizCountChanged(){const sel=$('quizCount');if(!sel)return;const n=Number(sel.value||10);if(n>10&&!quizIsPro())openProGate(n);
   if(n>100){sel.value='100';}}
@@ -844,18 +885,27 @@ async function startSelectedQuiz(){
 }
 
 function renderQuizQuestion(){
-  if(!quizQuestions.length)return;
+  if(!quizQuestions.length||!currentQuiz)return;
   const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
+  const practice=currentQuiz.mode==='practice',answered=!!chosen,ck=correctKey(q),isCorrect=answered&&chosen===ck;
   $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.length;
   $('quizProgress').style.width=((i+1)/quizQuestions.length*100)+'%';
-  $('quizBox').innerHTML='<div class="card"><div style="font-weight:800;line-height:1.6">'+escapeHtml(questionText(q))+'</div><div style="margin-top:14px">'+opts.map(o=>'<button type="button" class="quizOption '+(chosen===o.key?'selected':'')+'" onclick="chooseQuizAnswer(\''+o.key+'\')"><b>'+o.key+'.</b> '+escapeHtml(o.text)+'</button>').join('')+'</div></div>';
+  const feedback=practice&&answered
+    ?'<div class="practiceFeedback '+(isCorrect?'correct':'wrong')+'" role="status" aria-live="polite"><b>'+(isCorrect?'✓ Correct! Well done.':'✕ Not quite. The correct answer is '+escapeHtml(ck)+'.')+'</b><div>'+escapeHtml((opts.find(o=>o.key===ck)||{}).text||'')+'</div><div class="explain"><b>Explanation:</b> '+escapeHtml(explanationText(q))+'</div></div>'
+    :'';
+  $('quizBox').innerHTML='<div class="card"><div style="font-weight:800;line-height:1.6">'+escapeHtml(questionText(q))+'</div><div style="margin-top:14px">'+opts.map(o=>{const classes=['quizOption'];if(chosen===o.key)classes.push('selected');if(practice&&answered&&o.key===ck)classes.push('answer-correct');if(practice&&answered&&chosen===o.key&&chosen!==ck)classes.push('answer-wrong');return '<button type="button" class="'+classes.join(' ')+'" '+(practice&&answered?'disabled':'')+' onclick="chooseQuizAnswer(\''+o.key+'\')"><b>'+o.key+'.</b> '+escapeHtml(o.text)+'</button>';}).join('')+'</div>'+feedback+'</div>';
+  const prev=$('quizPreviousBtn'),nav=$('quizNavigatorCard'),submit=$('quizSubmitBtn'),next=$('quizNextBtn');
+  if(prev)prev.classList.toggle('hidden',practice);
+  if(nav)nav.classList.toggle('hidden',practice);
+  if(submit)submit.classList.toggle('hidden',practice);
+  if(next){next.textContent=practice?(i===quizQuestions.length-1?'Finish Practice':'Next Question'):'Next';next.disabled=practice&&!answered;next.style.opacity=next.disabled?'.55':'1';}
   renderQuizNavigator();
 }
-function chooseQuizAnswer(key){const q=quizQuestions[currentQuiz.index];quizAnswers[String(q.id)]=key;renderQuizQuestion();}
-function renderQuizNavigator(){const n=$('quizNav');if(!n)return;n.innerHTML=quizQuestions.map((q,i)=>'<button type="button" class="qnavBtn '+(i===currentQuiz.index?'active ':'')+(quizAnswers[String(q.id)]?'answered':'')+'" onclick="jumpQuizQuestion('+i+')">'+(i+1)+'</button>').join('');}
-function jumpQuizQuestion(i){if(!currentQuiz)return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
-function previousQuizQuestion(){if(currentQuiz&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
-function nextQuizQuestion(){if(!currentQuiz)return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
+function chooseQuizAnswer(key){if(!currentQuiz)return;const q=quizQuestions[currentQuiz.index],id=String(q.id);if(currentQuiz.mode==='practice'&&quizAnswers[id])return;quizAnswers[id]=key;renderQuizQuestion();}
+function renderQuizNavigator(){const n=$('quizNav');if(!n||!currentQuiz)return;n.innerHTML=quizQuestions.map((q,i)=>'<button type="button" class="qnavBtn '+(i===currentQuiz.index?'active ':'')+(quizAnswers[String(q.id)]?'answered':'')+'" onclick="jumpQuizQuestion('+i+')">'+(i+1)+'</button>').join('');}
+function jumpQuizQuestion(i){if(!currentQuiz||currentQuiz.mode==='practice')return;currentQuiz.index=Math.max(0,Math.min(quizQuestions.length-1,i));renderQuizQuestion();}
+function previousQuizQuestion(){if(currentQuiz&&currentQuiz.mode!=='practice'&&currentQuiz.index>0){currentQuiz.index--;renderQuizQuestion();}}
+function nextQuizQuestion(){if(!currentQuiz)return;const q=quizQuestions[currentQuiz.index];if(currentQuiz.mode==='practice'&&!quizAnswers[String(q.id)])return;if(currentQuiz.index<quizQuestions.length-1){currentQuiz.index++;renderQuizQuestion();}else submitQuiz();}
 function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!currentQuiz)return;const left=currentQuiz.remaining--;if($('quizTimer'))$('quizTimer').textContent=Math.max(0,left)+'s';if(left<=0){clearInterval(currentQuiz.timer);submitQuiz(true);}};tick();currentQuiz.timer=setInterval(tick,1000);}
 function submitQuiz(timeUp=false){
   if(!currentQuiz||!quizQuestions.length)return;
