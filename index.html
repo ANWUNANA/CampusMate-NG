@@ -831,7 +831,32 @@ function questionOptions(q){
   const keys=[['A',q.option_a||q.optionA||q.a],['B',q.option_b||q.optionB||q.b],['C',q.option_c||q.optionC||q.c],['D',q.option_d||q.optionD||q.d],['E',q.option_e||q.optionE||q.e]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='');
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
-function correctKey(q){if(q._displayCorrectKey)return q._displayCorrectKey;const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;if(v==null)return '';const z=String(v).trim(),opts=questionOptions(q);if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());return idx>=0?opts[idx].key:'';}
+function rawCorrectAnswer(q){return q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct??null;}
+function resolveCorrectOption(q){
+  const v=rawCorrectAnswer(q);if(v==null)return null;
+  const z=String(v).trim(),opts=questionOptions(q);if(!z||!opts.length)return null;
+  const norm=x=>String(x??'').trim().toLowerCase();
+  // First honour an exact stored option key/identifier, including non-letter IDs.
+  let idx=opts.findIndex(o=>norm(o.key)===norm(z));
+  if(idx>=0)return {index:idx,option:opts[idx]};
+  // Letters A-E can be stored either as option keys or as positional answer labels.
+  if(/^[A-E]$/i.test(z)){
+    const n=z.toUpperCase().charCodeAt(0)-65;
+    if(n>=0&&n<opts.length)return {index:n,option:opts[n]};
+  }
+  // Numeric answers use the common MCQ convention: 1=A, 2=B, etc.; 0 is accepted as A.
+  // This avoids the old bug where answer value "1" was interpreted as the second option first.
+  if(/^\d+$/.test(z)){
+    const n=Number(z);
+    if(n===0&&opts.length)return {index:0,option:opts[0]};
+    if(n>=1&&n<=opts.length)return {index:n-1,option:opts[n-1]};
+  }
+  // Some rows store the correct answer as the full option text.
+  idx=opts.findIndex(o=>norm(o.text)===norm(z));
+  if(idx>=0)return {index:idx,option:opts[idx]};
+  return null;
+}
+function correctKey(q){if(q._displayCorrectKey)return q._displayCorrectKey;const resolved=resolveCorrectOption(q);return resolved?String(resolved.option.key??String.fromCharCode(65+resolved.index)).toUpperCase():'';}
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
 function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
 function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
@@ -867,12 +892,12 @@ async function startSelectedQuiz(){
 
     const selected=selectedBase.map(q=>{
       const originalOptions=questionOptions(q);
-      const originalCorrectKey=correctKey(q);
-      const originalCorrectText=originalOptions.find(o=>String(o.key).toUpperCase()===String(originalCorrectKey).toUpperCase())?.text
-        || originalOptions.find(o=>String(o.text).trim().toLowerCase()===String(q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct??'').trim().toLowerCase())?.text
-        || '';
-      const shuffledOptions=shuffled(originalOptions).map((o,i)=>({key:String.fromCharCode(65+i),text:o.text}));
-      const newCorrect=shuffledOptions.find(o=>originalCorrectText && o.text.trim().toLowerCase()===originalCorrectText.trim().toLowerCase());
+      const resolvedCorrect=resolveCorrectOption(q);
+      // Carry each option's original index through the shuffle so duplicate option text
+      // cannot accidentally make the wrong choice appear correct.
+      const shuffledOptions=shuffled(originalOptions.map((o,index)=>({...o,_sourceIndex:index})))
+        .map((o,i)=>({...o,key:String.fromCharCode(65+i),text:o.text,_sourceIndex:o._sourceIndex}));
+      const newCorrect=resolvedCorrect?shuffledOptions.find(o=>o._sourceIndex===resolvedCorrect.index):null;
       return {...q,_displayOptions:shuffledOptions,_displayCorrectKey:newCorrect?.key||''};
     });
     currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
@@ -916,7 +941,7 @@ function submitQuiz(timeUp=false){
   $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
   $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
   $('quizBox').innerHTML='';go('result');renderPerformance();
-  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'',chosenOption=opts.find(o=>o.key===chosen),ck=correctKey(q),correctOption=opts.find(o=>o.key===ck);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen?(chosen+(chosenOption?'. '+chosenOption.text:'')):'Not answered')+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck?(ck+(correctOption?'. '+correctOption.text:'')):'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
 }
 
 function togglePw(id,btn){
@@ -1102,20 +1127,5 @@ sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){try{sessionS
   document.body.scrollTop=0;
   $('auth').classList.remove('hidden');
   $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-  try{
-    const {data,error}=await sb.auth.getSession();
-    if(!error&&data?.session){
-      let restorePage='home';
-      try{
-        const saved=sessionStorage.getItem('cm_page');
-        if(saved&&$(saved)?.classList.contains('page'))restorePage=saved;
-      }catch(e){}
-      await finishLogin(data.session,restorePage);
-      return;
-    }
-  }catch(e){console.warn('Could not restore the existing CampusMate session:',e)}
-  showAuth('login');
-})();
-</script></div></body></html>
+  $('po
+Preview truncated for large file
