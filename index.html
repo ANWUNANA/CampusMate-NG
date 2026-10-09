@@ -433,43 +433,38 @@ async function loadProfile(){
 async function refreshProStatus(){
   if(!session?.user?.id)return false;
   const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
-  let active=profileSaysPro, sub=null, querySucceeded=false;
+  let active=false, sub=null, querySucceeded=false;
   try{
-    // Do not filter by an exact plan string: live records may store plan labels with
-    // different capitalisation or wording. Read this student's rows, then verify status,
-    // plan/amount and expiry locally.
-    const {data,error}=await sb.from('subscriptions')
-      .select('status,expires_at,paystack_reference,plan,amount,started_at')
-      .eq('student_id',session.user.id)
-      .order('expires_at',{ascending:false});
+    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
     else{
       querySucceeded=true;
-      const now=Date.now();
-      const rows=(data||[]).filter(r=>String(r.status||'').toLowerCase()==='active'&&(!r.expires_at||new Date(r.expires_at).getTime()>now));
-      sub=rows.find(r=>{
-        const plan=String(r.plan||'').toLowerCase();
-        const amount=Number(r.amount||0);
-        return plan.includes('pro')||amount===50000||amount===500;
-      })||null;
-      // A verified, unexpired active Pro row is authoritative. If the query succeeded
-      // but no active Pro row exists, stale profile flags must not grant Pro forever.
-      active=!!sub || (!querySucceeded&&profileSaysPro);
+      sub=data||null;
+      // A successful subscription lookup is authoritative: no active row means Free.
+      // An active row is Pro only until its recorded expiry (if an expiry is recorded).
+      active=!!(sub && (!sub.expires_at || new Date(sub.expires_at)>new Date()));
     }
-  }catch(e){console.warn('Pro status lookup failed:',e);active=profileSaysPro}
+  }catch(e){console.warn('Pro status lookup failed:',e)}
+  // If Supabase is temporarily unreachable, preserve cached Pro status only when its known
+  // expiry has not passed. Never use an old profile flag to override a successful empty lookup.
+  if(!querySucceeded){
+    const cachedExpiry=profile?.pro_subscription?.expires_at||profile?.pro_expires_at||null;
+    active=profileSaysPro&&(!cachedExpiry||new Date(cachedExpiry)>new Date());
+  }
   profile=profile||{};
   profile.pro_active=!!active;
-  profile.is_pro=!!active;
-  profile.subscription_status=active?'active':'inactive';
-  profile.pro_subscription=sub||null;
+  profile.pro_subscription=sub||profile.pro_subscription||null;
   const status=$('proStatusText'), upgrade=$('upgradeProBtn'), refresh=$('refreshProBtn'), note=$('proPaymentMsg');
   const proCard=$('proCard'), homeBadge=$('homeProBadge');
   if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes from 15–100 questions and use GPA & CGPA.':'Free plan: 5 or 10 questions per quiz. GPA & CGPA require Pro.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(proCard)proCard.classList.toggle('hidden',active);
   if(homeBadge)homeBadge.classList.toggle('hidden',!active);
-  if(refresh)refresh.classList.toggle('hidden',active||!sub);
-  if(active){if(note)note.textContent='';$('proGate')?.classList.add('hidden');}
+  if(refresh)refresh.classList.toggle('hidden',active || !sub);
+  // Do not keep displaying an activation message to an active subscriber.
+  if(note)note.textContent='';
+  // Close any upgrade gate that may have been opened before the subscription status loaded.
+  if(active)$('proGate')?.classList.add('hidden');
   return !!active;
 }
 
@@ -514,9 +509,8 @@ async function startProPayment(source='profile'){
   try{
     const isActive=await refreshProStatus();
     if(isActive){
-      if(source==='quiz'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-      else if(source==='gpa'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. GPA & CGPA are now unlocked.');}
-      else if(note)note.textContent='Your Pro subscription is already active.';
+      closeProGate(false);
+      if(note)note.textContent='';
       if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
       return true;
     }
@@ -539,8 +533,9 @@ async function startProPayment(source='profile'){
       const alreadyActive=status===409||body?.already_active===true||/already active|active subscription|already have an active/i.test(String(serverMessage));
       if(alreadyActive){
         profile=profile||{};profile.pro_active=true;profile.subscription_status='active';
-        if(source==='quiz'){closeProGate(false);if(note)note.textContent='Your Pro subscription is active. You can now start extended quizzes.';alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-        else if(note)note.textContent='Your Pro subscription is already active.';
+        closeProGate(false);
+        if(note)note.textContent='';
+        $('proCard')?.classList.add('hidden');$('homeProBadge')?.classList.remove('hidden');
         if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
         return true;
       }
@@ -845,20 +840,34 @@ function questionOptions(q){
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
 function correctKey(q){
-  if(q._displayCorrectKey)return q._displayCorrectKey;
+  if(Object.prototype.hasOwnProperty.call(q,'_displayCorrectKey'))return q._displayCorrectKey||'';
+  const opts=questionOptions(q);
+  // Prefer a dedicated text field when the bank supplies one.
+  const explicitText=q.correct_answer_text??q.correctAnswerText??q.correct_option_text??q.answer_text??null;
+  if(explicitText!=null){const ti=opts.findIndex(o=>String(o.text).trim().toLowerCase()===String(explicitText).trim().toLowerCase());if(ti>=0)return opts[ti].key;}
   const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
   if(v==null)return '';
-  const z=String(v).trim(),opts=questionOptions(q);
-  // Support common stored conventions safely: 0 means the first option; positive
-  // numeric values 1..N are interpreted as one-based option numbers. This avoids
-  // treating stored answer 1 as the second choice by accident.
+  const z=String(v).trim();
   if(/^\d+$/.test(z)){
     const n=Number(z);
-    if(n===0&&opts.length)return opts[0].key;
-    if(n>=1&&n<=opts.length)return opts[n-1].key;
+    if(n===0)return opts[0]?.key||'';
+    const oneBased=n>=1&&n<=opts.length?opts[n-1]:null;
+    const zeroBased=n>=0&&n<opts.length?opts[n]:null;
+    // Some imported banks use 1..N, while others use 0..N-1. When the explanation
+    // clearly names only one of the two candidate answers, use that to disambiguate.
+    if(oneBased&&zeroBased&&oneBased.key!==zeroBased.key){
+      const exp=String(q.explanation??q.answer_explanation??q.rationale??q.solution??'').toLowerCase();
+      const mentioned=o=>{const t=String(o?.text||'').trim().toLowerCase();return t.length>=4&&exp.includes(t)};
+      const oneMentioned=mentioned(oneBased),zeroMentioned=mentioned(zeroBased);
+      if(oneMentioned!==zeroMentioned)return oneMentioned?oneBased.key:zeroBased.key;
+    }
+    // Default to the common database/import convention of 1 = first option.
+    if(oneBased)return oneBased.key;
+    if(zeroBased)return zeroBased.key;
+    return '';
   }
   if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
-  const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
+  const idx=opts.findIndex(o=>String(o.text).trim().toLowerCase()===z.toLowerCase());
   return idx>=0?opts[idx].key:'';
 }
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
@@ -886,33 +895,25 @@ async function startSelectedQuiz(){
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    // Free users always draw from one stable set of at most ten questions for this
-    // course/topic. Their later attempts may change the order and options, never the pool.
-    // Pro users retain access to the full published bank and rotating question selection.
-    const stableOrder=(a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id||'').localeCompare(String(b.id||''));
-    const fixedFreePool=[...valid].sort(stableOrder).slice(0,10);
-    let selectedBase;
-    if(!quizIsPro()){
-      if(fixedFreePool.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course/topic has only '+fixedFreePool.length+' questions in the fixed free practice set. Choose a smaller quiz or contact the course administrator.');return;}
-      selectedBase=shuffled(fixedFreePool).slice(0,count);
-    }else{
-      let seen=new Set(getSeenQuestionIds());
-      let fresh=valid.filter(q=>!seen.has(String(q.id)));
-      if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
-      selectedBase=shuffled(fresh).slice(0,count);
-      saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
-    }
+    // Both Free (5/10) and Pro quizzes draw from the same published course bank.
+    // Rotate question selection between attempts, then shuffle each question's options.
+    let seen=new Set(getSeenQuestionIds());
+    let fresh=valid.filter(q=>!seen.has(String(q.id)));
+    if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+    const selectedBase=shuffled(fresh).slice(0,count);
+    saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
 
     const selected=selectedBase.map(q=>{
       const originalOptions=questionOptions(q);
       const originalCorrectKey=correctKey(q);
-      // Keep the source option key attached to its text during shuffling. Do not find
-      // the correct choice by text, because duplicate option text can map incorrectly.
-      const shuffledWithIdentity=shuffled(originalOptions).map((o,i)=>({
-        key:String.fromCharCode(65+i),text:o.text,sourceKey:String(o.key).toUpperCase()
-      }));
-      const newCorrect=shuffledWithIdentity.find(o=>o.sourceKey===String(originalCorrectKey).toUpperCase());
-      const shuffledOptions=shuffledWithIdentity.map(({key,text})=>({key,text}));
+      const originalCorrectText=originalOptions.find(o=>String(o.key).toUpperCase()===String(originalCorrectKey).toUpperCase())?.text
+        || originalOptions.find(o=>String(o.text).trim().toLowerCase()===String(q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct??'').trim().toLowerCase())?.text
+        || '';
+      // Keep each option's original key attached during shuffling. Do not remap by text,
+      // because duplicate/near-duplicate option text can otherwise point to the wrong choice.
+      const shuffledWithSource=shuffled(originalOptions).map((o,i)=>({key:String.fromCharCode(65+i),text:o.text,_sourceKey:o.key}));
+      const newCorrect=shuffledWithSource.find(o=>String(o._sourceKey).toUpperCase()===String(originalCorrectKey).toUpperCase());
+      const shuffledOptions=shuffledWithSource.map(({key,text})=>({key,text}));
       return {...q,_displayOptions:shuffledOptions,_displayCorrectKey:newCorrect?.key||''};
     });
     currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
@@ -1105,31 +1106,18 @@ $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboardi
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
 window.addEventListener('popstate',async e=>{
   const target=e.state?.cmPage||null;
-  if(allowPortalExit){
-    allowPortalExit=false;
-    try{await sb.auth.signOut()}catch(err){console.warn('Sign-out on Back failed:',err)}
-    session=null;profile=null;
-    $('portal')?.classList.add('hidden');$('student')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');
-    $('auth')?.classList.remove('hidden');showAuth('login');
-    try{history.replaceState({cmPage:'login'},'',location.href);history.pushState({cmPage:'login'},'',location.href)}catch(err){}
-    return;
-  }
+  // A second Back on the dashboard ends the CampusMate session and returns to Login.
+  // It must not call history.back() again, which would send the user out of Chrome.
+  if(allowPortalExit){allowPortalExit=false;try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');try{history.replaceState({cmAuth:'login'},'',location.href);history.pushState({cmAuth:'login'},'',location.href)}catch(err){}return;}
+  // If no user is signed in, keep the login screen visible rather than restoring a stale portal page.
+  if(!session?.user){showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');return;}
+  // On Home, Back uses a double-tap flow, but the second tap returns to Login (not Chrome).
   if(currentPortalPage==='home'){
     const now=Date.now();
     if(now-lastHomeBackAt>0&&now-lastHomeBackAt<10000){
-      try{await sb.auth.signOut()}catch(err){console.warn('Sign-out on Back failed:',err)}
-      session=null;profile=null;
-      $('portal')?.classList.add('hidden');$('student')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');
-      $('auth')?.classList.remove('hidden');showAuth('login');
-      try{history.replaceState({cmPage:'login'},'',location.href);history.pushState({cmPage:'login'},'',location.href)}catch(err){}
-      lastHomeBackAt=0;
-      return;
-    }
-    lastHomeBackAt=now;
-    try{history.pushState({cmPage:'home'},'',location.href)}catch(err){}
-    const notice=document.createElement('div');
-    notice.textContent='Press back again to return to Login';
-    notice.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#123;color:#fff;padding:10px 15px;border-radius:22px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
-    document.body.appendChild(notice);setTimeout(()=>notice.remove(),1800);
- 
+      allowPortalExit=true;
+      try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}
+      allowPortalExit=false;
+      showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');
+   
 Preview truncated for large file
