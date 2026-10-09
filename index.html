@@ -433,19 +433,24 @@ async function loadProfile(){
 async function refreshProStatus(){
   if(!session?.user?.id)return false;
   const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
-  let active=profileSaysPro, sub=null, querySucceeded=false;
+  let active=false, sub=null, querySucceeded=false;
   try{
     const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
     else{
       querySucceeded=true;
       sub=data||null;
-      // If an active subscription row exists, its expiry is authoritative. If no row is
-      // returned, retain a Pro flag already stored on the profile rather than showing an
-      // upgrade prompt to a subscriber because the subscription lookup returned no row.
-      active=sub ? (!sub.expires_at || new Date(sub.expires_at)>new Date()) : profileSaysPro;
+      // A successful subscription lookup is authoritative: no active row means Free.
+      // An active row is Pro only until its recorded expiry (if an expiry is recorded).
+      active=!!(sub && (!sub.expires_at || new Date(sub.expires_at)>new Date()));
     }
   }catch(e){console.warn('Pro status lookup failed:',e)}
+  // If Supabase is temporarily unreachable, preserve cached Pro status only when its known
+  // expiry has not passed. Never use an old profile flag to override a successful empty lookup.
+  if(!querySucceeded){
+    const cachedExpiry=profile?.pro_subscription?.expires_at||profile?.pro_expires_at||null;
+    active=profileSaysPro&&(!cachedExpiry||new Date(cachedExpiry)>new Date());
+  }
   profile=profile||{};
   profile.pro_active=!!active;
   profile.pro_subscription=sub||profile.pro_subscription||null;
@@ -455,8 +460,11 @@ async function refreshProStatus(){
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(proCard)proCard.classList.toggle('hidden',active);
   if(homeBadge)homeBadge.classList.toggle('hidden',!active);
-  if(refresh)refresh.classList.toggle('hidden',!active && !sub);
-  if(active && note)note.textContent='Your Pro subscription is active.';
+  if(refresh)refresh.classList.toggle('hidden',active || !sub);
+  // Do not keep displaying an activation message to an active subscriber.
+  if(note)note.textContent='';
+  // Close any upgrade gate that may have been opened before the subscription status loaded.
+  if(active)$('proGate')?.classList.add('hidden');
   return !!active;
 }
 
@@ -501,9 +509,8 @@ async function startProPayment(source='profile'){
   try{
     const isActive=await refreshProStatus();
     if(isActive){
-      if(source==='quiz'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-      else if(source==='gpa'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. GPA & CGPA are now unlocked.');}
-      else if(note)note.textContent='Your Pro subscription is already active.';
+      closeProGate(false);
+      if(note)note.textContent='';
       if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
       return true;
     }
@@ -526,8 +533,9 @@ async function startProPayment(source='profile'){
       const alreadyActive=status===409||body?.already_active===true||/already active|active subscription|already have an active/i.test(String(serverMessage));
       if(alreadyActive){
         profile=profile||{};profile.pro_active=true;profile.subscription_status='active';
-        if(source==='quiz'){closeProGate(false);if(note)note.textContent='Your Pro subscription is active. You can now start extended quizzes.';alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
-        else if(note)note.textContent='Your Pro subscription is already active.';
+        closeProGate(false);
+        if(note)note.textContent='';
+        $('proCard')?.classList.add('hidden');$('homeProBadge')?.classList.remove('hidden');
         if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
         return true;
       }
@@ -831,7 +839,37 @@ function questionOptions(q){
   const keys=[['A',q.option_a||q.optionA||q.a],['B',q.option_b||q.optionB||q.b],['C',q.option_c||q.optionC||q.c],['D',q.option_d||q.optionD||q.d],['E',q.option_e||q.optionE||q.e]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='');
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
-function correctKey(q){if(q._displayCorrectKey)return q._displayCorrectKey;const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;if(v==null)return '';const z=String(v).trim(),opts=questionOptions(q);if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());return idx>=0?opts[idx].key:'';}
+function correctKey(q){
+  if(Object.prototype.hasOwnProperty.call(q,'_displayCorrectKey'))return q._displayCorrectKey||'';
+  const opts=questionOptions(q);
+  // Prefer a dedicated text field when the bank supplies one.
+  const explicitText=q.correct_answer_text??q.correctAnswerText??q.correct_option_text??q.answer_text??null;
+  if(explicitText!=null){const ti=opts.findIndex(o=>String(o.text).trim().toLowerCase()===String(explicitText).trim().toLowerCase());if(ti>=0)return opts[ti].key;}
+  const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
+  if(v==null)return '';
+  const z=String(v).trim();
+  if(/^\d+$/.test(z)){
+    const n=Number(z);
+    if(n===0)return opts[0]?.key||'';
+    const oneBased=n>=1&&n<=opts.length?opts[n-1]:null;
+    const zeroBased=n>=0&&n<opts.length?opts[n]:null;
+    // Some imported banks use 1..N, while others use 0..N-1. When the explanation
+    // clearly names only one of the two candidate answers, use that to disambiguate.
+    if(oneBased&&zeroBased&&oneBased.key!==zeroBased.key){
+      const exp=String(q.explanation??q.answer_explanation??q.rationale??q.solution??'').toLowerCase();
+      const mentioned=o=>{const t=String(o?.text||'').trim().toLowerCase();return t.length>=4&&exp.includes(t)};
+      const oneMentioned=mentioned(oneBased),zeroMentioned=mentioned(zeroBased);
+      if(oneMentioned!==zeroMentioned)return oneMentioned?oneBased.key:zeroBased.key;
+    }
+    // Default to the common database/import convention of 1 = first option.
+    if(oneBased)return oneBased.key;
+    if(zeroBased)return zeroBased.key;
+    return '';
+  }
+  if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
+  const idx=opts.findIndex(o=>String(o.text).trim().toLowerCase()===z.toLowerCase());
+  return idx>=0?opts[idx].key:'';
+}
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
 function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
 function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
@@ -871,8 +909,11 @@ async function startSelectedQuiz(){
       const originalCorrectText=originalOptions.find(o=>String(o.key).toUpperCase()===String(originalCorrectKey).toUpperCase())?.text
         || originalOptions.find(o=>String(o.text).trim().toLowerCase()===String(q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct??'').trim().toLowerCase())?.text
         || '';
-      const shuffledOptions=shuffled(originalOptions).map((o,i)=>({key:String.fromCharCode(65+i),text:o.text}));
-      const newCorrect=shuffledOptions.find(o=>originalCorrectText && o.text.trim().toLowerCase()===originalCorrectText.trim().toLowerCase());
+      // Keep each option's original key attached during shuffling. Do not remap by text,
+      // because duplicate/near-duplicate option text can otherwise point to the wrong choice.
+      const shuffledWithSource=shuffled(originalOptions).map((o,i)=>({key:String.fromCharCode(65+i),text:o.text,_sourceKey:o.key}));
+      const newCorrect=shuffledWithSource.find(o=>String(o._sourceKey).toUpperCase()===String(originalCorrectKey).toUpperCase());
+      const shuffledOptions=shuffledWithSource.map(({key,text})=>({key,text}));
       return {...q,_displayOptions:shuffledOptions,_displayCorrectKey:newCorrect?.key||''};
     });
     currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
@@ -1063,59 +1104,20 @@ $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth(
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
 window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
-window.addEventListener('popstate',e=>{
+window.addEventListener('popstate',async e=>{
   const target=e.state?.cmPage||null;
-  // Once a double-back exit is confirmed, skip remaining CampusMate in-app history entries.
-  if(allowPortalExit){
-    if(e.state?.cmPage){history.back();return;}
-    allowPortalExit=false;
-    return;
-  }
-  // On Home, Back always uses the double-tap-to-exit flow, regardless of which portal page was visited before it.
+  // A second Back on the dashboard ends the CampusMate session and returns to Login.
+  // It must not call history.back() again, which would send the user out of Chrome.
+  if(allowPortalExit){allowPortalExit=false;try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');try{history.replaceState({cmAuth:'login'},'',location.href);history.pushState({cmAuth:'login'},'',location.href)}catch(err){}return;}
+  // If no user is signed in, keep the login screen visible rather than restoring a stale portal page.
+  if(!session?.user){showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');return;}
+  // On Home, Back uses a double-tap flow, but the second tap returns to Login (not Chrome).
   if(currentPortalPage==='home'){
     const now=Date.now();
     if(now-lastHomeBackAt>0&&now-lastHomeBackAt<10000){
       allowPortalExit=true;
-      if(e.state?.cmPage){history.back();return;}
+      try{await sb.auth.signOut()}catch(err){console.warn('Sign-out during Back-to-login failed:',err)}
       allowPortalExit=false;
-      return;
-    }
-    lastHomeBackAt=now;
-    try{history.pushState({cmPage:'home'},'',location.href)}catch(err){}
-    const notice=document.createElement('div');
-    notice.textContent='Press back again to exit CampusMate NG';
-    notice.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#123;color:#fff;padding:10px 15px;border-radius:22px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
-    document.body.appendChild(notice);setTimeout(()=>notice.remove(),1800);
-    return;
-  }
-  const next=target||'home';
-  handlingPopState=true;
-  if(next==='gpa'&&!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');}
-  else go(next,null,'none');
-  handlingPopState=false;
-});
-
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){try{sessionStorage.removeItem('cm_page');sessionStorage.removeItem('cm_current_course_id');sessionStorage.removeItem('cm_current_topic_id');sessionStorage.removeItem('cm_current_topic_title')}catch(e){}location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
-(async()=>{
-  window.scrollTo(0,0);
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-  try{
-    const {data,error}=await sb.auth.getSession();
-    if(!error&&data?.session){
-      let restorePage='home';
-      try{
-        const saved=sessionStorage.getItem('cm_page');
-        if(saved&&$(saved)?.classList.contains('page'))restorePage=saved;
-      }catch(e){}
-      await finishLogin(data.session,restorePage);
-      return;
-    }
-  }catch(e){console.warn('Could not restore the existing CampusMate session:',e)}
-  showAuth('login');
-})();
-</script></div></body></html>
+      showAuth('login');$('student')?.classList.add('hidden');$('portal')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');$('auth')?.classList.remove('hidden');
+   
+Preview truncated for large file
