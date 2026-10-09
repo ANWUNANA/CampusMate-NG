@@ -433,53 +433,43 @@ async function loadProfile(){
 async function refreshProStatus(){
   if(!session?.user?.id)return false;
   const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
-  let active=false, sub=null, querySucceeded=false;
+  let active=profileSaysPro, sub=null, querySucceeded=false;
   try{
-    // Do not hard-code only plan='pro': older live records may use
-    // 'campusmate_pro_monthly'. Read this student's active subscriptions and
-    // identify the Pro plan without allowing an expired record to unlock Pro.
-    const {data,error}=await sb.from('subscriptions').select('plan,status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('status','active').order('expires_at',{ascending:false}).limit(10);
+    // Do not filter by an exact plan string: live records may store plan labels with
+    // different capitalisation or wording. Read this student's rows, then verify status,
+    // plan/amount and expiry locally.
+    const {data,error}=await sb.from('subscriptions')
+      .select('status,expires_at,paystack_reference,plan,amount,started_at')
+      .eq('student_id',session.user.id)
+      .order('expires_at',{ascending:false});
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
     else{
       querySucceeded=true;
       const now=Date.now();
-      sub=(data||[]).find(row=>{
-        const plan=String(row?.plan||'').trim().toLowerCase().replace(/[ _-]+/g,'');
-        const isProPlan=!plan || plan==='pro' || plan==='campusmatepro' || plan==='campusmatepromonthly' || plan.includes('campusmatepro');
-        const notExpired=!row?.expires_at || new Date(row.expires_at).getTime()>now;
-        return isProPlan && notExpired;
+      const rows=(data||[]).filter(r=>String(r.status||'').toLowerCase()==='active'&&(!r.expires_at||new Date(r.expires_at).getTime()>now));
+      sub=rows.find(r=>{
+        const plan=String(r.plan||'').toLowerCase();
+        const amount=Number(r.amount||0);
+        return plan.includes('pro')||amount===50000||amount===500;
       })||null;
-      // The database row, not a stale profile flag, decides active Pro status.
-      active=!!sub;
+      // A verified, unexpired active Pro row is authoritative. If the query succeeded
+      // but no active Pro row exists, stale profile flags must not grant Pro forever.
+      active=!!sub || (!querySucceeded&&profileSaysPro);
     }
-  }catch(e){console.warn('Pro status lookup failed:',e)}
-  // If Supabase is temporarily unreachable, preserve cached Pro status only when its known
-  // expiry has not passed. Never use an old profile flag to override a successful empty lookup.
-  if(!querySucceeded){
-    const cachedExpiry=profile?.pro_subscription?.expires_at||profile?.pro_expires_at||null;
-    active=profileSaysPro&&(!cachedExpiry||new Date(cachedExpiry)>new Date());
-  }
+  }catch(e){console.warn('Pro status lookup failed:',e);active=profileSaysPro}
   profile=profile||{};
   profile.pro_active=!!active;
-  profile.pro_subscription=sub||profile.pro_subscription||null;
+  profile.is_pro=!!active;
+  profile.subscription_status=active?'active':'inactive';
+  profile.pro_subscription=sub||null;
   const status=$('proStatusText'), upgrade=$('upgradeProBtn'), refresh=$('refreshProBtn'), note=$('proPaymentMsg');
   const proCard=$('proCard'), homeBadge=$('homeProBadge');
   if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes from 15–100 questions and use GPA & CGPA.':'Free plan: 5 or 10 questions per quiz. GPA & CGPA require Pro.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(proCard)proCard.classList.toggle('hidden',active);
   if(homeBadge)homeBadge.classList.toggle('hidden',!active);
-  if(refresh)refresh.classList.toggle('hidden',active || !sub);
-  // Do not keep displaying an activation message to an active subscriber.
-  if(note)note.textContent='';
-  // Close any upgrade gate that may have been opened before the subscription status loaded.
-  if(active){
-    $('proGate')?.classList.add('hidden');
-    // Remove any transient upgrade/activation notice that may have been shown
-    // before the subscription lookup finished.
-    if(note)note.textContent='';
-    if(proCard)proCard.classList.add('hidden');
-    if(upgrade)upgrade.classList.add('hidden');
-  }
+  if(refresh)refresh.classList.toggle('hidden',active||!sub);
+  if(active){if(note)note.textContent='';$('proGate')?.classList.add('hidden');}
   return !!active;
 }
 
@@ -524,8 +514,9 @@ async function startProPayment(source='profile'){
   try{
     const isActive=await refreshProStatus();
     if(isActive){
-      closeProGate(false);
-      if(note)note.textContent='';
+      if(source==='quiz'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
+      else if(source==='gpa'){closeProGate(false);alert('Your CampusMate Pro subscription is already active. GPA & CGPA are now unlocked.');}
+      else if(note)note.textContent='Your Pro subscription is already active.';
       if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
       return true;
     }
@@ -548,9 +539,8 @@ async function startProPayment(source='profile'){
       const alreadyActive=status===409||body?.already_active===true||/already active|active subscription|already have an active/i.test(String(serverMessage));
       if(alreadyActive){
         profile=profile||{};profile.pro_active=true;profile.subscription_status='active';
-        closeProGate(false);
-        if(note)note.textContent='';
-        $('proCard')?.classList.add('hidden');$('homeProBadge')?.classList.remove('hidden');
+        if(source==='quiz'){closeProGate(false);if(note)note.textContent='Your Pro subscription is active. You can now start extended quizzes.';alert('Your CampusMate Pro subscription is already active. You can start extended quizzes now.');}
+        else if(note)note.textContent='Your Pro subscription is already active.';
         if(btn){btn.disabled=false;btn.textContent=(source==='quiz'||source==='gpa')?'Upgrade to Pro':'Upgrade to Pro — ₦500/month'}
         return true;
       }
@@ -855,34 +845,20 @@ function questionOptions(q){
   return keys.map(x=>({key:x[0],text:String(x[1])}));
 }
 function correctKey(q){
-  if(Object.prototype.hasOwnProperty.call(q,'_displayCorrectKey'))return q._displayCorrectKey||'';
-  const opts=questionOptions(q);
-  // Prefer a dedicated text field when the bank supplies one.
-  const explicitText=q.correct_answer_text??q.correctAnswerText??q.correct_option_text??q.answer_text??null;
-  if(explicitText!=null){const ti=opts.findIndex(o=>String(o.text).trim().toLowerCase()===String(explicitText).trim().toLowerCase());if(ti>=0)return opts[ti].key;}
+  if(q._displayCorrectKey)return q._displayCorrectKey;
   const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;
   if(v==null)return '';
-  const z=String(v).trim();
+  const z=String(v).trim(),opts=questionOptions(q);
+  // Support common stored conventions safely: 0 means the first option; positive
+  // numeric values 1..N are interpreted as one-based option numbers. This avoids
+  // treating stored answer 1 as the second choice by accident.
   if(/^\d+$/.test(z)){
     const n=Number(z);
-    if(n===0)return opts[0]?.key||'';
-    const oneBased=n>=1&&n<=opts.length?opts[n-1]:null;
-    const zeroBased=n>=0&&n<opts.length?opts[n]:null;
-    // Some imported banks use 1..N, while others use 0..N-1. When the explanation
-    // clearly names only one of the two candidate answers, use that to disambiguate.
-    if(oneBased&&zeroBased&&oneBased.key!==zeroBased.key){
-      const exp=String(q.explanation??q.answer_explanation??q.rationale??q.solution??'').toLowerCase();
-      const mentioned=o=>{const t=String(o?.text||'').trim().toLowerCase();return t.length>=4&&exp.includes(t)};
-      const oneMentioned=mentioned(oneBased),zeroMentioned=mentioned(zeroBased);
-      if(oneMentioned!==zeroMentioned)return oneMentioned?oneBased.key:zeroBased.key;
-    }
-    // Default to the common database/import convention of 1 = first option.
-    if(oneBased)return oneBased.key;
-    if(zeroBased)return zeroBased.key;
-    return '';
+    if(n===0&&opts.length)return opts[0].key;
+    if(n>=1&&n<=opts.length)return opts[n-1].key;
   }
   if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();
-  const idx=opts.findIndex(o=>String(o.text).trim().toLowerCase()===z.toLowerCase());
+  const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());
   return idx>=0?opts[idx].key:'';
 }
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
@@ -910,39 +886,33 @@ async function startSelectedQuiz(){
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    // Free students always practise from the same fixed pool of ten questions
-    // per course/topic. The pool does not rotate between attempts. A 5-question
-    // attempt samples five from that same pool; a 10-question attempt uses all ten
-    // in a shuffled order. Pro students can draw from the full published bank.
+    // Free users always draw from one stable set of at most ten questions for this
+    // course/topic. Their later attempts may change the order and options, never the pool.
+    // Pro users retain access to the full published bank and rotating question selection.
+    const stableOrder=(a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id||'').localeCompare(String(b.id||''));
+    const fixedFreePool=[...valid].sort(stableOrder).slice(0,10);
     let selectedBase;
     if(!quizIsPro()){
-      const stableQuestions=[...valid].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}));
-      const freePool=stableQuestions.slice(0,10);
-      if(freePool.length<count){
-        $('quizBoxCard')?.classList.add('hidden');
-        alert('This course/topic currently has only '+freePool.length+' questions in the fixed free practice set. Please choose a smaller quiz or ask the course administrator to publish more questions.');
-        return;
-      }
-      selectedBase=shuffled(freePool).slice(0,count);
+      if(fixedFreePool.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course/topic has only '+fixedFreePool.length+' questions in the fixed free practice set. Choose a smaller quiz or contact the course administrator.');return;}
+      selectedBase=shuffled(fixedFreePool).slice(0,count);
     }else{
-      selectedBase=shuffled(valid).slice(0,count);
       let seen=new Set(getSeenQuestionIds());
-      const fresh=valid.filter(q=>!seen.has(String(q.id)));
-      if(fresh.length>=count)selectedBase=shuffled(fresh).slice(0,count);
+      let fresh=valid.filter(q=>!seen.has(String(q.id)));
+      if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+      selectedBase=shuffled(fresh).slice(0,count);
       saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
     }
 
     const selected=selectedBase.map(q=>{
       const originalOptions=questionOptions(q);
       const originalCorrectKey=correctKey(q);
-      const originalCorrectText=originalOptions.find(o=>String(o.key).toUpperCase()===String(originalCorrectKey).toUpperCase())?.text
-        || originalOptions.find(o=>String(o.text).trim().toLowerCase()===String(q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct??'').trim().toLowerCase())?.text
-        || '';
-      // Keep each option's original key attached during shuffling. Do not remap by text,
-      // because duplicate/near-duplicate option text can otherwise point to the wrong choice.
-      const shuffledWithSource=shuffled(originalOptions).map((o,i)=>({key:String.fromCharCode(65+i),text:o.text,_sourceKey:o.key}));
-      const newCorrect=shuffledWithSource.find(o=>String(o._sourceKey).toUpperCase()===String(originalCorrectKey).toUpperCase());
-      const shuffledOptions=shuffledWithSource.map(({key,text})=>({key,text}));
+      // Keep the source option key attached to its text during shuffling. Do not find
+      // the correct choice by text, because duplicate option text can map incorrectly.
+      const shuffledWithIdentity=shuffled(originalOptions).map((o,i)=>({
+        key:String.fromCharCode(65+i),text:o.text,sourceKey:String(o.key).toUpperCase()
+      }));
+      const newCorrect=shuffledWithIdentity.find(o=>o.sourceKey===String(originalCorrectKey).toUpperCase());
+      const shuffledOptions=shuffledWithIdentity.map(({key,text})=>({key,text}));
       return {...q,_displayOptions:shuffledOptions,_displayCorrectKey:newCorrect?.key||''};
     });
     currentQuiz={mode,count,courseId,startedAt:Date.now(),index:0,timer:null,remaining:mode==='cbt'?count*20:0};
@@ -957,7 +927,7 @@ async function startSelectedQuiz(){
 function renderQuizQuestion(){
   if(!quizQuestions.length||!currentQuiz)return;
   const i=currentQuiz.index,q=quizQuestions[i],opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'';
-  const practice=currentQuiz.mode==='practice',answered=!!chosen,ck=(q._displayCorrectKey||correctKey(q)),isCorrect=answered&&chosen===ck;
+  const practice=currentQuiz.mode==='practice',answered=!!chosen,ck=correctKey(q),isCorrect=answered&&chosen===ck;
   $('quizProgressText').textContent='Question '+(i+1)+' of '+quizQuestions.length;
   $('quizProgress').style.width=((i+1)/quizQuestions.length*100)+'%';
   const feedback=practice&&answered
@@ -980,13 +950,13 @@ function startQuizTimer(){clearInterval(currentQuiz.timer);const tick=()=>{if(!c
 function submitQuiz(timeUp=false){
   if(!currentQuiz||!quizQuestions.length)return;
   clearInterval(currentQuiz.timer);let correct=0;
-  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===(q._displayCorrectKey||correctKey(q)))correct++;});
+  quizQuestions.forEach(q=>{if(quizAnswers[String(q.id)]===correctKey(q))correct++;});
   const pct=Math.round(correct/quizQuestions.length*100),d=JSON.parse(localStorage.getItem('cm_perf_'+session.user.id)||'{"attempts":0,"scores":[],"correct":0,"questions":0,"courses":[],"streak":0}');
   d.attempts=(d.attempts||0)+1;d.scores=d.scores||[];d.scores.push(pct);d.correct=(d.correct||0)+correct;d.questions=(d.questions||0)+quizQuestions.length;d.courses=d.courses||[];if(!d.courses.includes(currentCourse.id))d.courses.push(currentCourse.id);localStorage.setItem('cm_perf_'+session.user.id,JSON.stringify(d));
   $('score').textContent=pct+'%';$('resultText').textContent=(timeUp?'Time is up. ':'')+correct+' correct out of '+quizQuestions.length+'. Review each question below to learn from your answers.';
   $('quizBoxCard').classList.add('hidden');$('quizSetup').classList.remove('hidden');$('quizSetup').classList.remove('hidden');$('quizCount').value=String(Math.min(currentQuiz.count,100));
   $('quizBox').innerHTML='';go('result');renderPerformance();
-  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=(q._displayCorrectKey||correctKey(q)),correctText=opts.find(o=>o.key===ck)?.text||'';return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+(correctText?' — '+escapeHtml(correctText):'')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
+  const review=document.getElementById('quizReview');if(review)review.innerHTML=quizQuestions.map((q,i)=>{const opts=questionOptions(q),chosen=quizAnswers[String(q.id)]||'Not answered',ck=correctKey(q);return '<article class="card"><b>Q'+(i+1)+'. '+escapeHtml(questionText(q))+'</b><p>Your answer: <strong>'+escapeHtml(chosen)+'</strong></p><p>Correct answer: <strong>'+escapeHtml(ck||'Not available')+'</strong></p><p class="mut">'+escapeHtml(explanationText(q))+'</p></article>';}).join('');
 }
 
 function togglePw(id,btn){
@@ -1132,5 +1102,34 @@ function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;',
 $('loginTab').onclick=()=>showAuth('login');$('signupTab').onclick=()=>showAuth('signup');$('loginBtn').onclick=login;$('signupBtn').onclick=signUp;$('resendConfirmationBtn').onclick=resendConfirmation;$('forgotPasswordBtn').onclick=sendPasswordReset;$('saveNewPasswordBtn').onclick=saveNewPassword;$('backToLoginBtn').onclick=showLoginForm;$('onboardBtn').onclick=saveOnboarding;$('logoutBtn').onclick=logout;
 $('openOnboarding').onclick=()=>{$('portal').classList.add('hidden');$('onboarding').classList.remove('hidden');loadAcademicOptions()};
 
-window.addEventListener('error'
+window.addEventListener('error',e=>console.error('CampusMate frontend error:',e.error||e.message));
+window.addEventListener('popstate',async e=>{
+  const target=e.state?.cmPage||null;
+  if(allowPortalExit){
+    allowPortalExit=false;
+    try{await sb.auth.signOut()}catch(err){console.warn('Sign-out on Back failed:',err)}
+    session=null;profile=null;
+    $('portal')?.classList.add('hidden');$('student')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');
+    $('auth')?.classList.remove('hidden');showAuth('login');
+    try{history.replaceState({cmPage:'login'},'',location.href);history.pushState({cmPage:'login'},'',location.href)}catch(err){}
+    return;
+  }
+  if(currentPortalPage==='home'){
+    const now=Date.now();
+    if(now-lastHomeBackAt>0&&now-lastHomeBackAt<10000){
+      try{await sb.auth.signOut()}catch(err){console.warn('Sign-out on Back failed:',err)}
+      session=null;profile=null;
+      $('portal')?.classList.add('hidden');$('student')?.classList.add('hidden');$('onboarding')?.classList.add('hidden');
+      $('auth')?.classList.remove('hidden');showAuth('login');
+      try{history.replaceState({cmPage:'login'},'',location.href);history.pushState({cmPage:'login'},'',location.href)}catch(err){}
+      lastHomeBackAt=0;
+      return;
+    }
+    lastHomeBackAt=now;
+    try{history.pushState({cmPage:'home'},'',location.href)}catch(err){}
+    const notice=document.createElement('div');
+    notice.textContent='Press back again to return to Login';
+    notice.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#123;color:#fff;padding:10px 15px;border-radius:22px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+    document.body.appendChild(notice);setTimeout(()=>notice.remove(),1800);
+ 
 Preview truncated for large file
