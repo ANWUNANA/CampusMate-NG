@@ -29,7 +29,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 .portal-bottom-resources .resource-card{margin:0;}
 .profile-bottom-resources{margin-bottom:88px;}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style> .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:800;color:var(--mut)}.tab.active{background:var(--n);color:#fff}.msg{padding:10px 12px;border-radius:10px;font-size:12px;margin:8px 0 12px}.msg.error{background:#fdecea;color:#9b2c2c}.msg.success{background:#e8f7ef;color:#146c43}.option{display:block;padding:9px 0;font-size:13px}.option input{width:auto;margin:0 8px 0 0}.rolePill{text-transform:capitalize}.pw{position:relative}.pw input{padding-right:72px}.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:34px;height:30px;border:0;background:none;color:var(--n);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}.pw button svg{width:20px;height:20px;display:block}</style><style>
 .cbtTop{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}.timer{font-size:20px;font-weight:900;color:var(--n);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.timer.warn{color:#c0392b}.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.qnum{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 0;font-weight:800}.qnum.answered{background:#e6f6ef;color:var(--g);border-color:#b9e6d1}.qnum.current{outline:2px solid var(--g)}.progress{height:8px;background:#e9efed;border-radius:20px;overflow:hidden;margin:8px 0 14px}.progress i{display:block;height:100%;background:var(--g);width:0}.metric{font-size:26px;font-weight:900;color:var(--n)}.reviewQ{border-left:4px solid #c0392b;padding-left:10px}.explain{background:#f4f8f7;border-radius:10px;padding:10px;font-size:12px;line-height:1.55}
 .proGateBackdrop{position:fixed;inset:0;background:rgba(6,43,73,.58);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.proGateModal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.25);border:1px solid var(--line)}.proGateIcon{width:54px;height:54px;border-radius:50%;background:#e6f6ef;color:var(--g);display:grid;place-items:center;font-size:27px;margin-bottom:10px}.proGateModal h3{margin:0 0 7px;color:var(--n)}.proGateModal p{line-height:1.55}.proGateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.proGateActions button{width:100%}
@@ -197,6 +197,7 @@ Option D"></textarea><label>Correct option (A-D)</label><input id="qaCorrect" ma
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>const SUPABASE_URL = 'https://ygocrlnijeijzejucnvu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_YJxLWvSXhh8I73MXLKJgsQ_gFf1clHz';
 const { createClient } = window.supabase;
@@ -366,8 +367,9 @@ async function finishLogin(s,restorePage='home'){
   $('onboarding').classList.add('hidden');
 
   await loadProfile();
-  // Resolve the subscription after the profile is loaded so the Pro flag is not overwritten by a racing request.
-  await refreshProStatus();
+  // Restore the portal as soon as the profile is available. Pro status is refreshed in the
+  // background so a slow subscription query cannot delay login or make refresh feel blank.
+  refreshProStatus().catch(err=>console.warn('Background Pro status refresh failed:',err));
   const profileComplete=hasCompletedAcademicProfile();
 
   if(profileComplete){
@@ -426,28 +428,47 @@ async function loadProfile(){
 
 async function refreshProStatus(){
   if(!session?.user?.id)return false;
-  let active=false, sub=null;
+  const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
+  let active=profileSaysPro, sub=null, querySucceeded=false;
   try{
     const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
     if(error){console.warn('Pro status lookup unavailable:',error.message)}
-    sub=data||null;
-    active=!!sub && (!sub.expires_at || new Date(sub.expires_at)>new Date());
+    else{
+      querySucceeded=true;
+      sub=data||null;
+      // If an active subscription row exists, its expiry is authoritative. If no row is
+      // returned, retain a Pro flag already stored on the profile rather than showing an
+      // upgrade prompt to a subscriber because the subscription lookup returned no row.
+      active=sub ? (!sub.expires_at || new Date(sub.expires_at)>new Date()) : profileSaysPro;
+    }
   }catch(e){console.warn('Pro status lookup failed:',e)}
-  profile=profile||{}; profile.pro_active=active; profile.pro_subscription=sub;
-  const status=$(`proStatusText`); const upgrade=$(`upgradeProBtn`); const refresh=$(`refreshProBtn`); const note=$(`proPaymentMsg`);
-  const proCard=$('proCard'); const homeBadge=$('homeProBadge');
+  profile=profile||{};
+  profile.pro_active=!!active;
+  profile.pro_subscription=sub||profile.pro_subscription||null;
+  const status=$('proStatusText'), upgrade=$('upgradeProBtn'), refresh=$('refreshProBtn'), note=$('proPaymentMsg');
+  const proCard=$('proCard'), homeBadge=$('homeProBadge');
   if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes from 15–100 questions and use GPA & CGPA.':'Free plan: 5 or 10 questions per quiz. GPA & CGPA require Pro.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(proCard)proCard.classList.toggle('hidden',active);
   if(homeBadge)homeBadge.classList.toggle('hidden',!active);
   if(refresh)refresh.classList.toggle('hidden',!active && !sub);
   if(active && note)note.textContent='Your Pro subscription is active.';
-  return active;
+  return !!active;
 }
 
 let proGateSource='quiz';
-function openProGate(count,customMessage,source='quiz'){
-  if(quizIsPro())return;
+async function openProGate(count,customMessage,source='quiz'){
+  if(quizIsPro()){
+    if(source==='gpa')go('gpa',null,'push');
+    return;
+  }
+  // Recheck the account before displaying any upgrade message, especially for subscribers
+  // whose profile flag may not have loaded yet after login or refresh.
+  const active=await refreshProStatus();
+  if(active){
+    if(source==='gpa')go('gpa',null,'push');
+    return;
+  }
   const modal=$('proGate');
   const message=$('proGateMessage');
   const upgrade=$('proGateUpgradeBtn');
