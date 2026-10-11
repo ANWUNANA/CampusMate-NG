@@ -6,7 +6,7 @@
 <style>
 :root{--n:#062b49;--g:#0a9f63;--bg:#f4f8f7;--mut:#718096;--line:#e2ebe7;--red:#c0392b}
 *{box-sizing:border-box}body{margin:0;background:#eaf1ef;font-family:Arial,sans-serif;color:#102a43}.app{width:100%;max-width:none;margin:0;min-height:100dvh;background:var(--bg);box-shadow:none}.hidden{display:none!important}
-header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}
+header,.head{background:var(--n);color:#fff;padding:17px 16px;border-radius:0 0 22px 22px}#portal header{display:flex;align-items:center;justify-content:space-between;gap:12px}.headerIdentity{min-width:0}.brand{font-weight:800;font-size:20px}.brand i{color:#16c979;font-style:normal}.sub{font-size:12px;color:#d6e5ed;margin-top:4px}.header-pro-badge{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:#16c979;color:#063d2a;border:2px solid #8af0bd;border-radius:12px;padding:9px 13px;font-size:18px;font-weight:1000;letter-spacing:1px;box-shadow:0 0 0 2px #16c97933}.header-pro-badge.hidden{display:none!important} .quiz-study-disclaimer{border-left:4px solid var(--g);background:#eef8f2;margin:10px 0 14px;padding:12px 14px;color:#174c36}.quiz-study-disclaimer p{margin:6px 0 0;line-height:1.55;font-size:13px;color:#245c46}
 main{padding:15px 15px calc(104px + env(safe-area-inset-bottom,0px))}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 3px 10px #062b4908}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}.tile b{display:block;margin-top:7px;font-size:13px}.tile small,.mut{color:var(--mut);font-size:12px}
 button{cursor:pointer}.primary{width:100%;border:0;border-radius:11px;padding:13px;background:var(--g);color:#fff;font-weight:800}.secondary{width:100%;border:1px solid var(--n);border-radius:11px;padding:12px;background:#fff;color:var(--n);font-weight:800}
 input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0 10px;background:#fff}.uniMeta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 8px}.uniMeta span{font-size:10px;padding:4px 7px;border-radius:15px;background:#eef5f2;color:var(--n);font-weight:700}.nav{position:fixed;bottom:0;left:0;right:0;transform:none;width:100%;max-width:none;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 8px 28px rgba(0,0,0,.12);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));z-index:100;box-sizing:border-box}.nav button{border:0;background:none;color:var(--mut);font-size:11px;border-radius:12px;padding:5px 2px;min-width:0}.nav button.on{background:#eaf7f1}.nav button:hover{background:#f2f7f5}.nav button.on{color:var(--g);font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}
@@ -68,7 +68,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 </section>
 <div id="portal" class="hidden">
 
-<header><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></header>
+<header><div class="headerIdentity"><div class="brand">🎓 CampusMate <i>NG</i></div><div class="sub" id="academicLine"></div></div><span id="headerProBadge" class="header-pro-badge hidden" aria-label="CampusMate Pro subscription active">PRO</span></header>
 <main>
 <section id="home" class="page"><h2 id="hello">Welcome 👋</h2><div id="homeProBadge" class="card hidden" style="border:1px solid #0a9f63;background:#eaf7f1;padding:10px 13px;margin-top:0"><span class="pill">✓ CAMPUSMATE PRO ACTIVE</span><div class="mut" style="margin-top:5px;color:#245c46">Your Pro benefits are unlocked. No upgrade prompts are needed.</div></div><div class="motivation-marquee" aria-label="Motivational message"><div class="motivation-track"><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span><span>🚀 Keep learning, keep growing — every topic you master takes you closer to becoming the professional you dream of becoming.</span></div></div><div class="card"><b>📈 CampusMate Learning Performance</b><p class="mut">Based only on your activity inside CampusMate — not official university results.</p><div class="grid" style="margin-top:10px"><div><b id="perfQuizAvg">—</b><small class="mut">Quiz average</small></div><div><b id="perfQuizzes">0</b><small class="mut">Quizzes completed</small></div><div><b id="perfCorrect">0</b><small class="mut">Correct answers</small></div><div><b id="perfCourses">0</b><small class="mut">Courses studied</small></div></div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><span>🔥 Study streak <b id="perfStreak">0 days</b></span><span style="float:right">⏱ Learning time <b id="perfTime">0 min</b></span></div>
 <div class="grid"><div class="tile" onclick="go('courses')">📚<b>My Courses</b><small id="courseCount">0 courses</small></div><div class="tile" onclick="go('quiz')">🧠<b>Quiz Center</b><small>Practice</small></div><div class="tile" onclick="go('gpa')">🧮<b>GPA & CGPA</b><small>Calculate</small></div><div class="tile" onclick="go('planner')">📅<b>Study Planner</b><small id="taskCount">0 tasks</small></div></div><div class="grid"><div class="tile" onclick="go('community')">👥<b>Community</b><small>Study together</small></div><div class="tile" onclick="go('challenges')">🏆<b>Challenges</b><small>Compete & learn</small></div></div><div class="grid"><div class="tile" onclick="go('council')">🧾<b>Council Exam Practice</b><small>Professional exams</small></div></div>
@@ -90,7 +90,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
 <div id="quizSetup" class="hidden"><select id="quizMode" class="hidden" aria-hidden="true" tabindex="-1" onchange="updateQuizMode()"><option value="practice">Practice — untimed</option><option value="cbt">CBT — 20 seconds per question</option></select>
 <label>Number of questions</label><select id="quizCount" onchange="quizCountChanged()"><option value="5">5 questions — Free</option><option value="10">10 questions — Free</option><option value="15">15 questions — Pro</option><option value="20">20 questions — Pro</option><option value="25">25 questions — Pro</option><option value="30">30 questions — Pro</option><option value="40">40 questions — Pro</option><option value="50">50 questions — Pro</option><option value="75">75 questions — Pro</option><option value="100">100 questions — Pro</option></select>
 <label for="quizTopic">Topic</label><select id="quizTopic"><option value="">All topics</option></select><p class="mut" id="quizBankInfo">Questions are loaded only from the selected course.</p><button class="primary" onclick="startSelectedQuiz()">Start Quiz</button></div></div></div>
-<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button id="quizPreviousBtn" class="secondary" onclick="previousQuizQuestion()">Previous</button><button id="quizNextBtn" class="primary" onclick="nextQuizQuestion()">Next</button></div><div id="quizNavigatorCard" class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button id="quizSubmitBtn" class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
+<div id="quizBoxCard" class="card hidden"><div class="cbtTop"><div><b id="quizSelectedCourseName">Quiz</b><div class="mut" id="quizProgressText">Question 1</div></div><div id="quizTimer" class="timer">Untimed</div></div><div class="progress"><i id="quizProgress"></i></div><div class="card quiz-study-disclaimer" role="note"><b>📚 Study reminder</b><p>This quiz is designed for practice, examination preparation, and testing your knowledge. It does not replace your official study materials, lecture notes, textbooks, or guidance from your lecturers. Always study your learning materials alongside these questions.</p></div><div id="quizBox"></div><div class="grid" style="margin-top:12px"><button id="quizPreviousBtn" class="secondary" onclick="previousQuizQuestion()">Previous</button><button id="quizNextBtn" class="primary" onclick="nextQuizQuestion()">Next</button></div><div id="quizNavigatorCard" class="card"><b>Question navigator</b><div id="quizNav" class="qnav"></div></div><button id="quizSubmitBtn" class="primary" onclick="submitQuiz()">Submit Quiz</button></div></section>
 <div id="proGate" class="proGateBackdrop hidden" role="dialog" aria-modal="true" aria-labelledby="proGateTitle">
 <div class="proGateModal">
   <div class="proGateIcon">🚀</div>
@@ -103,7 +103,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   </div>
 </div>
 </div>
-<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button><div id="quizReview" style="margin-top:12px"></div></section>
+<section id="result" class="page hidden"><div class="head"><h2>Quiz Result</h2><div class="sub">Performance report</div></div><div class="card quiz-study-disclaimer" role="note"><b>📚 Remember</b><p>This quiz supports practice, examination preparation, and knowledge testing. It does not replace official study materials, lecture notes, textbooks, or guidance from your lecturers.</p></div><div class="card" style="text-align:center"><div id="score" style="font-size:42px;font-weight:900;color:var(--g)">0%</div><p id="resultText" class="mut"></p></div><button class="secondary" onclick="go('quiz')">Retake Quiz</button><div id="quizReview" style="margin-top:12px"></div></section>
 <section id="gpa" class="page hidden">
 <div class="head"><h2>GPA & CGPA <span class="pill">PRO</span></h2><div class="sub">GPA and CGPA calculators are available with CampusMate Pro.</div></div>
 
@@ -432,31 +432,42 @@ async function loadProfile(){
 
 async function refreshProStatus(){
   if(!session?.user?.id)return false;
-  const profileSaysPro=!!(profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active'||profile?.pro_active===true);
-  let active=profileSaysPro, sub=null, querySucceeded=false;
+  const profileSaysPro=!!(profile?.is_pro===true||profile?.pro===true||profile?.pro_active===true||String(profile?.subscription_status||'').toLowerCase()==='active');
+  let active=profileSaysPro, rows=[], querySucceeded=false, activeRow=null, hasProRecord=false;
+  const isProPlan=value=>{const plan=String(value||'').toLowerCase().replace(/[\s-]+/g,'_');return plan==='pro'||plan.includes('pro')||plan.includes('monthly');};
+  const isUnexpired=row=>{if(!row?.expires_at)return true;const t=new Date(row.expires_at).getTime();return Number.isFinite(t)&&t>Date.now();};
   try{
-    const {data,error}=await sb.from('subscriptions').select('status,expires_at,paystack_reference').eq('student_id',session.user.id).eq('plan','pro').eq('status','active').order('expires_at',{ascending:false}).limit(1).maybeSingle();
-    if(error){console.warn('Pro status lookup unavailable:',error.message)}
+    // Read subscription rows for this signed-in account and identify the plan by its stored value,
+    // rather than assuming the database uses one exact plan slug.
+    const {data,error}=await sb.from('subscriptions').select('*').eq('student_id',session.user.id).limit(100);
+    if(error){console.warn('Pro status lookup unavailable; using profile subscription fields:',error.message);}
     else{
       querySucceeded=true;
-      sub=data||null;
-      // If an active subscription row exists, its expiry is authoritative. If no row is
-      // returned, retain a Pro flag already stored on the profile rather than showing an
-      // upgrade prompt to a subscriber because the subscription lookup returned no row.
-      active=sub ? (!sub.expires_at || new Date(sub.expires_at)>new Date()) : profileSaysPro;
+      rows=Array.isArray(data)?data:[];
+      const proRows=rows.filter(row=>isProPlan(row?.plan||row?.plan_name||row?.plan_code||row?.subscription_plan));
+      hasProRecord=proRows.length>0;
+      activeRow=proRows.find(row=>String(row?.status||row?.subscription_status||'').toLowerCase()==='active'&&isUnexpired(row))||null;
+      // A recorded Pro subscription (including an expired one) takes precedence over old profile flags.
+      // If no Pro row exists at all, retain an explicit active Pro flag stored on the profile.
+      active=!!activeRow||(!hasProRecord&&profileSaysPro);
     }
-  }catch(e){console.warn('Pro status lookup failed:',e)}
+  }catch(e){console.warn('Pro status lookup failed; using profile subscription fields:',e)}
   profile=profile||{};
-  profile.pro_active=!!active;
-  profile.pro_subscription=sub||profile.pro_subscription||null;
+  profile.pro_active=!!active;profile.is_pro=!!active;profile.pro=!!active;
+  if(active)profile.subscription_status='active';
+  else if(querySucceeded&&hasProRecord)profile.subscription_status=String((rows.find(row=>isProPlan(row?.plan||row?.plan_name||row?.plan_code||row?.subscription_plan))||{}).status||'inactive').toLowerCase();
+  else if(querySucceeded&&!profileSaysPro)profile.subscription_status='inactive';
+  profile.pro_subscription=activeRow||profile.pro_subscription||null;
   const status=$('proStatusText'), upgrade=$('upgradeProBtn'), refresh=$('refreshProBtn'), note=$('proPaymentMsg');
-  const proCard=$('proCard'), homeBadge=$('homeProBadge');
-  if(status)status.textContent=active?'CampusMate Pro is active. You can take quizzes from 15–100 questions and use GPA & CGPA.':'Free plan: 5 or 10 questions per quiz. GPA & CGPA require Pro.';
+  const proCard=$('proCard'), homeBadge=$('homeProBadge'), headerBadge=$('headerProBadge'), gate=$('proGate');
+  if(status)status.textContent=active?'CampusMate Pro is active. You can take extended quizzes and use GPA & CGPA.':'Free plan: extended quizzes and GPA & CGPA require Pro.';
   if(upgrade){upgrade.classList.toggle('hidden',active);upgrade.textContent='Upgrade to Pro — ₦500/month'}
   if(proCard)proCard.classList.toggle('hidden',active);
   if(homeBadge)homeBadge.classList.toggle('hidden',!active);
-  if(refresh)refresh.classList.toggle('hidden',!active && !sub);
-  if(active && note)note.textContent='Your Pro subscription is active.';
+  if(headerBadge)headerBadge.classList.toggle('hidden',!active);
+  if(refresh)refresh.classList.toggle('hidden',!active && !rows.length);
+  if(active&&gate)gate.classList.add('hidden');
+  if(active&&note)note.textContent='Your Pro subscription is active.';
   return !!active;
 }
 
@@ -820,7 +831,7 @@ async function loadQuizTopics(){
 }
 
 function updateQuizMode(){const mode=$('quizMode')?.value||'practice';if($('quizTimer'))$('quizTimer').textContent=mode==='cbt'?'20 seconds/question':'Untimed';}
-function quizIsPro(){return !!(profile?.pro_active||profile?.is_pro||profile?.pro===true||profile?.subscription_status==='active');}
+function quizIsPro(){return !!(profile?.pro_active===true||profile?.is_pro===true||profile?.pro===true||String(profile?.subscription_status||'').toLowerCase()==='active');}
 function quizCountChanged(){const sel=$('quizCount');if(!sel)return;const n=Number(sel.value||10);if(n>10&&!quizIsPro())openProGate(n);
   if(n>100){sel.value='100';}}
 function questionText(q){return q.question_text||q.question||q.text||q.prompt||q.body||'Question';}
@@ -1072,50 +1083,5 @@ window.addEventListener('popstate',e=>{
     return;
   }
   // On Home, Back always uses the double-tap-to-exit flow, regardless of which portal page was visited before it.
-  if(currentPortalPage==='home'){
-    const now=Date.now();
-    if(now-lastHomeBackAt>0&&now-lastHomeBackAt<10000){
-      allowPortalExit=true;
-      if(e.state?.cmPage){history.back();return;}
-      allowPortalExit=false;
-      return;
-    }
-    lastHomeBackAt=now;
-    try{history.pushState({cmPage:'home'},'',location.href)}catch(err){}
-    const notice=document.createElement('div');
-    notice.textContent='Press back again to exit CampusMate NG';
-    notice.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#123;color:#fff;padding:10px 15px;border-radius:22px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
-    document.body.appendChild(notice);setTimeout(()=>notice.remove(),1800);
-    return;
-  }
-  const next=target||'home';
-  handlingPopState=true;
-  if(next==='gpa'&&!quizIsPro()){openProGate(0,'GPA & CGPA are CampusMate Pro features. Upgrade to Pro to use both calculators.','gpa');}
-  else go(next,null,'none');
-  handlingPopState=false;
-});
-
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){try{sessionStorage.removeItem('cm_page');sessionStorage.removeItem('cm_current_course_id');sessionStorage.removeItem('cm_current_topic_id');sessionStorage.removeItem('cm_current_topic_title')}catch(e){}location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
-(async()=>{
-  window.scrollTo(0,0);
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-  $('auth').classList.remove('hidden');
-  $('student').classList.add('hidden');
-  $('portal').classList.add('hidden');
-  $('onboarding').classList.add('hidden');
-  try{
-    const {data,error}=await sb.auth.getSession();
-    if(!error&&data?.session){
-      let restorePage='home';
-      try{
-        const saved=sessionStorage.getItem('cm_page');
-        if(saved&&$(saved)?.classList.contains('page'))restorePage=saved;
-      }catch(e){}
-      await finishLogin(data.session,restorePage);
-      return;
-    }
-  }catch(e){console.warn('Could not restore the existing CampusMate session:',e)}
-  showAuth('login');
-})();
-</script></div></body></html>
+  if
+Preview truncated for large file
