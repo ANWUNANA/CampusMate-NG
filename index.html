@@ -834,24 +834,9 @@ function questionOptions(q){
 function correctKey(q){if(q._displayCorrectKey)return q._displayCorrectKey;const v=q.correct_answer??q.correctAnswer??q.answer??q.correct_option??q.correctOption??q.correct;if(v==null)return '';const z=String(v).trim(),opts=questionOptions(q);if(/^\d+$/.test(z)){const n=Number(z);if(n>=0&&n<opts.length)return opts[n].key;if(n>=1&&n<=opts.length)return opts[n-1].key;}if(/^[A-Ea-e]$/.test(z))return z.toUpperCase();const idx=opts.findIndex(o=>o.text.trim().toLowerCase()===z.toLowerCase());return idx>=0?opts[idx].key:'';}
 function explanationText(q){return q.explanation||q.answer_explanation||q.rationale||q.solution||'Review the topic material and compare the answer choices carefully.';}
 function quizRotationKey(){return 'cm_quiz_seen_'+session.user.id+'_'+currentCourse.id;}
-function freeQuizPoolKey(topicId=''){return 'cm_quiz_free_pool_'+session.user.id+'_'+currentCourse.id+'_'+(topicId||'all');}
 function shuffled(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 function getSeenQuestionIds(){try{return JSON.parse(localStorage.getItem(quizRotationKey())||'[]')}catch(e){return []}}
 function saveSeenQuestionIds(ids){try{localStorage.setItem(quizRotationKey(),JSON.stringify(ids.slice(-5000)))}catch(e){}}
-function getStableFreeQuestionPool(valid,topicId=''){
-  const key=freeQuizPoolKey(topicId),byId=new Map(valid.map(q=>[String(q.id),q]));
-  let saved=[];
-  try{const parsed=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(parsed))saved=parsed.map(String).filter(id=>byId.has(id));}catch(e){}
-  // Keep the same course-specific set of up to 10 questions for free attempts.
-  // If the bank changes, retain existing valid members and fill only missing slots.
-  const ids=[...new Set(saved)];
-  if(ids.length<Math.min(10,valid.length)){
-    const remaining=shuffled(valid.filter(q=>!ids.includes(String(q.id))));
-    ids.push(...remaining.slice(0,Math.min(10,valid.length)-ids.length).map(q=>String(q.id)));
-  }
-  try{localStorage.setItem(key,JSON.stringify(ids.slice(0,10)));}catch(e){}
-  return ids.slice(0,10).map(id=>byId.get(id)).filter(Boolean);
-}
 
 async function startSelectedQuiz(){
   if(!currentCourse){alert('Choose a course first.');return;}
@@ -872,24 +857,14 @@ async function startSelectedQuiz(){
     const valid=questionRows.filter(q=>questionText(q)!=='Question'&&questionOptions(q).length>=2&&correctKey(q)!=='');
     if(!valid.length){$('quizBoxCard')?.classList.add('hidden');alert('The question bank exists, but its questions are not in a usable format yet. Each question needs options and a correct answer.');return;}
     if(valid.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course currently has only '+valid.length+' usable questions. Add more questions to the course bank or choose a smaller quiz.');return;}
-    // Free users always draw from one stable pool of up to 10 questions per course/topic.
-    // Only the order (and the 5-question subset, when selected) changes between attempts.
-    // Pro users retain the existing wider-bank rotation behaviour.
-    let selectedBase;
-    if(!quizIsPro()){
-      const freePool=getStableFreeQuestionPool(valid,topicId);
-      if(freePool.length<count){$('quizBoxCard')?.classList.add('hidden');alert('This course needs at least '+count+' usable questions in its free question pool.');return;}
-      selectedBase=shuffled(freePool).slice(0,count);
-    }else{
-      let seen=new Set(getSeenQuestionIds());
-      let fresh=valid.filter(q=>!seen.has(String(q.id)));
-      if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
-      selectedBase=shuffled(fresh).slice(0,count);
-      saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
-    }
+    // Both Free (5/10) and Pro quizzes draw from the same published course bank.
+    // Rotate question selection between attempts, then shuffle each question's options.
+    let seen=new Set(getSeenQuestionIds());
+    let fresh=valid.filter(q=>!seen.has(String(q.id)));
+    if(fresh.length<count){seen=new Set();saveSeenQuestionIds([]);fresh=valid;}
+    const selectedBase=shuffled(fresh).slice(0,count);
+    saveSeenQuestionIds([...getSeenQuestionIds(),...selectedBase.map(q=>String(q.id))]);
 
-    // Shuffle answer options independently while keeping each correct answer attached
-    // to its original answer text, so explanations and answer checking remain accurate.
     const selected=selectedBase.map(q=>{
       const originalOptions=questionOptions(q);
       const originalCorrectKey=correctKey(q);
@@ -1120,4 +1095,27 @@ window.addEventListener('popstate',e=>{
   handlingPopState=false;
 });
 
-sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SI
+sb.auth.onAuthStateChange(async(event,s)=>{if(event==='SIGNED_OUT'){try{sessionStorage.removeItem('cm_page');sessionStorage.removeItem('cm_current_course_id');sessionStorage.removeItem('cm_current_topic_id');sessionStorage.removeItem('cm_current_topic_title')}catch(e){}location.reload()}else if(event==='PASSWORD_RECOVERY'){showResetForm();msg('Password reset link verified. Enter your new password below.','success');}});
+(async()=>{
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  $('auth').classList.remove('hidden');
+  $('student').classList.add('hidden');
+  $('portal').classList.add('hidden');
+  $('onboarding').classList.add('hidden');
+  try{
+    const {data,error}=await sb.auth.getSession();
+    if(!error&&data?.session){
+      let restorePage='home';
+      try{
+        const saved=sessionStorage.getItem('cm_page');
+        if(saved&&$(saved)?.classList.contains('page'))restorePage=saved;
+      }catch(e){}
+      await finishLogin(data.session,restorePage);
+      return;
+    }
+  }catch(e){console.warn('Could not restore the existing CampusMate session:',e)}
+  showAuth('login');
+})();
+</script></div></body></html>
